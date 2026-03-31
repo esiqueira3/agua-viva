@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gestão de Tarefas - Água Viva</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-primary": "#ffffff",
+                        "on-primary-fixed": "#03174b",
+                        "on-secondary": "#ffffff",
+                        "surface": "#f9f9ff",
+                        "secondary-fixed-dim": "#c0c5e0",
+                        "secondary-fixed": "#dce1fd",
+                        "on-tertiary-fixed": "#241a00",
+                        "surface-dim": "#d3daea",
+                        "inverse-surface": "#2a313d",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#45464f",
+                        "on-primary-container": "#8494cd",
+                        "surface-container": "#e7eefe",
+                        "tertiary-container": "#3a2c00",
+                        "on-tertiary-container": "#b19238",
+                        "inverse-primary": "#b5c4ff",
+                        "tertiary-fixed": "#ffe08f",
+                        "surface-container-highest": "#dce2f3",
+                        "on-surface": "#151c27",
+                        "on-background": "#151c27",
+                        "surface-container-low": "#f0f3ff",
+                        "secondary-container": "#dce1fd",
+                        "on-secondary-container": "#5e637b",
+                        "inverse-on-surface": "#ebf1ff",
+                        "surface-container-high": "#e2e8f8",
+                        "surface-bright": "#f9f9ff",
+                        "on-secondary-fixed": "#151b2e",
+                        "surface-tint": "#4c5c92",
+                        "on-error-container": "#93000a",
+                        "background": "#f9f9ff",
+                        "primary-fixed-dim": "#b5c4ff",
+                        "primary-fixed": "#dce1ff",
+                        "outline-variant": "#c5c6d1",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#40465c",
+                        "on-error": "#ffffff",
+                        "tertiary": "#221800",
+                        "secondary": "#585d74",
+                        "primary-container": "#1a2b5e",
+                        "primary": "#011549",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#e6c364",
+                        "on-tertiary-fixed-variant": "#584400",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#344478",
+                        "outline": "#757680",
+                        "surface-variant": "#dce2f3"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9f9ff;
+        }
+        h1, h2, h3 {
+            font-family: 'Manrope', sans-serif;
+        }
+    </style>
+</head>
+<body class="text-on-surface bg-surface min-h-screen">
+<!-- TopAppBar Shell -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-[0_20px_40px_rgba(21,28,39,0.06)] flex justify-between items-center px-6 py-4">
+<div class="flex items-center gap-4">
+<span class="text-xl font-bold tracking-[0.05em] text-[#011549] dark:text-[#FFE08F] font-['Manrope']">Água Viva</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex bg-surface-container-low px-4 py-2 rounded-full items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-lg">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-64 text-on-surface" placeholder="Buscar tarefas..." type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<button class="hover:opacity-80 transition-opacity text-[#011549] dark:text-[#DCE2F3] relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<div class="flex items-center gap-3 ml-2 cursor-pointer hover:opacity-80 transition-opacity">
+<img alt="Avatar do Usuário" class="w-10 h-10 rounded-full border-2 border-primary-fixed" data-alt="Close up portrait of a professional woman with a friendly smile, soft natural lighting, high-end editorial photography style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmLrwwKE97U3HU5HNou1hrgAGuLhlqaeTZSPLeR7tBvZh6HoNXUa0R82DRrWKvjypcGFYb3I1wviNLcz6xQWfX2CJ_45d5TnJPn1R5hpFDP9mg2DSd75wCZYnZ8oVA1jiTES5wawOov-J-UvFzzVU_ZVpo49MdeIV4p0i44GOLFT-VeETEF4l5Ei6KhsTu0PxJZsljjTSD5gDxyon_7V0vtKrZ7KNWapUxl1BxrOvuzZmhQU1bpd-IR6mEE2LKLPGY8VAbD1Z7Q84"/>
+<span class="material-symbols-outlined text-[#011549] dark:text-[#DCE2F3]" data-icon="account_circle">account_circle</span>
+</div>
+</div>
+</div>
+</header>
+<!-- SideNavBar Shell -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-[#F0F3FF] dark:bg-slate-950 flex flex-col py-8 z-40">
+<div class="px-6 mb-10">
+<h2 class="font-['Manrope'] font-extrabold text-[#011549] dark:text-[#FFE08F] text-lg">Gestão Água Viva</h2>
+<p class="text-xs text-slate-500 font-semibold tracking-wide uppercase">Editorial Sanctuary</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-6 py-3 text-slate-500 hover:bg-[#DCE2F3] transition-colors font-['Inter'] text-sm font-semibold" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span> Início
+            </a>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-500 hover:bg-[#DCE2F3] transition-colors font-['Inter'] text-sm font-semibold" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span> Usuários
+            </a>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-500 hover:bg-[#DCE2F3] transition-colors font-['Inter'] text-sm font-semibold" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span> Membros
+            </a>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-500 hover:bg-[#DCE2F3] transition-colors font-['Inter'] text-sm font-semibold" href="#">
+<span class="material-symbols-outlined" data-icon="alt_route">alt_route</span> Departamentos
+            </a>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-500 hover:bg-[#DCE2F3] transition-colors font-['Inter'] text-sm font-semibold" href="#">
+<span class="material-symbols-outlined" data-icon="event">event</span> Eventos
+            </a>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-500 hover:bg-[#DCE2F3] transition-colors font-['Inter'] text-sm font-semibold" href="#">
+<span class="material-symbols-outlined" data-icon="location_on">location_on</span> Locais
+            </a>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-500 hover:bg-[#DCE2F3] transition-colors font-['Inter'] text-sm font-semibold" href="#">
+<span class="material-symbols-outlined" data-icon="church">church</span> Igrejas
+            </a>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-500 hover:bg-[#DCE2F3] transition-colors font-['Inter'] text-sm font-semibold" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span> Calendário
+            </a>
+<!-- Active State for Tarefas -->
+<a class="flex items-center gap-3 px-6 py-3 text-[#011549] dark:text-[#FFE08F] border-l-4 border-[#E6C364] bg-white/50 dark:bg-white/5 font-['Inter'] text-sm font-semibold" href="#">
+<span class="material-symbols-outlined" data-icon="assignment" style="font-variation-settings: 'FILL' 1;">assignment</span> Tarefas
+            </a>
+<a class="flex items-center gap-3 px-6 py-3 text-slate-500 hover:bg-[#DCE2F3] transition-colors font-['Inter'] text-sm font-semibold" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span> Configurações
+            </a>
+</nav>
+<div class="px-6 mt-auto">
+<button class="w-full py-3 bg-gradient-to-br from-primary to-primary-container text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-sm">add</span> Nova Tarefa
+            </button>
+<a class="flex items-center gap-3 py-6 text-slate-500 hover:text-error transition-colors font-['Inter'] text-sm font-semibold" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span> Sair
+            </a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="ml-64 pt-24 px-10 pb-12">
+<!-- Header Section -->
+<div class="flex justify-between items-end mb-10">
+<div>
+<h1 class="text-4xl font-extrabold text-primary tracking-tight font-headline">Controle de Tarefas</h1>
+<p class="text-on-surface-variant font-medium mt-1">Gerencie as atividades editoriais e administrativas da comunidade.</p>
+</div>
+<div class="flex gap-3">
+<div class="flex bg-surface-container-low p-1 rounded-xl">
+<button class="px-4 py-2 rounded-lg bg-white shadow-sm text-sm font-bold text-primary">Lista</button>
+<button class="px-4 py-2 rounded-lg text-sm font-semibold text-on-surface-variant hover:bg-white/50 transition-colors">Quadro</button>
+<button class="px-4 py-2 rounded-lg text-sm font-semibold text-on-surface-variant hover:bg-white/50 transition-colors">Calendário</button>
+</div>
+</div>
+</div>
+<!-- Filters & Stats Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+<div class="bg-surface-container-lowest p-6 rounded-xl border-b-2 border-primary/5 flex flex-col">
+<span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1">Total Ativas</span>
+<span class="text-3xl font-extrabold text-primary">24</span>
+<div class="mt-4 flex gap-2">
+<span class="h-1.5 w-1/2 rounded-full bg-primary/20"><div class="h-full w-2/3 bg-primary rounded-full"></div></span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl border-b-2 border-tertiary-fixed-dim flex flex-col">
+<span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1">Em Andamento</span>
+<span class="text-3xl font-extrabold text-[#B19238]">12</span>
+<div class="mt-4 flex gap-2">
+<span class="h-1.5 w-full rounded-full bg-tertiary-fixed"><div class="h-full w-1/2 bg-[#B19238] rounded-full"></div></span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl border-b-2 border-primary-fixed-dim flex flex-col">
+<span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1">Concluídas</span>
+<span class="text-3xl font-extrabold text-on-primary-fixed-variant">8</span>
+<div class="mt-4 flex gap-2">
+<span class="h-1.5 w-full rounded-full bg-primary-fixed"><div class="h-full w-4/5 bg-on-primary-fixed-variant rounded-full"></div></span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl border-b-2 border-error-container flex flex-col">
+<span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-1">Atrasadas</span>
+<span class="text-3xl font-extrabold text-error">4</span>
+<div class="mt-4 flex gap-2">
+<span class="h-1.5 w-full rounded-full bg-error-container"><div class="h-full w-1/3 bg-error rounded-full"></div></span>
+</div>
+</div>
+</div>
+<!-- Task List Area -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden">
+<!-- Table Header / Filters -->
+<div class="p-6 flex flex-col md:flex-row justify-between items-center gap-4 bg-surface-container-low/50">
+<div class="flex gap-4">
+<div class="relative">
+<select class="appearance-none bg-white border-none rounded-lg px-4 py-2 pr-10 text-sm font-semibold text-primary focus:ring-2 focus:ring-primary/20 cursor-pointer shadow-sm">
+<option>Status: Todos</option>
+<option>Pendente</option>
+<option>Em andamento</option>
+<option>Concluída</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-lg">expand_more</span>
+</div>
+<div class="relative">
+<select class="appearance-none bg-white border-none rounded-lg px-4 py-2 pr-10 text-sm font-semibold text-primary focus:ring-2 focus:ring-primary/20 cursor-pointer shadow-sm">
+<option>Prioridade: Todas</option>
+<option>Baixa</option>
+<option>Média</option>
+<option>Alta</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-lg">expand_more</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-sm font-medium text-on-surface-variant">Ordenar por: <span class="text-primary font-bold">Prazo</span></span>
+<button class="p-2 hover:bg-surface-container rounded-lg transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">filter_list</span>
+</button>
+</div>
+</div>
+<!-- Task Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low/30 border-b border-outline-variant/10">
+<th class="px-8 py-5 text-xs font-extrabold text-on-surface-variant uppercase tracking-widest">Nome da Tarefa</th>
+<th class="px-8 py-5 text-xs font-extrabold text-on-surface-variant uppercase tracking-widest">Responsável</th>
+<th class="px-8 py-5 text-xs font-extrabold text-on-surface-variant uppercase tracking-widest">Data de Prazo</th>
+<th class="px-8 py-5 text-xs font-extrabold text-on-surface-variant uppercase tracking-widest">Status</th>
+<th class="px-8 py-5 text-xs font-extrabold text-on-surface-variant uppercase tracking-widest text-center">Prioridade</th>
+<th class="px-8 py-5 text-xs font-extrabold text-on-surface-variant uppercase tracking-widest text-right">Ações</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<!-- Task Row 1 -->
+<tr class="hover:bg-surface-container-low/20 transition-colors group">
+<td class="px-8 py-5">
+<div class="flex flex-col">
+<span class="font-bold text-primary group-hover:text-primary-container transition-colors">Preparar Boletim Mensal</span>
+<span class="text-xs text-on-surface-variant">Editorial / Secretaria</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<img alt="Avatar Responsável" class="w-8 h-8 rounded-full bg-surface-container" data-alt="Portrait of a young man with glasses in a modern office, clean professional look, high-end commercial photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBuw9j4bP44o8VT37kZnzl5De8Sl6N4hus-47LOvii6hK29KGkjLjQCK7JcaB99OEJLvDCnyy1kK9EjM4HkTCFSUVEvur6Rp__XnsCvBbsJ5ph7SzYU5omRd4Q6nv7VTrCwaF74Ay5veK1ict1NvsG0H_teg3SQoYmrBnZXY6GZwwT4SyzFmQZwA1opKqVQ3e8SnlREb1b4bPlyCviaqzmacg_H9hRrTNfjt6wAMAH0RkgiAAaPKFXVZ2D2rT1vx1psZAGcH3m6i8s"/>
+<span class="text-sm font-semibold text-on-surface">Lucas Mendes</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2 text-sm font-medium">
+<span class="material-symbols-outlined text-sm text-on-surface-variant">calendar_today</span>
+                                    15 Out, 2023
+                                </div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 rounded-full text-xs font-bold bg-tertiary-fixed text-on-tertiary-container flex items-center gap-1.5 w-max">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container"></span>
+                                    Em andamento
+                                </span>
+</td>
+<td class="px-8 py-5">
+<div class="flex justify-center">
+<span class="px-3 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-tighter bg-error-container text-error border border-error/10">ALTA</span>
+</div>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 hover:bg-surface-container rounded-full transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-lg">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Task Row 2 -->
+<tr class="hover:bg-surface-container-low/20 transition-colors group">
+<td class="px-8 py-5">
+<div class="flex flex-col">
+<span class="font-bold text-primary group-hover:text-primary-container transition-colors">Revisão do Layout Web</span>
+<span class="text-xs text-on-surface-variant">Comunicação / Digital</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<img alt="Avatar Responsável" class="w-8 h-8 rounded-full bg-surface-container" data-alt="Portrait of a designer woman in a creative studio environment, soft lighting, warm tones, high-end editorial style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5OfqtFJ1AWWmvnue17k5rZ_FIINqq42JYgkSYYrjcNn2c0u9irLWImun3tivkp_wULZ1dwkAJcRyHTpdbSErV6L2nX0mHOqNhkR9s7D1rr8HD1UgQJs6o1I7mkCyKC5y-u-LY9wbQyTuiwwWii11FrtHBlyNrRrNazGpeAmui4YG9Z5xVmtIh64Mhg9a_DMuzeCUJtN0t8PGj5umO8h6gQcN0av6-wgOuobBIf617ZGhctw55YZvIZMaWIUO8Kmk4rKdecKfFW1Y"/>
+<span class="text-sm font-semibold text-on-surface">Ana Clara</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2 text-sm font-medium">
+<span class="material-symbols-outlined text-sm text-on-surface-variant">calendar_today</span>
+                                    18 Out, 2023
+                                </div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 rounded-full text-xs font-bold bg-surface-container-highest text-on-surface-variant flex items-center gap-1.5 w-max">
+<span class="w-1.5 h-1.5 rounded-full bg-on-surface-variant"></span>
+                                    Pendente
+                                </span>
+</td>
+<td class="px-8 py-5">
+<div class="flex justify-center">
+<span class="px-3 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-tighter bg-primary-fixed text-primary border border-primary/10">MÉDIA</span>
+</div>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 hover:bg-surface-container rounded-full transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-lg">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Task Row 3 -->
+<tr class="hover:bg-surface-container-low/20 transition-colors group">
+<td class="px-8 py-5">
+<div class="flex flex-col">
+<span class="font-bold text-primary group-hover:text-primary-container transition-colors">Relatório Financeiro Q3</span>
+<span class="text-xs text-on-surface-variant">Admin / Finanças</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<img alt="Avatar Responsável" class="w-8 h-8 rounded-full bg-surface-container" data-alt="Portrait of a senior executive man, professional and calm, natural morning light, high-end corporate photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0DsIRdUWrdfvpzrlQF2R7PyMkTJSnwhGjUIOmtvtITrFhB2GSkoaHcV3owuIvM4uy2xw9L-PO7ush3nU364N3PrKzUDZgdUTxERLDT_cOA-jXYwz-sDOrWqQpZkqz0Y7kkVqluWVTgYoJzNae3V7MWLdOeYYjcbEDoUfEwAbyjmSqUk6Pfj-Pkw6vkgK6nJffJRQIlJgRZkRJJeVoJhR8blurqLEVeyB1BuYemuAJMX6_P27s7ad8rc-ttVp1Kcvht5QjLk8ik8E"/>
+<span class="text-sm font-semibold text-on-surface">Roberto Silva</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2 text-sm font-medium text-error">
+<span class="material-symbols-outlined text-sm">priority_high</span>
+                                    Ontem
+                                </div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 rounded-full text-xs font-bold bg-error-container text-error flex items-center gap-1.5 w-max">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+                                    Atrasada
+                                </span>
+</td>
+<td class="px-8 py-5">
+<div class="flex justify-center">
+<span class="px-3 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-tighter bg-error-container text-error border border-error/10">ALTA</span>
+</div>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 hover:bg-surface-container rounded-full transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-lg">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Task Row 4 -->
+<tr class="hover:bg-surface-container-low/20 transition-colors group">
+<td class="px-8 py-5">
+<div class="flex flex-col">
+<span class="font-bold text-primary line-through opacity-50">Postagens Redes Sociais</span>
+<span class="text-xs text-on-surface-variant">Comunicação / Social</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<img alt="Avatar Responsável" class="w-8 h-8 rounded-full bg-surface-container" data-alt="Close up of a creative professional woman, artistic and focused, soft studio lighting, professional portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzj-J6THg1txLUadLkU2m2f6w-aKGCD3JJYXC7lHwFmuIhF6cNX9Q9pJKWDXjGf6jjNqYCsUj7k5UEKfbSEaGlQHsEi8ujAZ5ThxqvG3NYvJcJhY9-0F5GycKU7jdsf-ywmgUlCUuNt7_8aKoem7-Ydf4pmfEgd86EMVC55Dwld-ykcMl85kQmBGF5FmlPhYx3coX9biibB4G-aOzves5zWTd2x6OwL6wvM_i3t7xflSiNhF2aEr0TWAM4H7S23HvGssgH0v_1OX0"/>
+<span class="text-sm font-semibold text-on-surface opacity-60">Beatriz Santos</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2 text-sm font-medium opacity-60">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+                                    10 Out, 2023
+                                </div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 rounded-full text-xs font-bold bg-primary-fixed text-on-primary-fixed-variant flex items-center gap-1.5 w-max">
+<span class="w-1.5 h-1.5 rounded-full bg-on-primary-fixed-variant"></span>
+                                    Concluída
+                                </span>
+</td>
+<td class="px-8 py-5">
+<div class="flex justify-center">
+<span class="px-3 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-tighter bg-surface-container-high text-on-surface-variant border border-outline-variant/20">BAIXA</span>
+</div>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 hover:bg-surface-container rounded-full transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined text-lg">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="p-6 flex justify-between items-center bg-surface-container-low/20 border-t border-outline-variant/10">
+<span class="text-sm font-medium text-on-surface-variant">Exibindo 1-4 de 24 tarefas</span>
+<div class="flex items-center gap-2">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white transition-colors disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined text-lg">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-white font-bold text-sm">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white transition-colors font-bold text-sm text-on-surface-variant">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white transition-colors font-bold text-sm text-on-surface-variant">3</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white transition-colors">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Secondary Card: Team Focus (Asymmetric Element) -->
+<div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="md:col-span-2 bg-primary-container text-white p-8 rounded-2xl relative overflow-hidden">
+<div class="relative z-10">
+<h3 class="text-2xl font-bold font-headline mb-2 text-primary-fixed">Resumo Semanal</h3>
+<p class="text-on-primary-container max-w-md mb-6">Você tem 5 tarefas que vencem nos próximos 3 dias. Mantenha o foco nos departamentos de Comunicação.</p>
+<button class="px-6 py-2 bg-[#FFE08F] text-[#241a00] rounded-xl font-bold text-sm hover:opacity-90 transition-opacity">Ver Próximas Tarefas</button>
+</div>
+<!-- Abstract Design Decor -->
+<div class="absolute -right-10 -bottom-10 w-64 h-64 bg-primary rounded-full blur-3xl opacity-50"></div>
+<div class="absolute top-4 right-8 opacity-20">
+<span class="material-symbols-outlined text-[120px]" data-icon="task_alt">task_alt</span>
+</div>
+</div>
+<div class="bg-surface-container-highest p-8 rounded-2xl border border-primary/5">
+<h3 class="text-lg font-bold text-primary mb-4">Carga da Equipe</h3>
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-3">
+<img alt="Member" class="w-6 h-6 rounded-full" data-alt="Portrait of young man in office" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-nc7KQ_FH_i2mt178AjCcZe-P9JdPwtCxe0Ku6qLnGvUX-y6hM8e-QrPy55sLc1l0vc3xEBH1yIxHA4ItmcTNNAywdWa7wcX6D3cDsJPlhonquYZR1kD0mlGBPN8k2DG5qU1tApKiJC2y_krGfqQOTvvTIFWA3fpNlsKnXyjYfS2vNjBTap4y_TOR3knCgRyc3A4O9YpHfTSbh1lhpC7WIzxgK4t7g_pZ1jivQKZskqZsnUC0JmZsj_qVGk_QkOxt0Y6d9VeAwCM"/>
+<span class="text-xs font-bold text-on-surface">Lucas M.</span>
+</div>
+<span class="text-xs font-extrabold text-primary">85%</span>
+</div>
+<div class="h-1.5 w-full bg-white rounded-full overflow-hidden">
+<div class="h-full w-[85%] bg-primary"></div>
+</div>
+<div class="flex justify-between items-center pt-2">
+<div class="flex items-center gap-3">
+<img alt="Member" class="w-6 h-6 rounded-full" data-alt="Portrait of creative woman" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrYaSTT7B8gUgVFzJFhtnituBQhsLIU7x70lGXkZyqEHtmPdlB9YaQrYcXilKpDxSw4Z1lDpSWMSAJWf4aMNQbfwRVWuFwyNkH4j6J_cd8-jUqL-I4-bEfIXi-lkNGu1g5OV82Q2CNnPas3j42O3EC87GrIEy4l2sgZ9i_vwndFKq6A2kzoCyoEY9ZbUwWOXLS8wAwd7j9DOX0bMWYpuGb50gwbmqUT0LP19ww8x96OJ1hfIJI8YIjQZSx6hcoFeJqc97ju5VIoRQ"/>
+<span class="text-xs font-bold text-on-surface">Ana C.</span>
+</div>
+<span class="text-xs font-extrabold text-primary">40%</span>
+</div>
+<div class="h-1.5 w-full bg-white rounded-full overflow-hidden">
+<div class="h-full w-[40%] bg-primary"></div>
+</div>
+</div>
+<button class="w-full mt-8 py-3 rounded-xl border border-primary/10 text-primary font-bold text-xs hover:bg-white transition-colors">Redistribuir Carga</button>
+</div>
+</div>
+</main>
+<!-- FAB Suppression Rule: Not rendered here as per task requirement on "Details/Transactional" style logic, but the primary view is a dashboard, so if needed, it would be here. Sticking to the top-right button as requested by user. -->
+</body></html>

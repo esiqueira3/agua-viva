@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gestão Água Viva - Igrejas</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-primary": "#ffffff",
+                        "on-primary-fixed": "#03174b",
+                        "on-secondary": "#ffffff",
+                        "surface": "#f9f9ff",
+                        "secondary-fixed-dim": "#c0c5e0",
+                        "secondary-fixed": "#dce1fd",
+                        "on-tertiary-fixed": "#241a00",
+                        "surface-dim": "#d3daea",
+                        "inverse-surface": "#2a313d",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#45464f",
+                        "on-primary-container": "#8494cd",
+                        "surface-container": "#e7eefe",
+                        "tertiary-container": "#3a2c00",
+                        "on-tertiary-container": "#b19238",
+                        "inverse-primary": "#b5c4ff",
+                        "tertiary-fixed": "#ffe08f",
+                        "surface-container-highest": "#dce2f3",
+                        "on-surface": "#151c27",
+                        "on-background": "#151c27",
+                        "surface-container-low": "#f0f3ff",
+                        "secondary-container": "#dce1fd",
+                        "on-secondary-container": "#5e637b",
+                        "inverse-on-surface": "#ebf1ff",
+                        "surface-container-high": "#e2e8f8",
+                        "surface-bright": "#f9f9ff",
+                        "on-secondary-fixed": "#151b2e",
+                        "surface-tint": "#4c5c92",
+                        "on-error-container": "#93000a",
+                        "background": "#f9f9ff",
+                        "primary-fixed-dim": "#b5c4ff",
+                        "primary-fixed": "#dce1ff",
+                        "outline-variant": "#c5c6d1",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#40465c",
+                        "on-error": "#ffffff",
+                        "tertiary": "#221800",
+                        "secondary": "#585d74",
+                        "primary-container": "#1a2b5e",
+                        "primary": "#011549",
+                        "error": "#ba1a1a",
+                        "tertiary-fixed-dim": "#e6c364",
+                        "on-tertiary-fixed-variant": "#584400",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#344478",
+                        "outline": "#757680",
+                        "surface-variant": "#dce2f3"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface">
+<!-- Sidebar Navigation -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-[#F0F3FF] dark:bg-slate-950 flex flex-col h-full py-8 border-r border-[#C5C6D1]/20 z-50">
+<div class="px-6 mb-10">
+<h1 class="font-headline font-extrabold text-primary dark:text-tertiary-fixed text-xl tracking-tight">Gestão Água Viva</h1>
+<p class="text-xs font-semibold text-on-surface-variant/70 uppercase tracking-widest mt-1">Editorial Sanctuary</p>
+</div>
+<nav class="flex-1 space-y-1 px-3">
+<!-- Navigation Items mapping from JSON -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-[#DCE2F3] transition-colors font-semibold text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                Início
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-[#DCE2F3] transition-colors font-semibold text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+                Usuários
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-[#DCE2F3] transition-colors font-semibold text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+                Membros
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-[#DCE2F3] transition-colors font-semibold text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="alt_route">alt_route</span>
+                Departamentos
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-[#DCE2F3] transition-colors font-semibold text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="event">event</span>
+                Eventos
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-[#DCE2F3] transition-colors font-semibold text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="location_on">location_on</span>
+                Locais
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-primary dark:text-tertiary-fixed border-l-4 border-[#E6C364] bg-white/50 dark:bg-white/5 font-semibold text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="church">church</span>
+                Igrejas
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-[#DCE2F3] transition-colors font-semibold text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+                Calendário
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-[#DCE2F3] transition-colors font-semibold text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+                Tarefas
+            </a>
+<div class="pt-6 mt-6 border-t border-outline-variant/20">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-[#DCE2F3] transition-colors font-semibold text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+                    Configurações
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-error hover:bg-error-container transition-colors font-semibold text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+                    Sair
+                </a>
+</div>
+</nav>
+<div class="px-4 mt-auto">
+<button class="w-full py-4 bg-primary text-on-primary rounded-xl font-headline font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                Nova Tarefa
+            </button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 min-h-screen relative">
+<!-- Top App Bar -->
+<header class="fixed top-0 right-0 left-64 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl flex justify-between items-center px-8 py-4 shadow-[0_20px_40px_rgba(21,28,39,0.06)]">
+<div class="flex items-center gap-4">
+<h2 class="font-headline font-bold text-2xl text-primary tracking-tight">Gestão de Igrejas</h2>
+<span class="bg-surface-container-high px-3 py-1 rounded-full text-xs font-bold text-on-surface-variant uppercase tracking-tighter">Editorial</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative group">
+<span class="absolute inset-y-0 left-3 flex items-center text-on-surface-variant/50">
+<span class="material-symbols-outlined text-xl" data-icon="search">search</span>
+</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full text-sm focus:ring-2 focus:ring-primary/20 w-64 transition-all focus:w-80" placeholder="Buscar igreja..." type="text"/>
+</div>
+<div class="flex items-center gap-3">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-colors relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<div class="h-10 w-10 rounded-full overflow-hidden border-2 border-surface-container-high">
+<img alt="Avatar do Usuário" class="w-full h-full object-cover" data-alt="Portrait of a male church administrator in professional attire, soft natural studio lighting, neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAS2wTnYVCLqlj8JtCMonyypLhLxNqvJP34kznmwX3LFo7-ejxvGVvLja9-YKojQIOHOt4frjyVeikTOILRzXAEX1Tf7LYFtjMhJkPlMoOGm_RKcyWOg2ASkVmI4ycUEEVtA6RTPxARlpgI7VsppVpZ7EZdWTEnXgyYPC1V9Y5nX-wEZJ245pbi41BUJoUDS-dzTppNQm30fw66V4R9sDNntAM823m24UGEBM7txeBqFIFGiZ0L2UxV1wCiqMpuNmcc6O4ITF_E4hI"/>
+</div>
+</div>
+</div>
+</header>
+<div class="pt-28 px-10 pb-16 space-y-10">
+<!-- Registration Bento Section -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Registration Form Card -->
+<div class="lg:col-span-8 bg-surface-container-lowest rounded-xl p-8 shadow-[0_20px_40px_rgba(21,28,39,0.04)]">
+<div class="mb-8 flex items-center justify-between">
+<div>
+<h3 class="font-headline font-bold text-xl text-primary">Nova Unidade</h3>
+<p class="text-on-surface-variant text-sm mt-1">Cadastre uma nova matriz ou filial no sistema.</p>
+</div>
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-4xl" data-icon="church">church</span>
+</div>
+<form class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Nome da Unidade</label>
+<input class="w-full bg-surface-container-low border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary/20 transition-shadow" placeholder="Ex: Água Viva Central" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Código de Identificação</label>
+<input class="w-full bg-surface-container-low border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary/20 transition-shadow" placeholder="AV-001" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Tipo de Unidade</label>
+<select class="w-full bg-surface-container-low border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary/20 transition-shadow appearance-none">
+<option>Selecione o tipo...</option>
+<option>Matriz</option>
+<option>Filial</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">Igreja Matriz Vinculada</label>
+<select class="w-full bg-surface-container-low border-none rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary/20 transition-shadow appearance-none">
+<option>Não se aplica (é Matriz)</option>
+<option>Água Viva Central - SP</option>
+<option>Água Viva Sul - RS</option>
+</select>
+</div>
+<div class="md:col-span-2 pt-4 flex justify-end gap-4">
+<button class="px-6 py-3 rounded-lg text-primary font-bold hover:bg-surface-container-high transition-colors" type="button">Limpar Campos</button>
+<button class="px-10 py-3 bg-primary text-on-primary rounded-lg font-bold shadow-lg shadow-primary/20 hover:bg-primary-container transition-all" type="submit">Salvar Unidade</button>
+</div>
+</form>
+</div>
+<!-- Summary/Stats Card -->
+<div class="lg:col-span-4 flex flex-col gap-6">
+<div class="bg-primary text-on-primary rounded-xl p-6 relative overflow-hidden shadow-xl h-full">
+<div class="relative z-10">
+<p class="text-primary-fixed-dim text-xs font-bold uppercase tracking-widest mb-1">Status da Rede</p>
+<h4 class="text-3xl font-headline font-extrabold mb-6">Rede Água Viva</h4>
+<div class="space-y-4">
+<div class="flex justify-between items-center py-2 border-b border-on-primary/10">
+<span class="text-sm opacity-80">Total de Unidades</span>
+<span class="text-xl font-bold">42</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-on-primary/10">
+<span class="text-sm opacity-80">Matrizes</span>
+<span class="text-xl font-bold text-tertiary-fixed">08</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-on-primary/10">
+<span class="text-sm opacity-80">Filiais</span>
+<span class="text-xl font-bold">34</span>
+</div>
+</div>
+</div>
+<!-- Background decoration -->
+<div class="absolute -bottom-10 -right-10 w-48 h-48 bg-primary-container rounded-full opacity-50 blur-3xl"></div>
+<div class="absolute -top-10 -left-10 w-32 h-32 bg-tertiary-fixed opacity-10 rounded-full blur-2xl"></div>
+</div>
+</div>
+</section>
+<!-- Table Section -->
+<section class="bg-surface-container-lowest rounded-xl shadow-[0_20px_40px_rgba(21,28,39,0.04)] overflow-hidden">
+<div class="px-8 py-6 border-b border-outline-variant/10 flex items-center justify-between bg-surface-container-low/30">
+<h3 class="font-headline font-bold text-xl text-primary">Unidades Cadastradas</h3>
+<div class="flex gap-2">
+<button class="p-2 bg-white rounded-lg border border-outline-variant/20 hover:bg-surface-container transition-colors shadow-sm">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="filter_list">filter_list</span>
+</button>
+<button class="p-2 bg-white rounded-lg border border-outline-variant/20 hover:bg-surface-container transition-colors shadow-sm">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="download">download</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-low/50">
+<th class="px-8 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Unidade</th>
+<th class="px-8 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Código</th>
+<th class="px-8 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Tipo</th>
+<th class="px-8 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Vínculo</th>
+<th class="px-8 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Status</th>
+<th class="px-8 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right">Ações</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low/20 transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary-fixed flex items-center justify-center text-primary font-bold">AC</div>
+<div>
+<p class="font-bold text-on-surface">Água Viva Central</p>
+<p class="text-xs text-on-surface-variant">São Paulo - SP</p>
+</div>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="text-sm font-mono bg-surface-container px-2 py-1 rounded">SP-001</span>
+</td>
+<td class="px-8 py-5">
+<span class="text-xs font-bold px-3 py-1 rounded-full bg-primary-container text-on-primary-container uppercase tracking-tight">Matriz</span>
+</td>
+<td class="px-8 py-5">
+<span class="text-sm text-on-surface-variant">-</span>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+<span class="text-xs font-bold text-primary uppercase">Ativa</span>
+</div>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-error transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low/20 transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-secondary-fixed flex items-center justify-center text-secondary font-bold">AL</div>
+<div>
+<p class="font-bold text-on-surface">Água Viva Lapa</p>
+<p class="text-xs text-on-surface-variant">São Paulo - SP</p>
+</div>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="text-sm font-mono bg-surface-container px-2 py-1 rounded">SP-012</span>
+</td>
+<td class="px-8 py-5">
+<span class="text-xs font-bold px-3 py-1 rounded-full bg-surface-container-highest text-on-surface-variant uppercase tracking-tight">Filial</span>
+</td>
+<td class="px-8 py-5">
+<span class="text-sm font-semibold text-primary">Água Viva Central</span>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<span class="text-xs font-bold text-primary uppercase">Ativa</span>
+</div>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-error transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low/20 transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-error-container flex items-center justify-center text-error font-bold">AS</div>
+<div>
+<p class="font-bold text-on-surface">Água Viva Sorocaba</p>
+<p class="text-xs text-on-surface-variant">Sorocaba - SP</p>
+</div>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="text-sm font-mono bg-surface-container px-2 py-1 rounded">SP-045</span>
+</td>
+<td class="px-8 py-5">
+<span class="text-xs font-bold px-3 py-1 rounded-full bg-surface-container-highest text-on-surface-variant uppercase tracking-tight">Filial</span>
+</td>
+<td class="px-8 py-5">
+<span class="text-sm font-semibold text-primary">Água Viva Central</span>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-on-surface-variant opacity-40"></div>
+<span class="text-xs font-bold text-on-surface-variant uppercase">Inativa</span>
+</div>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-error transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-8 py-4 bg-surface-container-low/30 border-t border-outline-variant/10 flex items-center justify-between">
+<p class="text-xs font-semibold text-on-surface-variant">Exibindo 3 de 42 unidades</p>
+<div class="flex gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded bg-white shadow-sm border border-outline-variant/20 text-primary">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container text-on-surface-variant">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded hover:bg-surface-container text-on-surface-variant">3</button>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Map/Location Floating Card (Decorative Asymmetry) -->
+<div class="fixed bottom-8 right-8 w-72 glass-panel rounded-xl p-4 shadow-2xl border border-white/40 hidden xl:block">
+<div class="flex items-center gap-3 mb-3">
+<span class="material-symbols-outlined text-primary" data-icon="map">map</span>
+<p class="font-headline font-bold text-sm text-primary">Distribuição Geográfica</p>
+</div>
+<div class="h-32 rounded-lg overflow-hidden relative">
+<img alt="Mapa de Localização" class="w-full h-full object-cover" data-alt="Modern abstract minimalist map visualization of São Paulo city, muted tones, high contrast architectural style" data-location="São Paulo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIT38LyOCMYIaF7GHKvo7EcD3i5puSH5dGlcGwhiFGEzy9N3JUUFvfkYBkmsMWSURDIA_RKL0Ceqx_o0aRonDLumRUvQ1GMi8Rjgh54tRnbv0F8R3Yvu66N0KVo-0hegbuz8I3TT_vPdG1nl0549QCuogbAwarTGkcVD6vbW2AHuwq7ZOF30_unM4znl1KXhBKDQM02LKNFOBQgBFUMFAJ1sEEmBwfhHc_qgJWTYzftfZ-80NTeVoMIKNz6Ql6-5FdVMh1uQLpaLQ"/>
+<div class="absolute inset-0 bg-primary/10"></div>
+</div>
+<p class="mt-3 text-[10px] uppercase font-extrabold text-on-surface-variant tracking-widest text-center">Filtro por Região: Sudeste (Ativo)</p>
+</div>
+</body></html>

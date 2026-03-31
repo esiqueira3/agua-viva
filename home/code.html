@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Água Viva - Santuário Editorial</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "on-secondary-fixed-variant": "#40465c",
+                "on-tertiary-fixed": "#241a00",
+                "secondary-fixed": "#dce1fd",
+                "tertiary-fixed-dim": "#e6c364",
+                "outline": "#757680",
+                "primary-container": "#1a2b5e",
+                "on-secondary": "#ffffff",
+                "outline-variant": "#c5c6d1",
+                "on-primary-fixed": "#03174b",
+                "inverse-surface": "#2a313d",
+                "on-secondary-container": "#5e637b",
+                "surface-variant": "#dce2f3",
+                "background": "#f9f9ff",
+                "error": "#ba1a1a",
+                "on-tertiary-container": "#b19238",
+                "on-error": "#ffffff",
+                "inverse-primary": "#b5c4ff",
+                "on-surface": "#151c27",
+                "surface-container-lowest": "#ffffff",
+                "surface-tint": "#4c5c92",
+                "secondary-container": "#dce1fd",
+                "error-container": "#ffdad6",
+                "on-surface-variant": "#45464f",
+                "primary": "#011549",
+                "surface-dim": "#d3daea",
+                "on-error-container": "#93000a",
+                "secondary-fixed-dim": "#c0c5e0",
+                "on-primary": "#ffffff",
+                "surface-container-highest": "#dce2f3",
+                "inverse-on-surface": "#ebf1ff",
+                "surface-container-high": "#e2e8f8",
+                "surface": "#f9f9ff",
+                "on-tertiary": "#ffffff",
+                "on-tertiary-fixed-variant": "#584400",
+                "primary-fixed": "#dce1ff",
+                "tertiary-container": "#3a2c00",
+                "tertiary": "#221800",
+                "on-primary-fixed-variant": "#344478",
+                "on-primary-container": "#8494cd",
+                "on-secondary-fixed": "#151b2e",
+                "secondary": "#585d74",
+                "on-background": "#151c27",
+                "surface-container-low": "#f0f3ff",
+                "surface-container": "#e7eefe",
+                "surface-bright": "#f9f9ff",
+                "primary-fixed-dim": "#b5c4ff",
+                "tertiary-fixed": "#ffe08f"
+              },
+              fontFamily: {
+                "headline": ["Manrope"],
+                "body": ["Inter"],
+                "label": ["Inter"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9f9ff;
+        }
+        h1, h2, h3 {
+            font-family: 'Manrope', sans-serif;
+        }
+        .glass-sidebar {
+            background: rgba(249, 249, 255, 0.8);
+            backdrop-filter: blur(20px);
+        }
+    </style>
+</head>
+<body class="text-on-surface bg-background">
+<!-- Sidebar (Shared Component: SideNavBar) -->
+<aside class="h-screen w-64 fixed left-0 top-0 flex flex-col border-r border-slate-200/20 bg-slate-50 dark:bg-slate-950 z-50">
+<div class="flex flex-col h-full py-6">
+<div class="px-6 mb-10">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-tertiary-fixed">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">water_drop</span>
+</div>
+<div>
+<h1 class="font-manrope text-lg font-extrabold tracking-tight text-[#011549] dark:text-blue-50">Água Viva</h1>
+<p class="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold">Santuário Editorial</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-[#011549] dark:text-blue-400 border-l-4 border-[#E6C364] bg-blue-50/50 dark:bg-blue-900/20 font-inter text-sm font-semibold transition-all scale-[0.99]" href="#"><span class="material-symbols-outlined">home</span> Início</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200 font-inter text-sm font-semibold" href="#"><span class="material-symbols-outlined">group</span> Usuários</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200 font-inter text-sm font-semibold" href="#"><span class="material-symbols-outlined">person_add</span> Membros</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200 font-inter text-sm font-semibold" href="#"><span class="material-symbols-outlined">account_tree</span> Departamentos</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200 font-inter text-sm font-semibold" href="#"><span class="material-symbols-outlined">event</span> Eventos</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200 font-inter text-sm font-semibold" href="#"><span class="material-symbols-outlined">location_on</span> Locais</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200 font-inter text-sm font-semibold" href="#"><span class="material-symbols-outlined">church</span> Igrejas</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200 font-inter text-sm font-semibold" href="#"><span class="material-symbols-outlined">calendar_month</span> Calendário</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200 font-inter text-sm font-semibold" href="#"><span class="material-symbols-outlined">assignment</span> Tarefas</a>
+</nav>
+<div class="mt-auto px-4 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] font-inter text-sm font-semibold" href="#"><span class="material-symbols-outlined">settings</span> Configurações</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-error font-inter text-sm font-semibold" href="#"><span class="material-symbols-outlined">logout</span> Sair</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen">
+<!-- Top Navigation (Shared Component: TopNavBar) -->
+<header class="flex justify-between items-center w-full px-8 py-4 docked full-width top-0 sticky z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/20 shadow-sm">
+<div class="flex items-center gap-8">
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline-variant">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-xl text-sm focus:ring-2 focus:ring-primary-container w-64 transition-all" placeholder="Buscar qualquer coisa..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="flex items-center gap-3 pl-6 border-l border-outline-variant/30">
+<div class="text-right">
+<p class="text-sm font-bold text-primary font-manrope">André Santos</p>
+<p class="text-[10px] text-on-surface-variant uppercase font-semibold">Administrador</p>
+</div>
+<img alt="User profile avatar" class="w-10 h-10 rounded-full border-2 border-tertiary-fixed object-cover" data-alt="portrait of a professional man in a dark suit with a warm and friendly expression in an office environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqtAx7FfaV8bgNHhHUJ5Lic9Up5yOuo_H2FckgNemRD8cMdQEiHuzdZoca7UXxxPZswHkq_HIG9zvoXmYvV0PhyIrasOuZw58EfQxKPH6ti4XCY0lAcrKnts9e9y1-umrcn-LoM3rYk9_nrArQ3viKxtlHLMVuA7vPAtUAsEiQE3XAp-zP_P4IiVwL5Tl2dwbvr7NgNoGXgr681DVMHLqgmKWk6nWO5qVPAGl3lOjwMPFL3zIsdymryRSBgze_9R1B0yQ9vd8cpDE"/>
+</div>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="p-8 max-w-7xl mx-auto space-y-10">
+<!-- Hero Header Section -->
+<section class="flex justify-between items-end">
+<div>
+<h2 class="text-4xl font-manrope font-extrabold tracking-tight text-primary">Bem-vindo, Sanctuary</h2>
+<p class="text-on-surface-variant mt-2 font-body text-lg">Aqui está o pulso da sua comunidade hoje.</p>
+</div>
+<button class="flex items-center gap-2 bg-gradient-to-br from-primary to-primary-container text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-primary/20 transition-all active:scale-95">
+<span class="material-symbols-outlined">add</span> Nova tarefa
+            </button>
+</section>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-6">
+<!-- 1. Aniversariantes do Mês (Large Column) -->
+<div class="col-span-12 lg:col-span-4 bg-surface-container-lowest rounded-xl p-6 shadow-sm flex flex-col h-full border border-outline-variant/10">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-lg font-manrope font-bold text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary-fixed-dim">cake</span> Aniversariantes
+                    </h3>
+<span class="text-xs font-bold text-on-surface-variant/60 uppercase tracking-widest">Outubro</span>
+</div>
+<div class="space-y-4 flex-1">
+<!-- Birthday Card 1 -->
+<div class="flex items-center gap-4 p-3 rounded-xl bg-surface-container-low/50 hover:bg-surface-container-low transition-colors group">
+<div class="relative">
+<img alt="Birthday User" class="w-12 h-12 rounded-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="close-up portrait of a smiling woman with glasses and long dark hair in soft natural daylight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCe1jz2iHVRyIDbn58wbizR2_cxIiYIZcP5F3WoE5zfmkckRT0aT11zh-Pu_SVWVyZ-LSgn2dH1FIODyy-Yr3du96eE6pKGt4uhcpTSErJ-BACTWNtPGR6uPsTzJgNEN-CvGMYbsUfLzEdp0YY95Gu5XktsV5eYUwIUWl7MOYP1p8zH_gYsyhSksPaEkqHEPwbCQ8J6vPF-M_KDMRjfS33kQy9M_KumC2ZrqYVQzizJWaKk96I1iF39a_hjurRn7rMMKoBWKr01FnE"/>
+<span class="absolute -bottom-1 -right-1 bg-error text-[8px] text-white px-1.5 py-0.5 rounded-full font-bold border-2 border-white">HOJE</span>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-bold text-on-surface">Mariana Costa</h4>
+<p class="text-xs text-on-surface-variant">24 de Outubro</p>
+</div>
+<button class="w-8 h-8 flex items-center justify-center rounded-full bg-primary-fixed text-primary hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined text-sm">send</span>
+</button>
+</div>
+<!-- Birthday Card 2 -->
+<div class="flex items-center gap-4 p-3 rounded-xl hover:bg-surface-container-low transition-colors group">
+<img alt="Birthday User" class="w-12 h-12 rounded-full object-cover grayscale" data-alt="headshot of a young man with a slight beard looking directly at the camera with a neutral expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGFbDCFyuG4rW61uEBtychnjlE8fK0_re6OZ7xB1xyq6MiUTlIPzEQSNWC9skHW_OKgY7DpXFxiMYfZZXamBDWMG7Tk28mckb91F3ehqo7aaSO0z-V9A6Sg_UjvmSDhCIpBNXVFrqpv1Yd_KQDIY-dsczXlBO-FHHouM2_mi_0l4CHndPMq99F3D_VjeEDaV96NqWl2JwMqz-cIbUiBoIaQDA6g6kVjCpwzVBsqiGs4u0JBwjo3Y5I7kt2cZwnLj7RQRfHC1EWoHQ"/>
+<div class="flex-1">
+<h4 class="text-sm font-bold text-on-surface">Lucas Oliveira</h4>
+<p class="text-xs text-on-surface-variant">26 de Outubro</p>
+</div>
+</div>
+<!-- Birthday Card 3 -->
+<div class="flex items-center gap-4 p-3 rounded-xl hover:bg-surface-container-low transition-colors group">
+<img alt="Birthday User" class="w-12 h-12 rounded-full object-cover grayscale" data-alt="portrait of a middle-aged woman with curly hair smiling in a sun-drenched outdoor garden" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvF9NVg5zhazhiIXbFGeSzjldoAW0mfrHw8oX1FNgqbyVNcUJoLdU2qL8smt2atyStnwLzm9jzETCLE5dWQw8FuTdPOcNZLUV7NiXpu8l5Gu0o5a7rqW8WMr-QvsmwrqwrFYlL94EII92rvLRglFS-iUk_O9OnmPQmfv4hM0sP76bxaogoaiC_hOKYXY3pKGqH7oKhJQ9Ju5SVzyIxRrFtRcLbNEJ_xziftxrPWWaKje9UyThs2PfuD8mIDt9BsX4KrQUT8ZQoA4I"/>
+<div class="flex-1">
+<h4 class="text-sm font-bold text-on-surface">Elena Martins</h4>
+<p class="text-xs text-on-surface-variant">29 de Outubro</p>
+</div>
+</div>
+</div>
+</div>
+<!-- 2. Próximos Eventos (Mid Column) -->
+<div class="col-span-12 lg:col-span-5 bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant/10">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-lg font-manrope font-bold text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">theater_comedy</span> Próximos Eventos
+                    </h3>
+<a class="text-xs font-bold text-primary hover:underline uppercase" href="#">Ver todos</a>
+</div>
+<div class="space-y-3">
+<!-- Event 1 -->
+<div class="p-4 rounded-xl border border-outline-variant/20 bg-surface shadow-sm relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1.5 h-full bg-[#8B5CF6]"></div>
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-bold text-on-surface leading-tight">Noite de Adoração &amp; Louvor</h4>
+<div class="flex items-center gap-4 mt-2">
+<div class="flex items-center gap-1 text-[11px] text-on-surface-variant font-medium">
+<span class="material-symbols-outlined text-sm">calendar_today</span> 25 Out
+                                    </div>
+<div class="flex items-center gap-1 text-[11px] text-on-surface-variant font-medium">
+<span class="material-symbols-outlined text-sm">schedule</span> 19:30
+                                    </div>
+</div>
+</div>
+<div class="flex flex-col items-end gap-2">
+<span class="px-2 py-1 bg-purple-50 text-purple-600 text-[10px] font-extrabold rounded-md uppercase">Adoração</span>
+<div class="flex items-center gap-1.5 px-2 py-0.5 bg-primary-fixed rounded-full">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="text-[9px] font-bold text-primary uppercase">Confirmado</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Event 2 -->
+<div class="p-4 rounded-xl border border-outline-variant/20 bg-surface shadow-sm relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1.5 h-full bg-[#F59E0B]"></div>
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-bold text-on-surface leading-tight">Encontro Kids: Safari Bíblico</h4>
+<div class="flex items-center gap-4 mt-2">
+<div class="flex items-center gap-1 text-[11px] text-on-surface-variant font-medium">
+<span class="material-symbols-outlined text-sm">calendar_today</span> 27 Out
+                                    </div>
+<div class="flex items-center gap-1 text-[11px] text-on-surface-variant font-medium">
+<span class="material-symbols-outlined text-sm">schedule</span> 09:00
+                                    </div>
+</div>
+</div>
+<div class="flex flex-col items-end gap-2">
+<span class="px-2 py-1 bg-amber-50 text-amber-600 text-[10px] font-extrabold rounded-md uppercase">Crianças</span>
+<div class="flex items-center gap-1.5 px-2 py-0.5 bg-tertiary-fixed rounded-full">
+<span class="w-2 h-2 rounded-full bg-on-tertiary-container animate-pulse"></span>
+<span class="text-[9px] font-bold text-on-tertiary-container uppercase">Planejamento</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 4. Mini Calendar (Small Column) -->
+<div class="col-span-12 lg:col-span-3 bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant/10">
+<div class="flex flex-col h-full">
+<div class="flex justify-between items-center mb-6">
+<span class="font-manrope font-bold text-primary">Outubro 2024</span>
+<div class="flex gap-1">
+<span class="material-symbols-outlined text-on-surface-variant text-sm cursor-pointer hover:text-primary">chevron_left</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm cursor-pointer hover:text-primary">chevron_right</span>
+</div>
+</div>
+<div class="grid grid-cols-7 gap-2 text-center text-[10px] font-bold text-on-surface-variant/40 mb-2">
+<span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+</div>
+<div class="grid grid-cols-7 gap-2 flex-1">
+<!-- Placeholder dates -->
+<div class="h-8 flex items-center justify-center text-xs opacity-20">29</div>
+<div class="h-8 flex items-center justify-center text-xs opacity-20">30</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">1</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">2</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">3</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">4</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">5</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">6</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">7</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">8</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">9</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">10</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">11</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">12</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">13</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">14</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">15</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">16</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">17</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">18</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">19</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">20</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">21</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">22</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">23</div>
+<div class="h-8 flex items-center justify-center text-xs font-bold text-primary bg-primary-fixed rounded-full relative">
+                            24
+                            <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5">
+<div class="w-1 h-1 rounded-full bg-error"></div>
+</div>
+</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold relative">
+                            25
+                            <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5">
+<div class="w-1 h-1 rounded-full bg-[#8B5CF6]"></div>
+</div>
+</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">26</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold relative">
+                            27
+                            <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5">
+<div class="w-1 h-1 rounded-full bg-[#F59E0B]"></div>
+</div>
+</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">28</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">29</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">30</div>
+<div class="h-8 flex items-center justify-center text-xs font-semibold">31</div>
+</div>
+</div>
+</div>
+<!-- 3. Departamentos (Bottom Mid-Large) -->
+<div class="col-span-12 lg:col-span-7 bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant/10">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-lg font-manrope font-bold text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">grid_view</span> Departamentos
+                    </h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Dept 1 -->
+<div class="p-4 rounded-xl border border-outline-variant/10 bg-surface-container-low/30 hover:shadow-md transition-shadow group cursor-pointer">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-600">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Juventude Viva</h4>
+<p class="text-[10px] text-on-surface-variant">Líder: Pr. Ricardo</p>
+</div>
+</div>
+<span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">42 Membros</span>
+</div>
+</div>
+<!-- Dept 2 -->
+<div class="p-4 rounded-xl border border-outline-variant/10 bg-surface-container-low/30 hover:shadow-md transition-shadow group cursor-pointer">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+<span class="material-symbols-outlined">favorite</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Assistência Social</h4>
+<p class="text-[10px] text-on-surface-variant">Líder: Ana Clara</p>
+</div>
+</div>
+<span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">15 Membros</span>
+</div>
+</div>
+<!-- Dept 3 -->
+<div class="p-4 rounded-xl border border-outline-variant/10 bg-surface-container-low/30 hover:shadow-md transition-shadow group cursor-pointer">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-pink-500/10 flex items-center justify-center text-pink-600">
+<span class="material-symbols-outlined">volunteer_activism</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Intercessão</h4>
+<p class="text-[10px] text-on-surface-variant">Líder: Maria José</p>
+</div>
+</div>
+<span class="text-xs font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded">28 Membros</span>
+</div>
+</div>
+<!-- Dept 4 -->
+<div class="p-4 rounded-xl border border-outline-variant/10 bg-surface-container-low/30 hover:shadow-md transition-shadow group cursor-pointer">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-gray-500/10 flex items-center justify-center text-gray-600">
+<span class="material-symbols-outlined">settings</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Administração</h4>
+<p class="text-[10px] text-on-surface-variant">Líder: André Santos</p>
+</div>
+</div>
+<span class="text-xs font-bold text-gray-600 bg-gray-50 px-2 py-0.5 rounded">05 Membros</span>
+</div>
+</div>
+</div>
+</div>
+<!-- 5. Minhas Tarefas (Bottom Sidebar) -->
+<div class="col-span-12 lg:col-span-5 bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant/10">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-lg font-manrope font-bold text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-on-tertiary-container">task_alt</span> Minhas Tarefas
+                    </h3>
+</div>
+<div class="space-y-4">
+<!-- Task 1 -->
+<div class="flex items-start gap-4 p-3 rounded-xl hover:bg-surface-container-low transition-colors group">
+<div class="mt-1">
+<input checked="" class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary-container cursor-pointer" type="checkbox"/>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-semibold text-on-surface line-through opacity-50">Preparar relatório mensal financeiro</h4>
+<div class="flex items-center gap-3 mt-1">
+<span class="text-[10px] text-on-surface-variant font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">calendar_today</span> 22 Out
+                                </span>
+<span class="text-[9px] font-bold text-on-primary-fixed-variant bg-primary-fixed px-1.5 py-0.5 rounded uppercase">Concluído</span>
+</div>
+</div>
+</div>
+<!-- Task 2 -->
+<div class="flex items-start gap-4 p-3 rounded-xl hover:bg-surface-container-low transition-colors group">
+<div class="mt-1">
+<input class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary-container cursor-pointer" type="checkbox"/>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-semibold text-on-surface">Agendar reunião de líderes de novembro</h4>
+<div class="flex items-center gap-3 mt-1">
+<span class="text-[10px] text-on-surface-variant font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">calendar_today</span> 26 Out
+                                </span>
+<span class="text-[9px] font-bold text-on-tertiary-container bg-tertiary-fixed px-1.5 py-0.5 rounded uppercase">Pendente</span>
+</div>
+</div>
+</div>
+<!-- Task 3 -->
+<div class="flex items-start gap-4 p-3 rounded-xl hover:bg-surface-container-low transition-colors group">
+<div class="mt-1">
+<input class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary-container cursor-pointer" type="checkbox"/>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-semibold text-on-surface">Revisar escala de voluntários Kids</h4>
+<div class="flex items-center gap-3 mt-1">
+<span class="text-[10px] text-on-surface-variant font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">calendar_today</span> 28 Out
+                                </span>
+<span class="text-[9px] font-bold text-on-tertiary-container bg-tertiary-fixed px-1.5 py-0.5 rounded uppercase">Pendente</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- FAB for quick actions -->
+<div class="fixed bottom-8 right-8 z-50">
+<button class="w-14 h-14 bg-tertiary-fixed text-on-tertiary-container rounded-full shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group">
+<span class="material-symbols-outlined transition-transform group-hover:rotate-90" style="font-variation-settings: 'FILL' 1;">add</span>
+</button>
+</div>
+</body></html>

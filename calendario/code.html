@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Água Viva - Calendário Santuário Editorial</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary-fixed-variant": "#40465c",
+              "on-tertiary-fixed": "#241a00",
+              "secondary-fixed": "#dce1fd",
+              "tertiary-fixed-dim": "#e6c364",
+              "outline": "#757680",
+              "primary-container": "#1a2b5e",
+              "on-secondary": "#ffffff",
+              "outline-variant": "#c5c6d1",
+              "on-primary-fixed": "#03174b",
+              "inverse-surface": "#2a313d",
+              "on-secondary-container": "#5e637b",
+              "surface-variant": "#dce2f3",
+              "background": "#f9f9ff",
+              "error": "#ba1a1a",
+              "on-tertiary-container": "#b19238",
+              "on-error": "#ffffff",
+              "inverse-primary": "#b5c4ff",
+              "on-surface": "#151c27",
+              "surface-container-lowest": "#ffffff",
+              "surface-tint": "#4c5c92",
+              "secondary-container": "#dce1fd",
+              "error-container": "#ffdad6",
+              "on-surface-variant": "#45464f",
+              "primary": "#011549",
+              "surface-dim": "#d3daea",
+              "on-error-container": "#93000a",
+              "secondary-fixed-dim": "#c0c5e0",
+              "on-primary": "#ffffff",
+              "surface-container-highest": "#dce2f3",
+              "inverse-on-surface": "#ebf1ff",
+              "surface-container-high": "#e2e8f8",
+              "surface": "#f9f9ff",
+              "on-tertiary": "#ffffff",
+              "on-tertiary-fixed-variant": "#584400",
+              "primary-fixed": "#dce1ff",
+              "tertiary-container": "#3a2c00",
+              "tertiary": "#221800",
+              "on-primary-fixed-variant": "#344478",
+              "on-primary-container": "#8494cd",
+              "on-secondary-fixed": "#151b2e",
+              "secondary": "#585d74",
+              "on-background": "#151c27",
+              "surface-container-low": "#f0f3ff",
+              "surface-container": "#e7eefe",
+              "surface-bright": "#f9f9ff",
+              "primary-fixed-dim": "#b5c4ff",
+              "tertiary-fixed": "#ffe08f"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+        }
+        .department-youth { color: #3b82f6; background-color: rgba(59, 130, 246, 0.1); border-left: 3px solid #3b82f6; }
+        .department-kids { color: #f59e0b; background-color: rgba(245, 158, 11, 0.1); border-left: 3px solid #f59e0b; }
+        .department-worship { color: #8b5cf6; background-color: rgba(139, 92, 246, 0.1); border-left: 3px solid #8b5cf6; }
+        .department-general { color: #10b981; background-color: rgba(16, 185, 129, 0.1); border-left: 3px solid #10b981; }
+        .department-admin { color: #6b7280; background-color: rgba(107, 114, 128, 0.1); border-left: 3px solid #6b7280; }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-auto-rows: minmax(140px, auto);
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface flex min-h-screen overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="h-screen w-64 fixed left-0 top-0 flex flex-col border-r border-slate-200/20 bg-slate-50 dark:bg-slate-950 z-50">
+<div class="flex flex-col h-full py-6">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">church</span>
+</div>
+<div>
+<h1 class="font-manrope text-lg font-extrabold tracking-tight text-[#011549] dark:text-blue-50">Água Viva</h1>
+<p class="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant/70 font-bold">Santuário Editorial</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-inter text-sm font-semibold">Início</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-inter text-sm font-semibold">Usuários</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">person_add</span>
+<span class="font-inter text-sm font-semibold">Membros</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">account_tree</span>
+<span class="font-inter text-sm font-semibold">Departamentos</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">event</span>
+<span class="font-inter text-sm font-semibold">Eventos</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">location_on</span>
+<span class="font-inter text-sm font-semibold">Locais</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">church</span>
+<span class="font-inter text-sm font-semibold">Igrejas</span>
+</a>
+<!-- Active Item -->
+<a class="flex items-center gap-3 px-4 py-3 text-[#011549] dark:text-blue-400 border-l-4 border-[#E6C364] bg-blue-50/50 dark:bg-blue-900/20 scale-[0.99] transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+<span class="font-inter text-sm font-semibold">Calendário</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">assignment</span>
+<span class="font-inter text-sm font-semibold">Tarefas</span>
+</a>
+</nav>
+<div class="mt-auto px-4 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-inter text-sm font-semibold">Configurações</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-error transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-inter text-sm font-semibold">Sair</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 ml-64 flex flex-col h-screen overflow-hidden">
+<!-- Top Navigation Bar -->
+<header class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/20 dark:border-slate-800/20 sticky top-0 z-40 shadow-sm dark:shadow-none">
+<div class="flex justify-between items-center w-full px-6 py-3">
+<div class="flex items-center gap-6">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="bg-surface-variant/50 border-none rounded-full pl-10 pr-6 py-2 w-64 focus:ring-2 focus:ring-primary/20 text-sm font-body transition-all outline-none" placeholder="Buscar eventos ou membros..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors relative">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="p-2 rounded-full hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">help</span>
+</button>
+<div class="h-8 w-px bg-slate-200 mx-2"></div>
+<div class="flex items-center gap-3 cursor-pointer group">
+<div class="text-right">
+<p class="text-xs font-bold text-primary">Gabriel Duarte</p>
+<p class="text-[10px] text-on-surface-variant">Mordomo Líder</p>
+</div>
+<div class="w-10 h-10 rounded-full border-2 border-primary-fixed overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Close-up portrait of a professional man in his 30s with a clean-shaven face and friendly expression, warm studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDD8e-E-A1-WYSjEBBS7oLBCjJxuPg2p9yrWXDoXYq48ZniSjUXBR5qg8B_2qq-EECeWT0o9Da-ttuDIqOEEbgzHwejGZfcdtXqbbs2YoIPMoB4Q1sN0ARVjJNXSA-zepk-C2eyoEZzRqgUBTMaJQVpSuPt2AMJ7770S2Su6cr7Wivi8DUmlM3YAWG3z7Nz1V0tNBaP9yBb-MDYmqwTWljaKtuddpaNMuILLRsyFdfH7oCxu91WR2XmX--xFW7QzUjmwQzcDGQOux0"/>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<div class="flex-1 overflow-y-auto bg-surface p-8">
+<!-- Calendar Header / Controls -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+<div>
+<div class="flex items-center gap-2 text-on-surface-variant mb-1">
+<span class="material-symbols-outlined text-sm">calendar_today</span>
+<span class="text-xs font-bold uppercase tracking-widest">Cronograma Global</span>
+</div>
+<h2 class="font-manrope text-4xl font-extrabold tracking-tight text-primary">Outubro 2024</h2>
+</div>
+<div class="flex flex-wrap items-center gap-3">
+<!-- Mode Switcher -->
+<div class="bg-surface-container-low p-1 rounded-xl flex">
+<button class="px-6 py-2 rounded-lg text-sm font-bold text-on-surface-variant hover:text-primary transition-all">Dia</button>
+<button class="px-6 py-2 rounded-lg text-sm font-bold text-on-surface-variant hover:text-primary transition-all">Semana</button>
+<button class="px-6 py-2 rounded-lg bg-surface-container-lowest shadow-sm text-sm font-bold text-primary transition-all">Mês</button>
+</div>
+<div class="flex items-center bg-surface-container-low rounded-xl px-2">
+<button class="p-2 hover:bg-white rounded-lg transition-colors"><span class="material-symbols-outlined">chevron_left</span></button>
+<button class="px-4 py-2 text-sm font-bold text-primary">Hoje</button>
+<button class="p-2 hover:bg-white rounded-lg transition-colors"><span class="material-symbols-outlined">chevron_right</span></button>
+</div>
+<button class="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined">add</span>
+                        Novo Evento
+                    </button>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+<!-- Left Sidebar Filters -->
+<div class="lg:col-span-1 space-y-8">
+<!-- Filters Section -->
+<section class="bg-surface-container-low p-6 rounded-2xl">
+<h3 class="font-manrope text-sm font-extrabold text-primary uppercase tracking-wider mb-6">Refinar Santuário</h3>
+<div class="space-y-6">
+<!-- Department Filters -->
+<div>
+<label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block mb-3">Departamentos</label>
+<div class="space-y-2">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="rounded border-outline-variant text-blue-500 focus:ring-blue-500/20" type="checkbox"/>
+<span class="text-sm font-medium text-on-surface-variant group-hover:text-primary transition-colors">Ministério Jovem</span>
+<span class="ml-auto w-2 h-2 rounded-full bg-blue-500"></span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="rounded border-outline-variant text-amber-500 focus:ring-amber-500/20" type="checkbox"/>
+<span class="text-sm font-medium text-on-surface-variant group-hover:text-primary transition-colors">Reino das Crianças</span>
+<span class="ml-auto w-2 h-2 rounded-full bg-amber-500"></span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="rounded border-outline-variant text-purple-500 focus:ring-purple-500/20" type="checkbox"/>
+<span class="text-sm font-medium text-on-surface-variant group-hover:text-primary transition-colors">Equipe de Louvor</span>
+<span class="ml-auto w-2 h-2 rounded-full bg-purple-500"></span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="rounded border-outline-variant text-emerald-500 focus:ring-emerald-500/20" type="checkbox"/>
+<span class="text-sm font-medium text-on-surface-variant group-hover:text-primary transition-colors">Assembleia Geral</span>
+<span class="ml-auto w-2 h-2 rounded-full bg-emerald-500"></span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="rounded border-outline-variant text-slate-500 focus:ring-slate-500/20" type="checkbox"/>
+<span class="text-sm font-medium text-on-surface-variant group-hover:text-primary transition-colors">Administração</span>
+<span class="ml-auto w-2 h-2 rounded-full bg-slate-500"></span>
+</label>
+</div>
+</div>
+<!-- Branch Filter -->
+<div>
+<label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block mb-3">Localização da Filial</label>
+<select class="w-full bg-white border-none rounded-xl text-sm py-3 px-4 focus:ring-2 focus:ring-primary/10 shadow-sm">
+<option>Todos os Locais</option>
+<option>Catedral Central</option>
+<option>Santuário Norte</option>
+<option>Campus Sul</option>
+</select>
+</div>
+</div>
+</section>
+<!-- Upcoming Card -->
+<section class="bg-primary text-white p-6 rounded-2xl relative overflow-hidden shadow-xl shadow-primary/20">
+<div class="absolute -right-4 -bottom-4 opacity-10">
+<span class="material-symbols-outlined text-8xl">auto_awesome</span>
+</div>
+<h3 class="font-manrope text-sm font-bold uppercase tracking-widest mb-4">Foco da Semana</h3>
+<div class="space-y-4 relative z-10">
+<div class="p-3 bg-white/10 rounded-xl backdrop-blur-md">
+<p class="text-xs opacity-70">Noite de Louvor</p>
+<p class="font-bold">Despertando Almas</p>
+<div class="flex items-center gap-2 mt-2">
+<span class="material-symbols-outlined text-xs">schedule</span>
+<span class="text-[10px]">18 Out, 19:30</span>
+</div>
+</div>
+<button class="w-full py-2 bg-tertiary-fixed text-on-tertiary-fixed font-bold rounded-lg text-xs hover:bg-tertiary-fixed-dim transition-colors">Ver Detalhes</button>
+</div>
+</section>
+</div>
+<!-- Calendar Main Grid -->
+<div class="lg:col-span-3">
+<div class="bg-surface-container-lowest rounded-[2rem] border border-slate-200/40 overflow-hidden shadow-2xl shadow-slate-200/50">
+<!-- Weekdays Header -->
+<div class="grid grid-cols-7 border-b border-slate-200/40 bg-slate-50/50">
+<div class="py-4 text-center text-[10px] font-extrabold text-on-surface-variant uppercase tracking-[0.2em]">Dom</div>
+<div class="py-4 text-center text-[10px] font-extrabold text-on-surface-variant uppercase tracking-[0.2em]">Seg</div>
+<div class="py-4 text-center text-[10px] font-extrabold text-on-surface-variant uppercase tracking-[0.2em]">Ter</div>
+<div class="py-4 text-center text-[10px] font-extrabold text-on-surface-variant uppercase tracking-[0.2em]">Qua</div>
+<div class="py-4 text-center text-[10px] font-extrabold text-on-surface-variant uppercase tracking-[0.2em]">Qui</div>
+<div class="py-4 text-center text-[10px] font-extrabold text-on-surface-variant uppercase tracking-[0.2em]">Sex</div>
+<div class="py-4 text-center text-[10px] font-extrabold text-on-surface-variant uppercase tracking-[0.2em]">Sáb</div>
+</div>
+<!-- Grid Body -->
+<div class="calendar-grid divide-x divide-y divide-slate-100">
+<!-- Prev Month Filler -->
+<div class="p-4 bg-slate-50/30">
+<span class="text-xs font-bold text-on-surface-variant/30">29</span>
+</div>
+<div class="p-4 bg-slate-50/30">
+<span class="text-xs font-bold text-on-surface-variant/30">30</span>
+</div>
+<!-- Oct 1st -->
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant group-hover:text-primary">1</span>
+<div class="mt-2 space-y-1">
+<div class="department-admin px-2 py-1 rounded-md text-[10px] font-bold truncate">Sincronia Staff</div>
+</div>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">2</span>
+<div class="mt-2 space-y-1">
+<div class="department-youth px-2 py-1 rounded-md text-[10px] font-bold truncate">Estudo Bíblico</div>
+</div>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">3</span>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">4</span>
+<div class="mt-2 space-y-1">
+<div class="department-worship px-2 py-1 rounded-md text-[10px] font-bold truncate">Ensaio Coral</div>
+</div>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">5</span>
+</div>
+<!-- Row 2 -->
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">6</span>
+<div class="mt-2 space-y-1">
+<div class="department-general px-2 py-1 rounded-md text-[10px] font-bold truncate">Culto de Domingo</div>
+</div>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">7</span>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">8</span>
+</div>
+<div class="p-4 bg-surface-container-highest/30 relative">
+<div class="absolute top-2 right-2 w-6 h-6 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center">9</div>
+<span class="text-xs font-bold text-primary">9</span>
+<div class="mt-2 space-y-1">
+<div class="department-kids px-2 py-1 rounded-md text-[10px] font-bold truncate">Hora da História</div>
+<div class="department-worship px-2 py-1 rounded-md text-[10px] font-bold truncate">Check de Som</div>
+</div>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">10</span>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">11</span>
+<div class="mt-2 space-y-1">
+<div class="department-youth px-2 py-1 rounded-md text-[10px] font-bold truncate">Noite de Jogos</div>
+</div>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">12</span>
+</div>
+<!-- Row 3 -->
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">13</span>
+<div class="mt-2 space-y-1">
+<div class="department-general px-2 py-1 rounded-md text-[10px] font-bold truncate">Culto de Domingo</div>
+</div>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">14</span>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">15</span>
+<div class="mt-2 space-y-1">
+<div class="department-admin px-2 py-1 rounded-md text-[10px] font-bold truncate">Reunião de Curadores</div>
+</div>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">16</span>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">17</span>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">18</span>
+<div class="mt-2 space-y-1">
+<div class="department-worship bg-primary text-white border-none shadow-md px-2 py-2 rounded-md text-[10px] font-bold">Noite de Louvor: Despertar</div>
+</div>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">19</span>
+</div>
+<!-- Row 4 -->
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">20</span>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">21</span>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">22</span>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">23</span>
+<div class="mt-2 space-y-1">
+<div class="department-kids px-2 py-1 rounded-md text-[10px] font-bold truncate">Teatro de Fantoches</div>
+</div>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">24</span>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">25</span>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">26</span>
+<div class="mt-2 space-y-1">
+<div class="department-general px-2 py-1 rounded-md text-[10px] font-bold truncate">Arrecadação de Alimentos</div>
+</div>
+</div>
+<!-- Row 5 -->
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">27</span>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">28</span>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">29</span>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">30</span>
+</div>
+<div class="p-4 hover:bg-slate-50/50 transition-colors group cursor-pointer">
+<span class="text-xs font-bold text-on-surface-variant">31</span>
+</div>
+<div class="p-4 bg-slate-50/30">
+<span class="text-xs font-bold text-on-surface-variant/30">1</span>
+</div>
+<div class="p-4 bg-slate-50/30">
+<span class="text-xs font-bold text-on-surface-variant/30">2</span>
+</div>
+</div>
+</div>
+<!-- Detail Popover (Simulated for Interactive Feel) -->
+<div class="mt-8 bg-surface-container-low p-6 rounded-2xl border border-slate-200/20 flex flex-col md:flex-row items-center gap-8">
+<div class="flex-1">
+<div class="flex items-center gap-3 mb-4">
+<span class="px-3 py-1 bg-primary text-white text-[10px] font-bold rounded-full uppercase tracking-widest">Evento Selecionado</span>
+<span class="text-on-surface-variant text-xs font-medium">18 Out, 2024 • 19:30</span>
+</div>
+<h4 class="font-manrope text-2xl font-extrabold text-primary mb-2">Noite de Louvor: Despertando Almas</h4>
+<p class="text-sm text-on-surface-variant leading-relaxed max-w-2xl">Um encontro trimestral principal para todos os membros. Este mês focando na renovação espiritual com líderes de louvor convidados e segmentos estendidos de intercessão.</p>
+</div>
+<div class="flex gap-4">
+<button class="px-6 py-3 border border-primary text-primary font-bold rounded-xl hover:bg-primary hover:text-white transition-all">Editar Evento</button>
+<button class="px-6 py-3 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">Gerenciar RSVPs</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Modal Backdrop (Hidden) -->
+<div class="fixed inset-0 bg-primary/20 backdrop-blur-sm z-[100] hidden items-center justify-center">
+<div class="bg-white w-full max-w-xl rounded-[2.5rem] p-10 shadow-2xl">
+<div class="flex justify-between items-start mb-8">
+<div>
+<h3 class="font-manrope text-3xl font-extrabold text-primary">Agendar Novo Encontro</h3>
+<p class="text-on-surface-variant">Preencha o santuário com propósito.</p>
+</div>
+<button class="p-2 hover:bg-slate-100 rounded-full transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<form class="space-y-6">
+<div class="space-y-2">
+<label class="text-xs font-bold text-primary uppercase tracking-widest">Título do Evento</label>
+<input class="w-full bg-surface-container-low border-none rounded-2xl p-4 focus:ring-2 focus:ring-primary/20" placeholder="ex: Comunhão Comunitária" type="text"/>
+</div>
+<div class="grid grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="text-xs font-bold text-primary uppercase tracking-widest">Departamento</label>
+<select class="w-full bg-surface-container-low border-none rounded-2xl p-4 focus:ring-2 focus:ring-primary/20">
+<option>Louvor</option>
+<option>Jovem</option>
+<option>Crianças</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold text-primary uppercase tracking-widest">Localização</label>
+<select class="w-full bg-surface-container-low border-none rounded-2xl p-4 focus:ring-2 focus:ring-primary/20">
+<option>Salão Principal</option>
+<option>Cenáculo</option>
+<option>Jardim</option>
+</select>
+</div>
+</div>
+<button class="w-full py-4 bg-primary text-white font-bold rounded-2xl shadow-xl hover:bg-primary/90 transition-all">Publicar no Calendário do Santuário</button>
+</form>
+</div>
+</div>
+</body></html>

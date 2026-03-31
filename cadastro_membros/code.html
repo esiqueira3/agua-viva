@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Água Viva - Cadastro de Membros</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-secondary-fixed-variant": "#40465c",
+                        "on-tertiary-fixed": "#241a00",
+                        "secondary-fixed": "#dce1fd",
+                        "tertiary-fixed-dim": "#e6c364",
+                        "outline": "#757680",
+                        "primary-container": "#1a2b5e",
+                        "on-secondary": "#ffffff",
+                        "outline-variant": "#c5c6d1",
+                        "on-primary-fixed": "#03174b",
+                        "inverse-surface": "#2a313d",
+                        "on-secondary-container": "#5e637b",
+                        "surface-variant": "#dce2f3",
+                        "background": "#f9f9ff",
+                        "error": "#ba1a1a",
+                        "on-tertiary-container": "#b19238",
+                        "on-error": "#ffffff",
+                        "inverse-primary": "#b5c4ff",
+                        "on-surface": "#151c27",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-tint": "#4c5c92",
+                        "secondary-container": "#dce1fd",
+                        "error-container": "#ffdad6",
+                        "on-surface-variant": "#45464f",
+                        "primary": "#011549",
+                        "surface-dim": "#d3daea",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#c0c5e0",
+                        "on-primary": "#ffffff",
+                        "surface-container-highest": "#dce2f3",
+                        "inverse-on-surface": "#ebf1ff",
+                        "surface-container-high": "#e2e8f8",
+                        "surface": "#f9f9ff",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#584400",
+                        "primary-fixed": "#dce1ff",
+                        "tertiary-container": "#3a2c00",
+                        "tertiary": "#221800",
+                        "on-primary-fixed-variant": "#344478",
+                        "on-primary-container": "#8494cd",
+                        "on-secondary-fixed": "#151b2e",
+                        "secondary": "#585d74",
+                        "on-background": "#151c27",
+                        "surface-container-low": "#f0f3ff",
+                        "surface-container": "#e7eefe",
+                        "surface-bright": "#f9f9ff",
+                        "primary-fixed-dim": "#b5c4ff",
+                        "tertiary-fixed": "#ffe08f"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-pill {
+            font-variation-settings: 'FILL' 1;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #dce2f3; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #8494cd; }
+    </style>
+</head>
+<body class="bg-background font-body text-on-surface flex min-h-screen">
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 flex flex-col border-r border-slate-200/20 bg-slate-50 dark:bg-slate-950 z-50">
+<div class="flex flex-col h-full py-6">
+<div class="px-6 mb-10 flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-tertiary-fixed">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">church</span>
+</div>
+<div>
+<h1 class="font-manrope text-lg font-extrabold tracking-tight text-[#011549] dark:text-blue-50">Água Viva</h1>
+<p class="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant/70 font-bold">Santuário Editorial</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-inter text-sm font-semibold">Início</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-inter text-sm font-semibold">Usuários</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#011549] dark:text-blue-400 border-l-4 border-[#E6C364] bg-blue-50/50 dark:bg-blue-900/20 scale-[0.99] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="person_add" style="font-variation-settings: 'FILL' 1;">person_add</span>
+<span class="font-inter text-sm font-semibold">Membros</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span>
+<span class="font-inter text-sm font-semibold">Departamentos</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="event">event</span>
+<span class="font-inter text-sm font-semibold">Eventos</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="location_on">location_on</span>
+<span class="font-inter text-sm font-semibold">Locais</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="church">church</span>
+<span class="font-inter text-sm font-semibold">Igrejas</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+<span class="font-inter text-sm font-semibold">Calendário</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] dark:hover:text-blue-200 hover:translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+<span class="font-inter text-sm font-semibold">Tarefas</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-slate-200/20">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-[#011549] transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-inter text-sm font-semibold">Configurações</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-error/80 hover:text-error transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-inter text-sm font-semibold">Sair</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 ml-64 min-h-screen flex flex-col relative">
+<!-- TopAppBar -->
+<header class="docked full-width top-0 sticky z-40 bg-white/80 backdrop-blur-md border-b border-slate-200/20 shadow-sm flex justify-between items-center w-full px-8 py-4">
+<div class="flex items-center gap-6">
+<div class="relative flex items-center bg-surface-variant/50 rounded-full px-4 py-1.5 focus-within:bg-white focus-within:shadow-md transition-all">
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-64 placeholder:text-on-surface-variant/60" placeholder="Buscar membros..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-slate-50 transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 rounded-full hover:bg-slate-50 transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+<div class="h-8 w-[1px] bg-slate-200 mx-2"></div>
+<div class="flex items-center gap-3">
+<div class="text-right">
+<p class="text-xs font-bold text-primary">Admin Santuário</p>
+<p class="text-[10px] text-on-surface-variant">Perfil Editorial</p>
+</div>
+<img alt="Avatar de perfil do usuário" class="w-10 h-10 rounded-full border-2 border-white shadow-sm object-cover" data-alt="close-up portrait of a professional man with a friendly expression in a modern office environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCstD278_PIVPFCeB_o281m8ppX9y4C5R-WNOBr6wzbBHbBMjj6xhAgIrjkuZ7mfDiZcseJnpjQNx0UY4kJH_7n090fYiDxWPuRLh7ggEoRPRyJkOyRnhPI1fxHKmU2O4WHiZFN5nOz5oFH24b4-Az3CjWrAvut6p4SM2yKlX8KehIx4qzGANypsiJoyY7abho8-4dfSPaRPo3NtkhTdjbgtIpAAuF2ixiLGAuUG4rBD1Ph_vjVUOzDd0AAAhignIbPf011XbUwb9Q"/>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="p-8 space-y-8 flex-1 bg-surface">
+<!-- Member Hero Section -->
+<section class="relative bg-primary-container rounded-2xl p-8 overflow-hidden flex flex-col md:flex-row items-center gap-8 shadow-xl">
+<!-- Abstract Pattern Background -->
+<div class="absolute inset-0 opacity-10 pointer-events-none">
+<div class="absolute -top-24 -right-24 w-96 h-96 bg-tertiary-fixed rounded-full blur-[100px]"></div>
+<div class="absolute -bottom-24 -left-24 w-96 h-96 bg-primary rounded-full blur-[100px]"></div>
+</div>
+<div class="relative z-10">
+<div class="w-32 h-32 rounded-2xl border-4 border-white/20 shadow-2xl overflow-hidden group">
+<img alt="Foto do Membro" class="w-full h-full object-cover" data-alt="professional portrait of a middle-aged woman with kind eyes and a warm smile, wearing a professional navy blazer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1KxzsD_aXdr5wggH_LIIPNotTRO3M09WBxMgkpVO58H8qaBGXsHNZyETFoNoBHljrxAri9DvX-4GAWx1GjgNv9_nPQEZHBRmUCvo399PYzjhnsMtjJLAQk0846S6eK72WCbA8uAnRhJAChxSzw1dZSkLkrDSHN2EUpXIanhKluDbwNWTgAWZtqKMUl4rNaCXnlr9-TXz9bMDvG50fPnsoRgwDn_Sr4ZuFkZdZDs4pJNvAyaOiC0JY1H0QXpoFrD4jN21fDerRN4c"/>
+<div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+<span class="material-symbols-outlined text-white" data-icon="photo_camera">photo_camera</span>
+</div>
+</div>
+</div>
+<div class="relative z-10 flex-1 text-center md:text-left">
+<div class="flex flex-col md:flex-row md:items-end gap-3 mb-2">
+<h2 class="font-headline text-3xl font-extrabold text-white tracking-tight">Ana Beatriz Cavalcanti</h2>
+<span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-bold rounded-full mb-1">MEMBRO ATIVO</span>
+</div>
+<div class="flex flex-wrap justify-center md:justify-start gap-4">
+<div class="flex items-center gap-2 text-primary-fixed">
+<span class="material-symbols-outlined text-sm" data-icon="id_card">id_card</span>
+<span class="text-sm font-semibold tracking-wider">IGR-294851</span>
+</div>
+<div class="flex items-center gap-2 text-primary-fixed">
+<span class="material-symbols-outlined text-sm" data-icon="mail">mail</span>
+<span class="text-sm">ana.beatriz@email.com</span>
+</div>
+<div class="flex items-center gap-2 text-primary-fixed">
+<span class="material-symbols-outlined text-sm" data-icon="church">church</span>
+<span class="text-sm">Sede Central</span>
+</div>
+</div>
+</div>
+<div class="relative z-10 flex gap-3">
+<button class="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 px-6 py-2.5 rounded-xl font-semibold transition-all flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="share">share</span>
+                        Exportar
+                    </button>
+<button class="bg-tertiary-fixed hover:bg-tertiary-fixed-dim text-on-tertiary-fixed px-6 py-2.5 rounded-xl font-bold shadow-lg transition-all flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="save">save</span>
+                        Salvar
+                    </button>
+</div>
+</section>
+<!-- Registration Form with Tabs -->
+<div class="grid grid-cols-12 gap-8">
+<!-- Tab Navigation (Vertical Editorial Style) -->
+<nav class="col-span-12 lg:col-span-3 space-y-2">
+<div class="p-2">
+<h3 class="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60 mb-4 px-4">Menu de Cadastro</h3>
+<div class="space-y-1">
+<button class="w-full text-left flex items-center gap-4 px-4 py-3 rounded-xl bg-white shadow-sm border-l-4 border-primary text-primary font-bold transition-all">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-sm">Dados Pessoais</span>
+</button>
+<button class="w-full text-left flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-surface-container-low text-on-surface-variant transition-all group">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="call">call</span>
+<span class="text-sm">Contato</span>
+</button>
+<button class="w-full text-left flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-surface-container-low text-on-surface-variant transition-all group">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="auto_awesome">auto_awesome</span>
+<span class="text-sm">Dados Eclesiásticos</span>
+</button>
+<button class="w-full text-left flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-surface-container-low text-on-surface-variant transition-all group">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="family_history">family_history</span>
+<span class="text-sm">Familiar</span>
+</button>
+<button class="w-full text-left flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-surface-container-low text-on-surface-variant transition-all group">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="admin_panel_settings">admin_panel_settings</span>
+<span class="text-sm">Administrativo</span>
+</button>
+<button class="w-full text-left flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-surface-container-low text-on-surface-variant transition-all group">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors" data-icon="add_circle">add_circle</span>
+<span class="text-sm">Dados Opcionais</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- Form Content Area -->
+<div class="col-span-12 lg:col-span-9 space-y-6">
+<div class="bg-surface-container-lowest rounded-2xl p-8 shadow-sm border border-outline-variant/20">
+<header class="mb-8 border-b border-surface-variant pb-6 flex justify-between items-center">
+<div>
+<h3 class="font-headline text-xl font-bold text-primary">Informações Pessoais</h3>
+<p class="text-sm text-on-surface-variant">Gerencie os dados básicos de identificação do membro.</p>
+</div>
+<span class="material-symbols-outlined text-outline-variant" data-icon="info">info</span>
+</header>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+<!-- Field: Full Name -->
+<div class="col-span-2">
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Nome Completo</label>
+<input class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 text-on-surface font-medium transition-all" type="text" value="Ana Beatriz Cavalcanti de Souza"/>
+</div>
+<!-- Field: Birth Date -->
+<div>
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Data de Nascimento</label>
+<div class="relative">
+<input class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 text-on-surface font-medium transition-all" type="date" value="1985-05-12"/>
+</div>
+</div>
+<!-- Field: Gender -->
+<div>
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Sexo</label>
+<select class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 text-on-surface font-medium transition-all appearance-none">
+<option>Feminino</option>
+<option>Masculino</option>
+<option>Prefiro não informar</option>
+</select>
+</div>
+<!-- Field: Marital Status -->
+<div>
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Estado Civil</label>
+<select class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 text-on-surface font-medium transition-all">
+<option selected="">Casada</option>
+<option>Solteiro(a)</option>
+<option>Divorciado(a)</option>
+<option>Viúvo(a)</option>
+</select>
+</div>
+<!-- Field: CPF -->
+<div>
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">CPF</label>
+<input class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 text-on-surface font-medium transition-all" type="text" value="123.456.789-00"/>
+</div>
+<!-- Field: RG -->
+<div>
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">RG</label>
+<input class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 text-on-surface font-medium transition-all" type="text" value="20.123.456-7"/>
+</div>
+<!-- Field: Nationality -->
+<div>
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Nacionalidade</label>
+<input class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 text-on-surface font-medium transition-all" type="text" value="Brasileira"/>
+</div>
+<!-- Field: Naturality -->
+<div class="col-span-2">
+<label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Naturalidade (Cidade/UF)</label>
+<input class="w-full bg-surface-container-low border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 text-on-surface font-medium transition-all" type="text" value="Recife - PE"/>
+</div>
+</div>
+<!-- Footer Actions Inside Card -->
+<div class="mt-12 pt-8 border-t border-surface-variant flex flex-col md:flex-row justify-between items-center gap-4">
+<button class="flex items-center gap-2 text-error font-bold hover:bg-error/5 px-4 py-2 rounded-lg transition-colors order-2 md:order-1">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+                                Excluir Registro
+                            </button>
+<div class="flex gap-4 order-1 md:order-2 w-full md:w-auto">
+<button class="flex-1 md:flex-none border border-outline-variant/30 text-on-surface-variant font-bold px-8 py-3 rounded-xl hover:bg-surface-container-low transition-colors">
+                                    Cancelar
+                                </button>
+<button class="flex-1 md:flex-none bg-primary text-white font-bold px-10 py-3 rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                                    Salvar Alterações
+                                </button>
+</div>
+</div>
+</div>
+<!-- Secondary Info Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="bg-surface-container-highest/30 backdrop-blur-sm border border-outline-variant/10 rounded-2xl p-6 flex items-start gap-4">
+<div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-700">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+</div>
+<div>
+<h4 class="font-bold text-primary">Última Atualização</h4>
+<p class="text-sm text-on-surface-variant">Realizada por <span class="font-semibold">Sueli Ferreira</span> em 12/10/2023 às 14:30.</p>
+</div>
+</div>
+<div class="bg-surface-container-highest/30 backdrop-blur-sm border border-outline-variant/10 rounded-2xl p-6 flex items-start gap-4">
+<div class="w-12 h-12 rounded-xl bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed">
+<span class="material-symbols-outlined" data-icon="shield">shield</span>
+</div>
+<div>
+<h4 class="font-bold text-primary">Nível de Acesso</h4>
+<p class="text-sm text-on-surface-variant">Este registro está visível apenas para a secretaria e pastores.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating Action Button (Only on Mobile View Integration) -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-tertiary-fixed text-on-tertiary-fixed rounded-full shadow-2xl flex items-center justify-center lg:hidden hover:rotate-12 transition-transform">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</main>
+</body></html>
