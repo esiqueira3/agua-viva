@@ -18,9 +18,9 @@ export default function MainLayout() {
         />
       )}
 
-      <main className={`${isCollapsed ? 'ml-0 md:ml-20' : 'ml-0 md:ml-64'} transition-all duration-300 flex-1 flex flex-col w-full`}>
+      <main className={`${isCollapsed ? 'ml-0 md:ml-20' : 'ml-0 md:ml-64'} transition-all duration-300 flex-1 flex flex-col w-full min-w-0`}>
         <TopNavBar toggleSidebar={() => setIsCollapsed(!isCollapsed)} isCollapsed={isCollapsed} />
-        <div className="flex-1 p-4 md:p-8 overflow-x-hidden">
+        <div className="flex-1 p-4 md:p-8 overflow-x-hidden min-w-0">
           <Outlet />
         </div>
       </main>

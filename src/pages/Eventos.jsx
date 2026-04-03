@@ -32,6 +32,12 @@ export default function Eventos() {
     }
   }
 
+  const copyInscricaoLink = (id) => {
+    const url = `${window.location.origin}/inscricao/${id}`
+    navigator.clipboard.writeText(url)
+    alert("✅ Link de Inscrição copiado para a área de transferência!")
+  }
+
   // Faróis PRD
   const getStatusBadge = (status) => {
     const map = {
@@ -53,11 +59,21 @@ export default function Eventos() {
     { label: 'Nome do Evento', key: 'nome', render: (row) => <span className="font-bold text-primary">{row.nome}</span> },
     { label: 'Local', key: 'local', render: (row) => row.locais?.descricao || '-' },
     { label: 'Setor', key: 'departamentos', render: (row) => row.departamentos?.nome || '-' },
-    { label: 'Status', key: 'status', render: (row) => getStatusBadge(row.status) }
+    { label: 'Status', key: 'status', render: (row) => getStatusBadge(row.status) },
+    { label: 'Ações Rápidas', key: 'actions', render: (row) => (
+       <div className="flex items-center gap-2">
+          <button onClick={() => copyInscricaoLink(row.id)} title="Copiar Link de Inscrição" className="p-2 rounded-lg bg-surface-container-high text-primary hover:bg-primary hover:text-white transition-all">
+             <span className="material-symbols-outlined text-[18px]">link</span>
+          </button>
+          <button onClick={() => navigate('/financeiro-eventos')} title="Ver Financeiro" className="p-2 rounded-lg bg-surface-container-high text-tertiary-fixed-dim hover:bg-tertiary-fixed-dim hover:text-white transition-all">
+             <span className="material-symbols-outlined text-[18px]">monetization_on</span>
+          </button>
+       </div>
+    )}
   ]
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="w-full max-w-7xl mx-auto space-y-6 px-1">
       <PageHeader 
         title="Gestão de Eventos" 
         description="Cronograma das atividades oficiais da igreja."

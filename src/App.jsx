@@ -16,6 +16,9 @@ import Calendario from './pages/Calendario'
 import Configuracoes from './pages/Configuracoes'
 import Usuarios from './pages/Usuarios'
 import CadastroUsuario from './pages/CadastroUsuario'
+import InscricaoEvento from './pages/InscricaoEvento'
+import FinanceiroEventos from './pages/FinanceiroEventos'
+import ConfigMercadoPago from './pages/ConfigMercadoPago'
 import { useEffect } from 'react'
 
 function App() {
@@ -59,8 +62,14 @@ function App() {
           <Route path="/eventos/editar/:id" element={<CadastroEvento />} />
           
           <Route path="/calendario" element={<Calendario />} />
+          <Route path="/financeiro-eventos" element={<FinanceiroEventos />} />
+          <Route path="/financeiro/mercado-pago" element={<ConfigMercadoPago />} />
           <Route path="/configuracoes" element={<Configuracoes />} />
         </Route>
+        
+        {/* Rota Pública de Inscrição (Cereja do Bolo) */}
+        <Route path="/inscricao/:id" element={<InscricaoEvento />} />
+        
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

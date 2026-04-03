@@ -17,6 +17,7 @@ export default function SideNavBar({ isCollapsed }) {
     { name: 'Igrejas', path: '/igrejas', icon: 'church' },
     { name: 'Locais', path: '/locais', icon: 'location_on' },
     { name: 'Eventos', path: '/eventos', icon: 'theater_comedy' },
+    { name: 'Financeiro', path: '/financeiro-eventos', icon: 'monetization_on' },
     { name: 'Calendário', path: '/calendario', icon: 'calendar_month' }
   ]
 
@@ -41,23 +42,41 @@ export default function SideNavBar({ isCollapsed }) {
         </div>
         
         <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col pb-4 h-full">
-          <nav className="space-y-2 px-3">
+          <nav className="space-y-1 px-3">
             {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 font-body text-sm font-semibold transition-all duration-200 rounded-xl ${
-                  isActive(item.path)
-                    ? 'text-primary border-l-4 border-tertiary-fixed-dim bg-primary-fixed/50 scale-[0.99] font-bold'
-                    : 'text-slate-500 hover:text-primary hover:bg-surface-container-low'
-                }`}
-                title={isCollapsed ? item.name : ''}
-              >
-                <span className={`material-symbols-outlined ${isActive(item.path) ? 'text-primary' : ''}`}>
-                   {item.icon}
-                </span>
-                {!isCollapsed && <span className="whitespace-nowrap">{item.name}</span>}
-              </Link>
+              <div key={item.path}>
+                <Link
+                  to={item.path}
+                  className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 font-body text-sm font-semibold transition-all duration-200 rounded-xl ${
+                    isActive(item.path)
+                      ? 'text-primary border-l-4 border-tertiary-fixed-dim bg-primary-fixed/50 scale-[0.99] font-bold'
+                      : 'text-slate-500 hover:text-primary hover:bg-surface-container-low'
+                  }`}
+                  title={isCollapsed ? item.name : ''}
+                >
+                  <span className={`material-symbols-outlined ${isActive(item.path) ? 'text-primary' : ''}`}>
+                     {item.icon}
+                  </span>
+                  {!isCollapsed && <span className="whitespace-nowrap">{item.name}</span>}
+                </Link>
+
+                {/* Submenu para Financeiro */}
+                {item.name === 'Financeiro' && !isCollapsed && (
+                   <div className="ml-9 mt-1 space-y-1">
+                      <Link 
+                        to="/financeiro/mercado-pago"
+                        className={`flex items-center gap-2 px-3 py-2 text-[11px] font-black uppercase tracking-wider rounded-lg transition-all ${
+                          location.pathname === '/financeiro/mercado-pago'
+                            ? 'text-primary bg-primary/5'
+                            : 'text-slate-400 hover:text-primary hover:bg-slate-100'
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-[16px]">api</span>
+                        API Mercado Pago
+                      </Link>
+                   </div>
+                )}
+              </div>
             ))}
           </nav>
           

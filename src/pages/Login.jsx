@@ -8,10 +8,36 @@ export default function Login() {
   const [step, setStep] = useState(1) // 1: Email, 2: OTP
   const [otp, setOtp] = useState(['', '', '', '', '', '', '', '']) // 8 strings
   const [errorMsg, setErrorMsg] = useState(null)
+  const [timer, setTimer] = useState(0)
   
   const navigate = useNavigate()
 
+  // Gerenciador do Cronômetro de Reenvio
   useEffect(() => {
+    let interval = null
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1)
+      }, 1000)
+    } else {
+      clearInterval(interval)
+    }
+    return () => clearInterval(interval)
+  }, [timer])
+
+  const [config, setConfig] = useState({
+    url_capa_login: 'https://images.unsplash.com/photo-1507679799987-c7377ec48696?q=80&w=2071&auto=format&fit=crop',
+    slogan_login: 'Água Viva - Gestão Ministerial',
+    subtexto_login: 'Transformando vidas através da tecnologia e da fé.'
+  })
+
+  useEffect(() => {
+    async function loadConfig() {
+      const { data } = await supabase.from('configuracoes_gerais').select('*').eq('id', 1).single()
+      if (data) setConfig(data)
+    }
+    loadConfig()
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) navigate('/home')
     })
@@ -23,7 +49,7 @@ export default function Login() {
     setLoading(true)
     setErrorMsg(null)
 
-    // PASSO 1: CHECAGEM DA WHITELIST (CATRACA SEGUNDA ETAPA)
+    // PASSO 1: CHECAGEM DA WHITELIST
     const { data: autorizacao, error: dbError } = await supabase
       .from('usuarios_sistema')
       .select('*')
@@ -31,7 +57,7 @@ export default function Login() {
       .single()
 
     if (dbError || !autorizacao) {
-       setErrorMsg("Acesso bloqueado! Sua conta não está na lista de e-mails autorizados. Procure a Liderança.")
+       setErrorMsg("Acesso bloqueado! Sua conta não está autorizada.")
        setLoading(false)
        return
     }
@@ -40,11 +66,11 @@ export default function Login() {
     const { error: authError } = await supabase.auth.signInWithOtp({
       email: autorizacao.email,
       options: {
-        shouldCreateUser: true, // Cria Auth baseado no passe-livre
+        shouldCreateUser: true,
         data: {
           nome: autorizacao.nome,
           telefone: autorizacao.telefone,
-          perfil: autorizacao.perfil // Salva as permissões na Identidade Auth
+          perfil: autorizacao.perfil
         }
       }
     })
@@ -55,6 +81,7 @@ export default function Login() {
     } else {
       setLoading(false)
       setStep(2)
+      setTimer(60)
     }
   }
 
@@ -72,7 +99,7 @@ export default function Login() {
     })
 
     if (error) {
-       setErrorMsg("Código inválido ou expirado! Tente novamente.")
+       setErrorMsg("Código inválido ou expirado!")
        setLoading(false)
     } else if (data.session) {
        setLoading(false)
@@ -82,7 +109,7 @@ export default function Login() {
 
   const handleOtpChange = (e, index) => {
     const val = e.target.value
-    if (/[^0-9]/.test(val)) return // aceita só número
+    if (/[^0-9]/.test(val)) return
 
     const newOtp = [...otp]
     newOtp[index] = val
@@ -101,113 +128,146 @@ export default function Login() {
     }
   }
 
+  const handleOtpPaste = (e) => {
+    e.preventDefault()
+    const pastedData = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 8)
+    if (!pastedData) return
+
+    const newOtp = [...otp]
+    const digits = pastedData.split('')
+    digits.forEach((digit, i) => { if (i < 8) newOtp[i] = digit })
+    setOtp(newOtp)
+    const lastIndex = Math.min(digits.length - 1, 7)
+    const lastInput = document.getElementById(`otp-${lastIndex}`)
+    if (lastInput) lastInput.focus()
+  }
+
   return (
-    <div className="bg-background font-body text-on-surface min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] bg-primary-container/20 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-[-10%] right-[-5%] w-[40%] h-[40%] bg-tertiary-fixed/10 rounded-full blur-[120px] pointer-events-none"></div>
+    <div className="bg-background font-body text-on-surface min-h-screen grid grid-cols-1 lg:grid-cols-2 overflow-hidden">
+      
+      {/* LADO ESQUERDO: FORMULÁRIO */}
+      <div className="flex flex-col items-center justify-center p-8 sm:p-12 relative bg-white dark:bg-background">
+        <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] bg-primary-container/10 rounded-full blur-[100px] pointer-events-none"></div>
+        <div className="absolute bottom-[-10%] right-[-5%] w-[40%] h-[40%] bg-tertiary-fixed/5 rounded-full blur-[100px] pointer-events-none"></div>
 
-      <main className="w-full max-w-md z-10">
-        <div className="flex flex-col items-center mb-10 text-center">
-          <div className="w-20 h-20 mb-6 relative">
-            <div className="absolute inset-0 bg-primary rounded-2xl rotate-3 opacity-10"></div>
-            <div className="bg-primary-container w-full h-full rounded-2xl flex items-center justify-center shadow-lg border border-primary-container/20">
-              <span className="material-symbols-outlined text-tertiary-fixed text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>water_drop</span>
-            </div>
-          </div>
-          <h1 className="font-headline text-3xl font-extrabold tracking-tight text-primary mb-2">
-            Acesso Restrito
-          </h1>
-          <p className="text-on-surface-variant font-medium text-sm max-w-[280px] leading-relaxed">
-            Painel Administrativo da Água Viva
-          </p>
-        </div>
-
-        <section className="bg-surface-container-lowest p-8 rounded-xl shadow-[0_20px_40px_rgba(21,28,39,0.06)] border border-outline-variant/10">
-          <div className="space-y-6">
-            
-            {errorMsg && (
-              <div className="bg-red-100 border border-red-200 text-red-700 p-4 rounded-lg text-sm text-center font-bold">
-                {errorMsg}
+        <div className="w-full max-w-md z-10 space-y-10">
+          <div className="flex flex-col items-center animate-in fade-in slide-in-from-top-4 duration-700">
+            <div className="w-24 h-24 mb-6 relative">
+              <div className="absolute inset-0 bg-primary/20 rounded-[2rem] rotate-6 animate-pulse"></div>
+              <div className="bg-gradient-to-br from-slate-900 to-slate-950 w-full h-full rounded-3xl flex items-center justify-center shadow-2xl border border-white/10 p-5 relative z-10">
+                <img src="/logo_branco.png" className="w-full h-full object-contain drop-shadow-lg animate-in zoom-in duration-1000" alt="Água Viva" />
               </div>
-            )}
-
-            {step === 1 ? (
-              <form onSubmit={handleSendCode} className="space-y-6">
-                <div className="space-y-2">
-                  <label className="block text-xs font-bold font-label uppercase tracking-widest text-on-surface-variant ml-1">E-mail Oficial</label>
-                  <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <span className="material-symbols-outlined text-on-surface-variant text-xl">account_circle</span>
-                    </div>
-                    <input 
-                      type="email" 
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="lider@ibav.com.br"
-                      className="w-full pl-12 pr-4 py-4 bg-surface-container-low border border-transparent rounded-lg focus:ring-2 focus:ring-primary/40 focus:bg-white transition-all font-bold text-on-surface placeholder:text-outline/40 outline-none"
-                    />
-                  </div>
-                  <p className="text-[10px] text-on-surface-variant/70 italic text-center pt-2">O e-mail passará pela checagem de Segurança.</p>
-                </div>
-                <button 
-                  type="submit" 
-                  disabled={loading || !email}
-                  className="w-full py-4 bg-primary text-on-primary font-bold rounded-lg shadow-lg shadow-primary/20 hover:bg-primary-container hover:text-white transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {loading ? 'Consultando Cofre...' : <><span className="material-symbols-outlined text-xl">mail_lock</span> Conferir Acesso e Mandar Código</>}
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleVerifyOTP} className="space-y-6">
-                <div className="space-y-4 pt-2">
-                  <div className="flex justify-between items-center px-1">
-                    <label className="block text-xs font-bold font-label uppercase tracking-widest text-on-surface-variant">Código (8 dígitos)</label>
-                  </div>
-                  <div className="flex justify-between gap-1 sm:gap-2">
-                    {otp.map((data, index) => (
-                      <input
-                        key={index}
-                        id={`otp-${index}`}
-                        type="text"
-                        maxLength="1"
-                        value={data}
-                        onChange={(e) => handleOtpChange(e, index)}
-                        onKeyDown={(e) => handleOtpKeyDown(e, index)}
-                        className="w-8 sm:w-10 h-12 sm:h-14 bg-surface-container-low border border-outline-variant/30 text-center text-xl sm:text-2xl font-black text-primary rounded-md focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all font-mono"
-                      />
-                    ))}
-                  </div>
-                  <p className="text-[10px] items-center gap-1 flex justify-center text-green-700 font-bold bg-green-100 rounded-full py-1">
-                     <span className="material-symbols-outlined text-[12px]">check_circle</span>
-                     Enviado para: {email}
-                  </p>
-                </div>
-                
-                <button 
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-4 bg-green-600 text-white font-bold rounded-lg shadow-lg shadow-green-600/20 hover:bg-green-700 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
-                >
-                  {loading ? 'Autenticando...' : 'Destrancar Painel'}
-                  <span className="material-symbols-outlined text-xl">login</span>
-                </button>
-                
-                <div className="text-center pt-2">
-                  <p className="text-sm font-medium text-on-surface-variant">
-                    <button type="button" onClick={() => {setStep(1); setOtp(['','','','','','','',''])}} className="text-primary font-bold hover:underline">Voltar</button>
-                  </p>
-                </div>
-              </form>
-            )}
+            </div>
+            <h1 className="font-headline text-3xl font-black tracking-tighter text-on-surface mb-2 uppercase">Água Viva</h1>
+            <p className="text-on-surface-variant font-black text-[10px] uppercase tracking-widest bg-surface-container-low px-4 py-1.5 rounded-full shadow-sm">Portal Administrativo</p>
           </div>
-        </section>
 
-        <footer className="mt-12 text-center flex flex-col items-center">
-           <span className="material-symbols-outlined text-outline/30 text-3xl mb-1">verified_user</span>
-           <p className="text-[10px] text-outline font-bold tracking-[0.2em] uppercase">Security Engine By Água Viva</p>
-        </footer>
-      </main>
+          <section className="bg-white dark:bg-surface-container-lowest p-8 md:p-10 rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] border border-outline-variant/10 relative overflow-hidden animate-in fade-in zoom-in-95 duration-1000">
+             <div className="space-y-6">
+                
+                {errorMsg && (
+                  <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-r-lg text-xs font-black uppercase tracking-tight flex items-center gap-3">
+                    <span className="material-symbols-outlined text-lg">warning</span>
+                    {errorMsg}
+                  </div>
+                )}
+
+                {step === 1 ? (
+                  <form onSubmit={handleSendCode} className="space-y-8">
+                    <div className="space-y-3">
+                      <label className="block text-[10px] font-black font-label uppercase tracking-[0.2em] text-on-surface-variant/60 ml-2">Identificação Ministerial</label>
+                      <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                          <span className="material-symbols-outlined text-on-surface-variant text-xl group-focus-within:text-primary transition-colors">alternate_email</span>
+                        </div>
+                        <input 
+                          type="email" 
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="Digite seu email"
+                          className="w-full pl-12 pr-4 py-5 bg-surface-container-low/50 border border-transparent rounded-[1.25rem] focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all font-bold text-on-surface placeholder:text-outline/30 outline-none text-sm"
+                        />
+                      </div>
+                      <p className="text-[10px] text-on-surface-variant/40 font-bold uppercase text-center pt-2 italic tracking-tight">O e-mail passará pela checagem de Segurança.</p>
+                    </div>
+                    <button 
+                      type="submit" 
+                      disabled={loading || !email}
+                      className="w-full py-5 bg-primary text-white font-black rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary-container hover:shadow-2xl hover:shadow-primary/30 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3 uppercase tracking-widest text-xs"
+                    >
+                      {loading ? 'Consultando Cofre...' : <><span className="material-symbols-outlined text-xl">verified_user</span> Acessar Sistema</>}
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleVerifyOTP} className="space-y-6">
+                    <div className="space-y-4 pt-2">
+                       <p className="text-center text-xs font-bold text-on-surface-variant/80 px-4 leading-relaxed">Mandamos um código de 8 dígitos para seu e-mail corporativo. Digite abaixo:</p>
+                       <div className="flex justify-between gap-1.5" onPaste={handleOtpPaste}>
+                          {otp.map((digit, i) => (
+                             <input 
+                                key={i}
+                                id={`otp-${i}`}
+                                type="text"
+                                maxLength={1}
+                                value={digit}
+                                onChange={(e) => handleOtpChange(e, i)}
+                                onKeyDown={(e) => handleOtpKeyDown(e, i)}
+                                className="w-full h-14 text-center text-lg font-black bg-surface-container-low border border-outline-variant/20 rounded-xl focus:ring-2 focus:ring-primary outline-none focus:bg-white transition-all"
+                             />
+                          ))}
+                       </div>
+                    </div>
+                    <button 
+                      type="submit" 
+                      disabled={loading || otp.join('').length !== 8}
+                      className="w-full py-5 bg-gradient-to-br from-primary to-primary-container text-white font-black rounded-2xl shadow-[0_10px_40px_-10px_rgba(var(--primary-rgb),0.5)] border-none outline-none hover:scale-[1.02] hover:brightness-125 hover:shadow-primary/60 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3 uppercase tracking-widest text-xs ring-4 ring-primary/5"
+                    >
+                      {loading ? 'Validando...' : 'ENTRAR NO SISTEMA'}
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => setStep(1)}
+                      className="w-full py-2 text-xs font-black text-on-surface-variant/40 hover:text-primary transition-colors flex items-center justify-center gap-1 uppercase tracking-tighter"
+                    >
+                       <span className="material-symbols-outlined text-sm">arrow_back</span> Voltar para identificação
+                    </button>
+                  </form>
+                )}
+             </div>
+          </section>
+        </div>
+      </div>
+
+      {/* LADO DIREITO: CAPA DINÂMICA */}
+      <div className="hidden lg:flex relative overflow-hidden bg-slate-900 items-center justify-center p-20 select-none">
+          {/* Imagem de Fundo com Fade-in */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center transition-transform duration-10000 ease-linear scale-110 group-hover:scale-100"
+            style={{ 
+              backgroundImage: `url(${config.url_capa_login})`,
+            }}
+          ></div>
+          
+          {/* Overlay Gradiente Premium */}
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-950/90 via-slate-950/60 to-primary/20 backdrop-blur-[2px]"></div>
+
+          {/* Elementos Decorativos */}
+          <div className="absolute top-12 right-12 flex gap-1 animate-pulse">
+            {[1,2,3,4,5,6].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-white/20"></div>)}
+          </div>
+
+          <div className="z-20 max-w-lg animate-in fade-in slide-in-from-right-10 duration-1000">
+            <h2 className="text-5xl font-black text-white leading-[1.1] tracking-tight mb-6 drop-shadow-2xl">
+              {config.slogan_login}
+            </h2>
+            <div className="w-16 h-1 bg-tertiary-fixed mb-8 rounded-full"></div>
+            <p className="text-xl text-white/70 font-medium leading-relaxed">
+              {config.subtexto_login}
+            </p>
+            
+          </div>
+      </div>
     </div>
   )
 }

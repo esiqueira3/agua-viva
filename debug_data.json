@@ -1,0 +1,56 @@
+{
+  "membros": [
+    {
+      "nome_completo": "ESDRAS SIQUEIRA",
+      "departamento_id": "8b97c099-bcbb-4eb4-bf15-0cdb0945fb96",
+      "status": true
+    },
+    {
+      "nome_completo": "ESDRAS  SIQUEIRA SILVA",
+      "departamento_id": "8b97c099-bcbb-4eb4-bf15-0cdb0945fb96",
+      "status": true
+    }
+  ],
+  "depts": [
+    {
+      "id": "8b97c099-bcbb-4eb4-bf15-0cdb0945fb96",
+      "nome": "JOVENS"
+    },
+    {
+      "id": "9288b1c4-4714-4bea-abf7-3268961672f1",
+      "nome": "ADOLESCENTES"
+    },
+    {
+      "id": "e7e025b1-232b-417b-a0b0-6d5d96e505ac",
+      "nome": "HOMENS"
+    },
+    {
+      "id": "ddd8d25f-d210-49f4-a4d2-cc7b8037d95f",
+      "nome": "MULHERES"
+    },
+    {
+      "id": "9dd11eae-f162-492e-9c03-39b9243bb40c",
+      "nome": "CASAIS"
+    },
+    {
+      "id": "0d78bd4d-f2de-45b5-b97b-98dba3e20369",
+      "nome": "DANÇA"
+    },
+    {
+      "id": "28f473b3-900e-4c6d-8d25-9ca6cac43569",
+      "nome": "LOUVOR"
+    },
+    {
+      "id": "4c55738f-bc73-42ec-872c-c08061c87b6d",
+      "nome": "PANDEIRO"
+    },
+    {
+      "id": "da2177d7-a72a-452e-8c4d-453cb9f95bf7",
+      "nome": "DISCIPULADOS"
+    },
+    {
+      "id": "4b7f03eb-e3d5-4f44-b435-8e45705a28c8",
+      "nome": "KIDS"
+    }
+  ]
+}

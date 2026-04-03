@@ -4,6 +4,7 @@ import { Tabs } from '../components/ui/Tabs'
 import { MultiSelect } from '../components/ui/MultiSelect'
 import { supabase } from '../lib/supabase'
 import { useNavigate, useParams } from 'react-router-dom'
+import { SearchableSelect } from '../components/ui/SearchableSelect'
 
 // Instanciados FORA para proteger o foco do DOM virtual
 const FormField = ({ label, name, type="text", required=false, disabled=false, form, onChange, autoFocus, min }) => (
@@ -56,8 +57,10 @@ export default function CadastroEvento() {
   const [form, setForm] = useState({
     nome: '', data_evento: '', hora_evento: '', local_id: '', status: 'Agendado',
     departamento_id: '', lider_responsavel_id: '', equipe_envolvida: [],
-    limite_participantes: false, quantidade_maxima: '', link_inscricao: '', confirmacao_presenca: false,
-    frequencia: 'nao_repetir'
+    limite_participantes: false, quantidade_maxima: '', link_inscricao: '', 
+    link_pagamento_mp: '', confirmacao_presenca: false,
+    frequencia: 'nao_repetir',
+    pago: false, valor_base: '0.00', taxa_porc: '4.99', taxa_fixa: '0.40', valor_total: '0.00'
   })
 
   useEffect(() => {
@@ -94,8 +97,29 @@ export default function CadastroEvento() {
     }
   }, [form.departamento_id, departamentos])
 
+  // Lógica de Cálculo de Taxas Automática
+  useEffect(() => {
+    if (form.pago) {
+        const base = parseFloat(form.valor_base) || 0
+        const porc = parseFloat(form.taxa_porc) || 0
+        const fixa = parseFloat(form.taxa_fixa) || 0
+        
+        // Cálculo: Adicionando a taxa sobre o valor base
+        const total = (base + (base * (porc / 100)) + fixa).toFixed(2)
+        setForm(f => ({...f, valor_total: total}))
+    } else {
+        setForm(f => ({...f, valor_total: '0.00'}))
+    }
+  }, [form.pago, form.valor_base, form.taxa_porc, form.taxa_fixa])
+
   const handleFormChange = (e) => {
-    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value
+    let value = e.target.type === 'checkbox' ? e.target.checked : e.target.value
+    
+    // Padronização para CAIXA ALTA no nome do evento
+    if (e.target.name === 'nome' && typeof value === 'string') {
+      value = value.toUpperCase()
+    }
+    
     setForm({...form, [e.target.name]: value})
   }
 
@@ -145,7 +169,13 @@ export default function CadastroEvento() {
       content: (
         <div className="grid grid-cols-2 gap-4 max-w-4xl">
            <SelectMenu label="Departamento Responsável" name="departamento_id" options={departamentos.map(d => ({ value: d.id, label: d.nome }))} form={form} onChange={handleFormChange} />
-           <SelectMenu label="Líder Responsável (Editável)" name="lider_responsavel_id" options={membrosOptions} form={form} onChange={handleFormChange} />
+           <SearchableSelect 
+              label="Líder Responsável (Editável)" 
+              name="lider_responsavel_id" 
+              options={membrosOptions} 
+              value={form.lider_responsavel_id} 
+              onChange={handleFormChange} 
+           />
            
            <div className="col-span-2">
              <MultiSelect 
@@ -161,15 +191,77 @@ export default function CadastroEvento() {
     {
       label: "2. Participação e Inscrição",
       content: (
-        <div className="grid grid-cols-2 gap-4 max-w-4xl">
-           <Toggle label="Habilitar Limite de Participantes?" name="limite_participantes" form={form} onChange={handleFormChange} />
-           {form.limite_participantes && (
-              <FormField label="Quantidade Máxima de Inscrições" name="quantidade_maxima" type="number" form={form} onChange={handleFormChange} />
-           )}
-           <div className="col-span-2">
-              <FormField label="Link Exclusivo de Inscrição Externa (URL)" name="link_inscricao" type="url" form={form} onChange={handleFormChange} />
-           </div>
-           <Toggle label="Exigir Confirmação de Presença no Local?" name="confirmacao_presenca" form={form} onChange={handleFormChange} />
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 gap-6 max-w-4xl bg-surface-container-low/30 p-6 rounded-2xl border border-outline-variant/10">
+            <div className="col-span-2">
+                <h4 className="text-sm font-bold text-primary flex items-center gap-2 mb-2">
+                  <span className="material-symbols-outlined text-[18px]">group</span> Controle de Público
+                </h4>
+            </div>
+            <Toggle label="Habilitar Limite de Participantes?" name="limite_participantes" form={form} onChange={handleFormChange} />
+            {form.limite_participantes && (
+                <FormField label="Quantidade Máxima de Inscrições" name="quantidade_maxima" type="number" form={form} onChange={handleFormChange} />
+            )}
+            <div className="col-span-2">
+                <FormField label="Link Exclusivo de Inscrição Externa (URL)" name="link_inscricao" type="url" form={form} onChange={handleFormChange} />
+            </div>
+            <Toggle label="Exigir Confirmação de Presença no Local?" name="confirmacao_presenca" form={form} onChange={handleFormChange} />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-4xl bg-tertiary-container/10 p-6 rounded-2xl border border-tertiary-container/20">
+             <div className="col-span-4">
+                <h4 className="text-sm font-bold text-tertiary-fixed-dim flex items-center gap-2 mb-2 uppercase tracking-tighter">
+                  <span className="material-symbols-outlined text-[18px]">payments</span> Financeiro e Mercado Pago
+                </h4>
+             </div>
+             
+             <div className="col-span-4 md:col-span-4">
+                <Toggle label="Evento Pago?" name="pago" form={form} onChange={handleFormChange} />
+             </div>
+
+             {form.pago && (
+                <>
+                  <div className="col-span-4 bg-primary/5 p-4 rounded-xl border border-primary/20 mb-4 animate-in fade-in zoom-in duration-500">
+                     <div className="flex items-start gap-3">
+                        <span className="material-symbols-outlined text-primary">info</span>
+                        <div>
+                           <p className="text-xs font-bold text-primary uppercase">💡 Dica de Automação:</p>
+                           <p className="text-[11px] text-on-surface-variant leading-relaxed">
+                              Ao criar o link no Mercado Pago, coloque o ID abaixo no campo <strong>"Referência Externa"</strong>. 
+                              Isso permite que o sistema gerencie os valores e mude o status para "PAGO" automaticamente.
+                           </p>
+                           <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-white border border-primary/20 rounded-md">
+                              <span className="text-[10px] font-black font-mono text-primary">ID DO EVENTO:</span>
+                              <span className="text-xs font-black font-mono text-on-surface">{id || 'NOVO_EVENTO'}</span>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+                  
+                  <div className="col-span-4">
+                     <FormField label="Link do Mercado Pago (Cole a URL aqui)" name="link_pagamento_mp" type="url" form={form} onChange={handleFormChange} />
+                  </div>
+
+                  <FormField label="Valor Líquido (Igreja) R$" name="valor_base" type="number" step="0.01" form={form} onChange={handleFormChange} />
+                  <FormField label="Estimativa Taxa MP (%)" name="taxa_porc" type="number" step="0.01" form={form} onChange={handleFormChange} />
+                  <FormField label="Estimativa Taxa Fixa (R$)" name="taxa_fixa" type="number" step="0.01" form={form} onChange={handleFormChange} />
+                  
+                  <div className="col-span-4 p-4 rounded-xl bg-primary text-white flex justify-between items-center shadow-lg transform transition-all hover:scale-[1.01]">
+                     <div className="flex items-center gap-3">
+                        <span className="material-symbols-outlined text-3xl">shopping_cart_checkout</span>
+                        <div>
+                           <p className="text-[10px] uppercase font-black tracking-widest opacity-80">Valor final para o Fiel</p>
+                           <h5 className="text-2xl font-black">R$ {form.valor_total}</h5>
+                        </div>
+                     </div>
+                     <div className="text-right">
+                        <p className="text-[10px] font-bold uppercase opacity-60">Fórmula de Acréscimo Aplicada</p>
+                        <p className="text-xs font-mono">Líquido + % + Fixo</p>
+                     </div>
+                  </div>
+                </>
+             )}
+          </div>
         </div>
       )
     }

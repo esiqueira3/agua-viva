@@ -6,17 +6,32 @@ export default function Configuracoes() {
   const [isDark, setIsDark] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState('')
   const [loading, setLoading] = useState(false)
+  const [globalConfigs, setGlobalConfigs] = useState({
+    id: 1,
+    url_capa_login: '',
+    slogan_login: '',
+    subtexto_login: ''
+  })
+  const [currentUser, setCurrentUser] = useState(null)
+  const [loadingGlobal, setLoadingGlobal] = useState(false)
 
   useEffect(() => {
     setIsDark(document.documentElement.classList.contains('dark'))
     
-    async function loadUser() {
+    async function loadData() {
       const { data: { user } } = await supabase.auth.getUser()
+      setCurrentUser(user)
       if (user?.user_metadata?.avatar_url) {
          setAvatarUrl(user.user_metadata.avatar_url)
       }
+
+      // Carregar Configurações Globais (Independente do Usuário)
+      const { data: gData } = await supabase.from('configuracoes_gerais').select('*').eq('id', 1).single()
+      if (gData) {
+        setGlobalConfigs(gData)
+      }
     }
-    loadUser()
+    loadData()
   }, [])
 
   const toggleTheme = () => {
@@ -36,73 +51,156 @@ export default function Configuracoes() {
      const { error } = await supabase.auth.updateUser({ data: { avatar_url: avatarUrl } })
      setLoading(false)
      if (!error) {
-        alert("🟢 Foto de perfil atualizada com sucesso!\nAtualize essa página do navegador para ver o botão flutuante mudar.")
+        alert("🟢 Foto de perfil atualizada!\nAtualize a página do navegador para ver a mudança.")
      } else {
         alert("❌ Erro ao salvar foto: " + error.message)
      }
   }
 
+  const handleSaveGlobal = async () => {
+    setLoadingGlobal(true)
+    const { error } = await supabase.from('configuracoes_gerais').update({
+      url_capa_login: globalConfigs.url_capa_login,
+      slogan_login: globalConfigs.slogan_login,
+      subtexto_login: globalConfigs.subtexto_login,
+      updated_at: new Date().toISOString()
+    }).eq('id', 1)
+    
+    setLoadingGlobal(false)
+    if (!error) {
+       alert("🎉 Configurações do sistema atualizadas com sucesso!")
+    } else {
+       alert("❌ Erro ao salvar configs: " + error.message)
+    }
+  }
+
+  const isAdmin = currentUser?.user_metadata?.perfil === 'Administrador'
+
   return (
-    <div className="max-w-7xl mx-auto space-y-6 pb-20">
+    <div className="max-w-7xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
       <PageHeader 
         title="Configurações do Sistema" 
         description="Ajustes de interface, parâmetros e conta."
         icon="settings"
       />
       
-      <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/20 shadow-sm">
-        <h3 className="text-lg font-bold text-primary mb-6">Identidade & Conta</h3>
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-4 bg-surface-container-low rounded-lg border border-outline-variant/10">
-           <div className="flex items-center gap-4 flex-1">
-              <div className="w-14 h-14 rounded-full flex items-center justify-center bg-white shadow-inner overflow-hidden flex-shrink-0 border-2 border-primary/20">
-                 {avatarUrl ? (
-                    <img src={avatarUrl} alt="Foto" className="w-full h-full object-cover" />
-                 ) : (
-                    <span className="material-symbols-outlined text-4xl text-primary/50">account_circle</span>
-                 )}
+      {/* Seção Pessoal */}
+      <div className="bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/10 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <h3 className="text-lg font-black text-primary mb-6 flex items-center gap-2">
+           <span className="material-symbols-outlined font-black">person</span> Perfil & Identidade
+        </h3>
+        <div className="flex flex-col md:flex-row gap-6 items-start md:items-center p-6 bg-surface-container-low/40 rounded-2xl border border-outline-variant/5">
+           <div className="w-20 h-20 rounded-full flex items-center justify-center bg-white shadow-lg overflow-hidden flex-shrink-0 border-4 border-white">
+              {avatarUrl ? (
+                 <img src={avatarUrl} alt="Foto" className="w-full h-full object-cover" />
+              ) : (
+                 <span className="material-symbols-outlined text-5xl text-primary/30">account_circle</span>
+              )}
+           </div>
+           <div className="w-full space-y-3">
+              <div>
+                 <p className="font-black text-on-surface text-base">Sua Foto de Perfil</p>
+                 <p className="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest">Link de imagem .jpg ou .png</p>
               </div>
-              <div className="w-full max-w-md space-y-2">
-                 <div>
-                    <p className="font-bold text-on-surface text-sm">Foto de Perfil (Via URL Link Externo)</p>
-                    <p className="text-[10px] text-on-surface-variant font-medium">Use um endereço direto de imagem .jpg ou .png</p>
-                 </div>
-                 <div className="flex gap-2">
-                    <input 
-                      type="url" 
-                      placeholder="https://suafoto.com/perfil.jpg" 
-                      value={avatarUrl}
-                      onChange={(e) => setAvatarUrl(e.target.value)}
-                      className="flex-1 p-2 text-sm bg-surface-container-lowest border border-outline-variant/30 rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                    />
-                    <button 
-                       onClick={handleSaveAvatar}
-                       disabled={loading}
-                       className="px-6 py-2 bg-primary text-white rounded-lg text-sm font-bold shadow-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
-                    >
-                       {loading ? '...' : 'Salvar'}
-                    </button>
-                 </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                 <input 
+                   type="url" 
+                   placeholder="https://suafoto.com/perfil.jpg" 
+                   value={avatarUrl}
+                   onChange={(e) => setAvatarUrl(e.target.value)}
+                   className="flex-1 p-3 text-sm bg-white border border-outline-variant/20 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                 />
+                 <button 
+                    onClick={handleSaveAvatar}
+                    disabled={loading}
+                    className="px-8 py-3 bg-primary text-white rounded-xl text-sm font-black shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all disabled:opacity-50 active:scale-95"
+                 >
+                    {loading ? '...' : 'Atualizar Foto'}
+                 </button>
               </div>
            </div>
         </div>
       </div>
 
-      <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/20 shadow-sm mt-6">
-        <h3 className="text-lg font-bold text-primary mb-6">Aparência Visual</h3>
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-4 bg-surface-container-low rounded-lg border border-outline-variant/10">
+      {/* Seção Administrador: Personalização Global */}
+      {isAdmin && (
+        <div className="bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/10 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <h3 className="text-lg font-black text-secondary mb-6 flex items-center gap-2">
+             <span className="material-symbols-outlined font-black">brush</span> Personalização do Sistema (Adm)
+          </h3>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 bg-surface-container-low/40 rounded-2xl border border-outline-variant/5">
+             <div className="space-y-4">
+                <div>
+                   <label className="text-xs font-black text-on-surface-variant/70 uppercase tracking-widest mb-1 block">Capa da Tela de Login (URL)</label>
+                   <input 
+                      type="url" 
+                      value={globalConfigs.url_capa_login} 
+                      onChange={e => setGlobalConfigs({...globalConfigs, url_capa_login: e.target.value})}
+                      placeholder="https://exemplo.com/fundo-igreja.jpg"
+                      className="w-full p-3 text-sm bg-white border border-outline-variant/20 rounded-xl outline-none"
+                   />
+                </div>
+                <div>
+                   <label className="text-xs font-black text-on-surface-variant/70 uppercase tracking-widest mb-1 block">Slogan Principal (Boas-vindas)</label>
+                   <input 
+                      type="text" 
+                      value={globalConfigs.slogan_login} 
+                      onChange={e => setGlobalConfigs({...globalConfigs, slogan_login: e.target.value})}
+                      placeholder="Ex: Água Viva - Do primeiro contato..."
+                      className="w-full p-3 text-sm bg-white border border-outline-variant/20 rounded-xl outline-none"
+                   />
+                </div>
+                <div>
+                   <label className="text-xs font-black text-on-surface-variant/70 uppercase tracking-widest mb-1 block">Subtexto (Descrição Curta)</label>
+                   <textarea 
+                      rows={2}
+                      value={globalConfigs.subtexto_login} 
+                      onChange={e => setGlobalConfigs({...globalConfigs, subtexto_login: e.target.value})}
+                      placeholder="Ex: Conecte sua comunidade através da tecnologia e fé."
+                      className="w-full p-3 text-sm bg-white border border-outline-variant/20 rounded-xl outline-none resize-none"
+                   />
+                </div>
+                <button 
+                    onClick={handleSaveGlobal}
+                    disabled={loadingGlobal}
+                    className="w-full py-4 bg-secondary text-white rounded-xl text-sm font-black shadow-lg shadow-secondary/20 hover:bg-secondary/90 transition-all active:scale-95 disabled:opacity-50"
+                 >
+                    {loadingGlobal ? 'Salvando...' : 'Aplicar Alterações Visuais ao Sistema'}
+                 </button>
+             </div>
+             <div className="hidden lg:flex flex-col gap-3">
+                <p className="text-xs font-black text-on-surface-variant/40 uppercase text-center italic">Pré-visualização da Capa</p>
+                <div className="flex-1 rounded-2xl overflow-hidden border-2 border-dashed border-outline-variant/20 flex items-center justify-center bg-white">
+                   {globalConfigs.url_capa_login ? (
+                      <img src={globalConfigs.url_capa_login} className="w-full h-full object-cover" alt="Preview" />
+                   ) : (
+                      <span className="material-symbols-outlined text-4xl text-outline/30 font-black">image</span>
+                   )}
+                </div>
+             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Aparência Básica */}
+      <div className="bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/10 shadow-sm mt-6">
+        <h3 className="text-lg font-black text-primary mb-6 flex items-center gap-2">
+           <span className="material-symbols-outlined font-black">palette</span> Aparência Visual
+        </h3>
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between p-6 bg-surface-container-low/40 rounded-2xl border border-outline-variant/5">
            <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-inner ${isDark ? 'bg-slate-800 text-tertiary-fixed-dim' : 'bg-white text-primary'}`}>
-                 <span className="material-symbols-outlined text-3xl">{isDark ? 'dark_mode' : 'light_mode'}</span>
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-colors ${isDark ? 'bg-slate-800 text-tertiary-fixed-dim' : 'bg-white text-primary'}`}>
+                 <span className="material-symbols-outlined text-3xl font-black">{isDark ? 'dark_mode' : 'light_mode'}</span>
               </div>
               <div>
-                 <p className="font-bold text-on-surface">Modo de Exibição / Tema</p>
-                 <p className="text-sm text-on-surface-variant">Alterna entre as versões Clara e Escura (Dark Mode) do painel.</p>
+                 <p className="font-black text-on-surface text-base">Esquema de Cores do Painel</p>
+                 <p className="text-sm text-on-surface-variant font-medium">Alterne entre os modos Claro e Escuro.</p>
               </div>
            </div>
            
            <label className="relative inline-flex items-center cursor-pointer ml-4">
              <input type="checkbox" className="sr-only peer" checked={isDark} onChange={toggleTheme} />
-             <div className="w-14 h-7 bg-outline-variant/60 peer-focus:outline-none rounded-full peer dark:bg-slate-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary shadow-inner"></div>
+             <div className="w-16 h-8 bg-outline-variant/40 peer-focus:outline-none rounded-full peer dark:bg-slate-600 peer-checked:after:translate-x-[200%] peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary shadow-inner"></div>
            </label>
         </div>
       </div>

@@ -74,7 +74,9 @@ export default function Calendario() {
                      data_formatada: `${dd}/${mm}/${yyyy}`,
                      hora_formatada: ev.hora_evento ? ev.hora_evento.substring(0,5) : 'O dia todo',
                      local: ev.locais?.descricao || 'Local não informado',
-                     original_id: ev.id // Guardamos a chave primaria real aqui
+                     original_id: ev.id, // Guardamos a chave primaria real aqui
+                     link_inscricao: ev.link_inscricao,
+                     link_pagamento_mp: ev.link_pagamento_mp
                   }
                })
             }
@@ -174,19 +176,41 @@ export default function Calendario() {
                </div>
              </div>
 
-             <div className="mt-8 flex justify-between items-center gap-4">
-                <button onClick={() => navigate(`/eventos/editar/${selectedEvent.extendedProps.original_id}`)} className="text-xs font-bold text-on-surface-variant flex items-center gap-1 hover:text-primary transition-colors bg-outline-variant/10 px-4 py-3 rounded-xl">
-                  <span className="material-symbols-outlined text-[16px]">edit</span> Modificar Ficha
-                </button>
-                <button onClick={() => setSelectedEvent(null)} className="flex-1 px-6 py-3 bg-gradient-to-tr from-primary to-primary-container text-white shadow-lg rounded-xl font-bold active:scale-95 transition-transform flex items-center justify-center gap-2">
-                  <span className="material-symbols-outlined text-[18px]">check</span> Certo
-                </button>
-             </div>
+              <div className="mt-8 flex flex-col gap-3">
+                 {(selectedEvent.extendedProps.link_inscricao || selectedEvent.extendedProps.link_pagamento_mp) && (
+                    <a 
+                      href={selectedEvent.extendedProps.link_inscricao || selectedEvent.extendedProps.link_pagamento_mp} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="w-full px-6 py-4 bg-orange-600 text-white shadow-lg rounded-2xl font-black active:scale-95 transition-all flex items-center justify-center gap-3 animate-pulse-glow"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">link</span> 
+                      LINK DE INSCRIÇÃO
+                    </a>
+                 )}
+                 <div className="flex justify-between items-center gap-4">
+                    <button onClick={() => navigate(`/eventos/editar/${selectedEvent.extendedProps.original_id}`)} className="flex-1 text-[11px] font-black text-on-surface-variant flex items-center justify-center gap-2 hover:text-primary transition-colors bg-outline-variant/10 px-4 py-3.5 rounded-xl uppercase tracking-tighter">
+                      <span className="material-symbols-outlined text-[16px]">edit</span> Modificar Ficha
+                    </button>
+                    <button onClick={() => setSelectedEvent(null)} className="px-6 py-3.5 bg-surface-container-high text-on-surface rounded-xl font-bold active:scale-95 transition-transform flex items-center justify-center gap-2">
+                       Fechar
+                    </button>
+                 </div>
+              </div>
            </div>
         </div>
       )}
 
       <style>{`
+        @keyframes pulse-glow {
+          0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(234, 88, 12, 0.7); }
+          50% { transform: scale(1.02); box-shadow: 0 0 20px 10px rgba(234, 88, 12, 0); }
+          100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(234, 88, 12, 0); }
+        }
+        .animate-pulse-glow {
+          animation: pulse-glow 1.5s infinite ease-in-out;
+        }
+
         /* Sobrescrevendo pequenos ajustes estéticos para mesclar ao Tailwind */
         .custom-calendar .fc-toolbar-title {
            font-family: 'Manrope', sans-serif;
