@@ -116,7 +116,7 @@ export default function InscricaoEvento() {
                 const result = await response.json();
 
                 if (result.status === 'approved') {
-                  // 2. Salvar inscrição no Banco de Dados se foi pago!
+                  // 1. Pagamento Aprovado Instantaneamente
                   const payload = {
                     evento_id: id,
                     nome_participante: form.nome,
@@ -127,7 +127,21 @@ export default function InscricaoEvento() {
                   }
                   await supabase.from('inscricoes').insert([payload])
                   setSuccess(true);
+                } else if (result.status === 'in_process') {
+                  // 2. Pagamento em Análise (Ex: pending_review_manual)
+                  const payload = {
+                    evento_id: id,
+                    nome_participante: form.nome,
+                    email_participante: form.email,
+                    whatsapp: form.whatsapp,
+                    valor_pago: result.transaction_amount,
+                    status: 'pendente' // Fica pendente aguardando MP
+                  }
+                  await supabase.from('inscricoes').insert([payload])
+                  alert("⏳ Seu pagamento está em análise pelo Mercado Pago. Fique tranquilo, sua reserva já foi pré-confirmada e avisaremos assim que for liberado!");
+                  setSuccess(true);
                 } else {
+                  // 3. Pagamento Rejeitado
                   alert(`❌ Pagamento ${result.status}: ${result.status_detail || 'Operação recusada'}. Verifique os dados ou use outro cartão.`);
                 }
               } catch (e) {
