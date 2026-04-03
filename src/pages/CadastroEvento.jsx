@@ -102,15 +102,19 @@ export default function CadastroEvento() {
     if (form.pago) {
         const base = parseFloat(form.valor_base) || 0
         const porc = parseFloat(form.taxa_porc) || 0
-        const fixa = parseFloat(form.taxa_fixa) || 0
         
-        // Cálculo: Adicionando a taxa sobre o valor base
-        const total = (base + (base * (porc / 100)) + fixa).toFixed(2)
-        setForm(f => ({...f, valor_total: total}))
+        // Ajuste 2: Taxa Fixa agora é o resultado do Líquido + Percentual
+        const resultadoComPorcentagem = (base + (base * (porc / 100))).toFixed(2)
+        
+        setForm(f => ({
+          ...f, 
+          taxa_fixa: resultadoComPorcentagem, // Campo atualizado automaticamente
+          valor_total: resultadoComPorcentagem // Valor total segue o mesmo cálculo
+        }))
     } else {
-        setForm(f => ({...f, valor_total: '0.00'}))
+        setForm(f => ({...f, taxa_fixa: '0.00', valor_total: '0.00'}))
     }
-  }, [form.pago, form.valor_base, form.taxa_porc, form.taxa_fixa])
+  }, [form.pago, form.valor_base, form.taxa_porc])
 
   const handleFormChange = (e) => {
     let value = e.target.type === 'checkbox' ? e.target.checked : e.target.value
@@ -242,9 +246,11 @@ export default function CadastroEvento() {
                      <FormField label="Link do Mercado Pago (Cole a URL aqui)" name="link_pagamento_mp" type="url" form={form} onChange={handleFormChange} />
                   </div>
 
-                  <FormField label="Valor Líquido (Igreja) R$" name="valor_base" type="number" step="0.01" form={form} onChange={handleFormChange} />
-                  <FormField label="Estimativa Taxa MP (%)" name="taxa_porc" type="number" step="0.01" form={form} onChange={handleFormChange} />
-                  <FormField label="Estimativa Taxa Fixa (R$)" name="taxa_fixa" type="number" step="0.01" form={form} onChange={handleFormChange} />
+                  <div className="col-span-4 grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                    <FormField label="Valor Líquido (Igreja) R$" name="valor_base" type="number" step="0.01" form={form} onChange={handleFormChange} />
+                    <FormField label="Estimativa Taxa MP (%)" name="taxa_porc" type="number" step="0.01" form={form} onChange={handleFormChange} />
+                    <FormField label="Estimativa Taxa Fixa (R$)" name="taxa_fixa" type="number" step="0.01" disabled form={form} onChange={handleFormChange} />
+                  </div>
                   
                   <div className="col-span-4 p-4 rounded-xl bg-primary text-white flex justify-between items-center shadow-lg transform transition-all hover:scale-[1.01]">
                      <div className="flex items-center gap-3">
