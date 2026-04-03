@@ -158,11 +158,11 @@ export default function Dashboard() {
     <div className="max-w-7xl mx-auto space-y-10">
       {/* Banner de Capa Home */}
       <div className="w-full h-48 md:h-64 rounded-[2rem] overflow-hidden shadow-xl border border-outline-variant/10 relative group">
-         <img 
-            src="/capa_home.jpg" 
+          <img 
+            src="/capa_home.png" 
             alt="Capa Água Viva" 
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-         />
+          />
          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent"></div>
       </div>
 
