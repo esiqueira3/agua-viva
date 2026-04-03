@@ -159,7 +159,7 @@ export default function Dashboard() {
       {/* Banner de Capa Home */}
       <div className="w-full h-48 md:h-64 rounded-[2rem] overflow-hidden shadow-xl border border-outline-variant/10 relative group">
           <img 
-            src="/capa_home.png" 
+            src="/capa_home.jpg" 
             alt="Capa Água Viva" 
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
