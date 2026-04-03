@@ -76,7 +76,8 @@ export default function Calendario() {
                      local: ev.locais?.descricao || 'Local não informado',
                      original_id: ev.id, // Guardamos a chave primaria real aqui
                      link_inscricao: ev.link_inscricao,
-                     link_pagamento_mp: ev.link_pagamento_mp
+                     link_pagamento_mp: ev.link_pagamento_mp,
+                     pago: ev.pago
                   }
                })
             }
@@ -177,17 +178,25 @@ export default function Calendario() {
              </div>
 
               <div className="mt-8 flex flex-col gap-3">
-                 {(selectedEvent.extendedProps.link_inscricao || selectedEvent.extendedProps.link_pagamento_mp) && (
-                    <a 
-                      href={selectedEvent.extendedProps.link_inscricao || selectedEvent.extendedProps.link_pagamento_mp} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
+                  {(selectedEvent.extendedProps.link_inscricao || selectedEvent.extendedProps.link_pagamento_mp || selectedEvent.extendedProps.pago) && (
+                    <button 
+                      onClick={() => {
+                        const link = selectedEvent.extendedProps.link_inscricao || 
+                                     selectedEvent.extendedProps.link_pagamento_mp || 
+                                     `${window.location.origin}/inscricao/${selectedEvent.extendedProps.original_id}`;
+                        
+                        if (link.startsWith('http')) {
+                          window.open(link, '_blank');
+                        } else {
+                          navigate(`/inscricao/${selectedEvent.extendedProps.original_id}`);
+                        }
+                      }}
                       className="w-full px-6 py-4 bg-orange-600 text-white shadow-lg rounded-2xl font-black active:scale-95 transition-all flex items-center justify-center gap-3 animate-pulse-glow"
                     >
                       <span className="material-symbols-outlined text-[20px]">link</span> 
-                      LINK DE INSCRIÇÃO
-                    </a>
-                 )}
+                      {selectedEvent.extendedProps.pago ? 'REALIZAR INSCRIÇÃO' : 'LINK DE INSCRIÇÃO'}
+                    </button>
+                  )}
                  <div className="flex justify-between items-center gap-4">
                     <button onClick={() => navigate(`/eventos/editar/${selectedEvent.extendedProps.original_id}`)} className="flex-1 text-[11px] font-black text-on-surface-variant flex items-center justify-center gap-2 hover:text-primary transition-colors bg-outline-variant/10 px-4 py-3.5 rounded-xl uppercase tracking-tighter">
                       <span className="material-symbols-outlined text-[16px]">edit</span> Modificar Ficha
