@@ -8,6 +8,7 @@ export default function InscricaoEvento() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [brickLoading, setBrickLoading] = useState(true)
   
   const [form, setForm] = useState({
     nome: '',
@@ -96,7 +97,8 @@ export default function InscricaoEvento() {
           },
           callbacks: {
             onReady: () => {
-              console.log("Card Brick Pronto! ✨")
+              console.log("Card Brick Pronto! ✨");
+              setBrickLoading(false);
             },
             onSubmit: async (formData) => {
               setSubmitting(true);
@@ -262,7 +264,28 @@ export default function InscricaoEvento() {
                 <span className="material-symbols-outlined text-[14px]">arrow_back</span> Voltar aos meus dados
               </button>
               
-              <div id="paymentCardBrick_container" className="min-h-[300px]">
+              {/* Skeleton Loading Premium */}
+              {brickLoading && (
+                <div className="absolute inset-x-0 top-0 p-8 space-y-6 animate-pulse bg-slate-900/40 rounded-[2.5rem] z-10 border border-white/5">
+                   <div className="h-4 bg-white/10 rounded-full w-1/3"></div>
+                   <div className="h-12 bg-white/5 rounded-2xl w-full"></div>
+                   <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                         <div className="h-4 bg-white/10 rounded-full w-1/2"></div>
+                         <div className="h-12 bg-white/5 rounded-2xl w-full"></div>
+                      </div>
+                      <div className="space-y-2">
+                         <div className="h-4 bg-white/10 rounded-full w-1/2"></div>
+                         <div className="h-12 bg-white/5 rounded-2xl w-full"></div>
+                      </div>
+                   </div>
+                   <div className="h-4 bg-white/10 rounded-full w-2/3"></div>
+                   <div className="h-12 bg-white/5 rounded-2xl w-full"></div>
+                   <div className="h-16 bg-white/10 rounded-2xl w-full mt-8"></div>
+                </div>
+              )}
+
+              <div id="paymentCardBrick_container" className={`min-h-[300px] transition-opacity duration-700 ${brickLoading ? 'opacity-0' : 'opacity-100'}`}>
                  {/* O Mercado Pago vai injetar o formulário aqui */}
               </div>
            </div>
