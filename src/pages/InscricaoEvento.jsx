@@ -83,11 +83,9 @@ export default function InscricaoEvento() {
           customization: {
             visual: {
               style: {
-                theme: 'dark',
+                theme: 'default', // Tema Claro para melhor acessibilidade
                 customVariables: {
                   baseColor: '#8B5CF6',
-                  formBackgroundColor: '#0f172a',
-                  inputBackgroundColor: '#1e293b'
                 }
               }
             },
@@ -175,11 +173,11 @@ export default function InscricaoEvento() {
   )
 
   if (success) return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-       <div className="max-w-md w-full bg-white/10 backdrop-blur-xl border border-white/20 p-10 rounded-3xl text-center shadow-2xl">
-          <span className="material-symbols-outlined text-6xl text-green-400 mb-4 animate-bounce" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-          <h2 className="text-3xl font-black text-white mb-2">Inscrição Recebida!</h2>
-          <p className="text-slate-300 mb-8">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+       <div className="max-w-md w-full bg-white border border-slate-200 p-10 rounded-3xl text-center shadow-2xl">
+          <span className="material-symbols-outlined text-6xl text-green-600 mb-4 animate-bounce" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+          <h2 className="text-3xl font-black text-slate-900 mb-2">Inscrição Recebida!</h2>
+          <p className="text-slate-600 mb-8 font-medium">
             {evento.pago 
                ? "Pagamento confirmado! Sua inscrição está garantida. Te esperamos no evento! 🎉" 
                : "Sua vaga está garantida! Te esperamos no evento."}
@@ -192,14 +190,14 @@ export default function InscricaoEvento() {
   )
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center py-12 px-4 selection:bg-primary selection:text-white">
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center py-12 px-4 selection:bg-primary selection:text-white">
       {/* Header Estilizado */}
       <div className="max-w-2xl w-full text-center mb-10">
-         <img src="/logo.png" alt="Água Viva" className="h-12 mx-auto mb-6 opacity-80" />
-         <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-tight">
+         <img src="/logo.png" alt="Água Viva" className="h-14 mx-auto mb-6" />
+         <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
             Inscrição: <span className="text-primary">{evento.nome}</span>
          </h1>
-         <div className="flex flex-wrap justify-center gap-6 mt-6 text-slate-400 font-bold text-sm uppercase tracking-widest">
+         <div className="flex flex-wrap justify-center gap-6 mt-6 text-slate-500 font-bold text-sm uppercase tracking-widest">
             <div className="flex items-center gap-2">
                <span className="material-symbols-outlined text-primary">calendar_today</span>
                {/* Parse manual para evitar deslocamento de fuso UTC-3 */}
@@ -215,9 +213,9 @@ export default function InscricaoEvento() {
       </div>
 
       {/* Card de Inscrição */}
-      <div className="max-w-xl w-full bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
+      <div className="max-w-xl w-full bg-white border border-slate-200 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 p-8">
-           <span className="text-white/5 font-black text-8xl select-none">AV</span>
+           <span className="text-slate-100 font-black text-8xl select-none">AV</span>
         </div>
 
         {step === 1 ? (
@@ -228,7 +226,7 @@ export default function InscricaoEvento() {
                     <input 
                        required type="text" placeholder="Como devemos te chamar?"
                        value={form.nome} onChange={e => setForm({...form, nome: e.target.value})}
-                       className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary transition-all font-medium"
+                       className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary transition-all font-medium"
                     />
                  </div>
 
@@ -237,7 +235,7 @@ export default function InscricaoEvento() {
                     <input 
                        required type="email" placeholder="Para enviarmos seu ingresso"
                        value={form.email} onChange={e => setForm({...form, email: e.target.value})}
-                       className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary transition-all font-medium"
+                       className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary transition-all font-medium"
                     />
                  </div>
 
@@ -246,19 +244,19 @@ export default function InscricaoEvento() {
                     <input 
                        type="tel" placeholder="(00) 0 0000-0000"
                        value={form.whatsapp} onChange={e => setForm({...form, whatsapp: e.target.value})}
-                       className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary transition-all font-medium"
+                       className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary transition-all font-medium"
                     />
                  </div>
               </div>
 
-              <div className={`p-6 rounded-3xl border flex items-center justify-between transition-colors ${evento.pago ? 'bg-primary/10 border-primary/20' : 'bg-green-500/10 border-green-500/20'}`}>
+              <div className={`p-6 rounded-3xl border flex items-center justify-between transition-colors ${evento.pago ? 'bg-primary/5 border-primary/10' : 'bg-green-500/10 border-green-500/20'}`}>
                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Investimento</p>
-                    <h3 className="text-2xl font-black text-white">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Investimento</p>
+                    <h3 className="text-2xl font-black text-slate-900">
                        {evento.pago ? `R$ ${evento.valor_total}` : 'Gratuito'}
                     </h3>
                  </div>
-                 <span className="material-symbols-outlined text-4xl text-white/20">
+                 <span className="material-symbols-outlined text-4xl text-slate-300">
                     {evento.pago ? 'payments' : 'volunteer_activism'}
                  </span>
               </div>
@@ -281,24 +279,24 @@ export default function InscricaoEvento() {
                 <span className="material-symbols-outlined text-[14px]">arrow_back</span> Voltar aos meus dados
               </button>
               
-              {/* Skeleton Loading Premium */}
+              {/* Skeleton Loading Premium (Adaptado para Light Mode) */}
               {brickLoading && (
-                <div className="absolute inset-x-0 top-0 p-8 space-y-6 animate-pulse bg-slate-900/40 rounded-[2.5rem] z-10 border border-white/5">
-                   <div className="h-4 bg-white/10 rounded-full w-1/3"></div>
-                   <div className="h-12 bg-white/5 rounded-2xl w-full"></div>
+                <div className="absolute inset-x-0 top-0 p-8 space-y-6 animate-pulse bg-slate-50 rounded-[2.5rem] z-10 border border-slate-100">
+                   <div className="h-4 bg-slate-200 rounded-full w-1/3"></div>
+                   <div className="h-12 bg-slate-100 rounded-2xl w-full"></div>
                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                         <div className="h-4 bg-white/10 rounded-full w-1/2"></div>
-                         <div className="h-12 bg-white/5 rounded-2xl w-full"></div>
+                         <div className="h-4 bg-slate-200 rounded-full w-1/2"></div>
+                         <div className="h-12 bg-slate-100 rounded-2xl w-full"></div>
                       </div>
                       <div className="space-y-2">
-                         <div className="h-4 bg-white/10 rounded-full w-1/2"></div>
-                         <div className="h-12 bg-white/5 rounded-2xl w-full"></div>
+                         <div className="h-4 bg-slate-200 rounded-full w-1/2"></div>
+                         <div className="h-12 bg-slate-100 rounded-2xl w-full"></div>
                       </div>
                    </div>
-                   <div className="h-4 bg-white/10 rounded-full w-2/3"></div>
-                   <div className="h-12 bg-white/5 rounded-2xl w-full"></div>
-                   <div className="h-16 bg-white/10 rounded-2xl w-full mt-8"></div>
+                   <div className="h-4 bg-slate-200 rounded-full w-2/3"></div>
+                   <div className="h-12 bg-slate-100 rounded-2xl w-full"></div>
+                   <div className="h-16 bg-slate-200 rounded-2xl w-full mt-8"></div>
                 </div>
               )}
 
@@ -309,9 +307,17 @@ export default function InscricaoEvento() {
         )}
       </div>
       
-      <p className="mt-12 text-slate-700 text-xs font-bold uppercase tracking-widest">
-         © {new Date().getFullYear()} Comunidade Água Viva • Gestão Inteligente
+      <p className="mt-12 text-slate-700 text-xs font-bold uppercase tracking-widest text-center">
+         © {new Date().getFullYear()} Comunidade Evangélica Água Viva • Gestão Inteligente
       </p>
+
+      {/* Selo de Segurança Mercado Pago */}
+      <div className="mt-4 flex items-center justify-center gap-2 px-4 py-2 bg-slate-100 rounded-full border border-slate-200">
+         <span className="material-symbols-outlined text-green-600 text-[18px]">verified_user</span>
+         <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider">
+            Ambiente Seguro <span className="text-primary">Mercado Pago</span>
+         </p>
+      </div>
     </div>
   )
 }

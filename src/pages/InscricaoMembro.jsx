@@ -142,14 +142,14 @@ export default function InscricaoMembro() {
 
   if (sucesso) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-white rounded-[2.5rem] p-10 text-center shadow-2xl animate-in zoom-in duration-500">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 uppercase selection:bg-primary selection:text-white">
+        <div className="max-w-md w-full bg-white rounded-[2.5rem] p-10 text-center shadow-2xl animate-in zoom-in duration-500 border border-slate-200">
            <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
               <span className="material-symbols-outlined text-4xl">check_circle</span>
            </div>
-           <h2 className="text-3xl font-black text-slate-900 mb-4">Cadastro Realizado!</h2>
-           <p className="text-slate-500 font-medium leading-relaxed">
-             Sua solicitação de membro foi enviada com sucesso para a secretaria da **Água Viva**. 
+           <h2 className="text-3xl font-black text-slate-900 mb-4 uppercase">Cadastro Realizado!</h2>
+           <p className="text-slate-600 font-medium leading-relaxed">
+             Sua solicitação de membro foi enviada com sucesso para a secretaria da 🏛️ **COMUNIDADE ÁGUA VIVA**. 🏛️
              Em breve, nossa equipe entrará em contato para confirmar seus dados. 
              <br /><br />
              Seja bem-vindo(a)! 🙏✨
@@ -160,10 +160,10 @@ export default function InscricaoMembro() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0F172A] relative overflow-hidden font-body">
-      {/* Elementos Decorativos */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/4 pointer-events-none"></div>
+    <div className="min-h-screen bg-slate-50 relative overflow-hidden font-body selection:bg-primary selection:text-white">
+      {/* Elementos Decorativos Suaves para Light Mode */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/4 pointer-events-none"></div>
 
       <div className="max-w-4xl mx-auto px-6 py-16 relative z-10">
         
@@ -172,18 +172,18 @@ export default function InscricaoMembro() {
            <img 
               src="/logo.png" 
               alt="Logo" 
-              className="h-16 mx-auto mb-6 drop-shadow-lg"
+              className="h-16 mx-auto mb-6"
            />
-           <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-4">
+           <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-4 uppercase">
              {config?.slogan_principal || "Faça parte da nossa família"}
            </h1>
-           <p className="text-slate-400 text-lg max-w-2xl mx-auto font-medium">
+           <p className="text-slate-500 text-lg max-w-2xl mx-auto font-medium">
              {config?.subtexto_slogan || "Complete seus dados abaixo para iniciar sua jornada conosco na Água Viva."}
            </p>
         </div>
 
-        {/* Formulário Principal */}
-        <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 rounded-[3rem] shadow-2xl overflow-hidden border border-white/10">
+        {/* Formulário Principal (Fixo Light Mode para Acessibilidade) */}
+        <form onSubmit={handleSubmit} className="bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-slate-200">
            
            <div className="p-8 md:p-12 space-y-10">
               
@@ -302,7 +302,7 @@ export default function InscricaoMembro() {
         </form>
 
         <div className="mt-12 text-center">
-           <p className="text-slate-500 font-bold text-sm">© 2026 Água Viva - Sistema de Gestão Ministerial</p>
+           <p className="text-slate-500 font-bold text-sm">© {new Date().getFullYear()} Comunidade Evangélica Água Viva • Gestão Inteligente</p>
         </div>
 
       </div>
