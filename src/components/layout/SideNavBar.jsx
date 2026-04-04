@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 
 export default function SideNavBar({ isCollapsed }) {
+  const [isFinanceiroExpanded, setIsFinanceiroExpanded] = useState(true)
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -49,30 +51,45 @@ export default function SideNavBar({ isCollapsed }) {
                   to={item.path}
                   className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 font-body text-sm font-semibold transition-all duration-200 rounded-xl ${
                     isActive(item.path)
-                      ? 'text-primary border-l-4 border-tertiary-fixed-dim bg-primary-fixed/50 scale-[0.99] font-bold'
-                      : 'text-slate-500 hover:text-primary hover:bg-surface-container-low'
+                      ? 'text-primary border-l-4 border-tertiary-fixed-dim bg-primary/10 dark:bg-primary/20 scale-[0.99] font-bold'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5'
                   }`}
                   title={isCollapsed ? item.name : ''}
                 >
                   <span className={`material-symbols-outlined ${isActive(item.path) ? 'text-primary' : ''}`}>
                      {item.icon}
                   </span>
-                  {!isCollapsed && <span className="whitespace-nowrap">{item.name}</span>}
+                  {!isCollapsed && <span className="whitespace-nowrap flex-1">{item.name}</span>}
+                  
+                  {!isCollapsed && item.name === 'Financeiro' && (
+                    <div 
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setIsFinanceiroExpanded(!isFinanceiroExpanded)
+                      }}
+                      className="p-1 hover:bg-slate-300/30 dark:hover:bg-white/10 rounded-md transition-all cursor-pointer"
+                    >
+                      <span className={`material-symbols-outlined text-[18px] transition-transform duration-300 ${isFinanceiroExpanded ? 'rotate-180' : ''}`}>
+                        expand_more
+                      </span>
+                    </div>
+                  )}
                 </Link>
 
                 {/* Submenu para Financeiro */}
-                {item.name === 'Financeiro' && !isCollapsed && (
+                {item.name === 'Financeiro' && !isCollapsed && isFinanceiroExpanded && (
                    <div className="ml-9 mt-1 space-y-1">
                       <Link 
                         to="/financeiro/mercado-pago"
                         className={`flex items-center gap-2 px-3 py-2 text-[11px] font-black uppercase tracking-wider rounded-lg transition-all ${
                           location.pathname === '/financeiro/mercado-pago'
-                            ? 'text-primary bg-primary/5'
-                            : 'text-slate-400 hover:text-primary hover:bg-slate-100'
+                            ? 'text-primary bg-primary/10 dark:bg-primary/20'
+                            : 'text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5'
                         }`}
                       >
                         <span className="material-symbols-outlined text-[16px]">api</span>
-                        API Mercado Pago
+                        API MERCADO PAGO
                       </Link>
                    </div>
                 )}
@@ -85,8 +102,8 @@ export default function SideNavBar({ isCollapsed }) {
               to="/configuracoes"
               className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 font-body text-sm font-semibold transition-all duration-200 rounded-xl ${
                 isActive('/configuracoes')
-                  ? 'text-primary border-l-4 border-tertiary-fixed-dim bg-primary-fixed/50 scale-[0.99] font-bold'
-                  : 'text-slate-500 hover:text-primary hover:bg-surface-container-low'
+                  ? 'text-primary border-l-4 border-tertiary-fixed-dim bg-primary/10 dark:bg-primary/20 scale-[0.99] font-bold'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5'
               }`}
               title={isCollapsed ? 'Configurações' : ''}
             >
@@ -97,8 +114,8 @@ export default function SideNavBar({ isCollapsed }) {
               to="/usuarios"
               className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 font-body text-sm font-semibold transition-all duration-200 rounded-xl ${
                 isActive('/usuarios') || location.pathname.includes('/usuarios')
-                  ? 'text-primary border-l-4 border-tertiary-fixed-dim bg-primary-fixed/50 scale-[0.99] font-bold'
-                  : 'text-slate-500 hover:text-primary hover:bg-surface-container-low'
+                  ? 'text-primary border-l-4 border-tertiary-fixed-dim bg-primary/10 dark:bg-primary/20 scale-[0.99] font-bold'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5'
               }`}
               title={isCollapsed ? 'Controle de Acesso' : ''}
             >
@@ -108,7 +125,7 @@ export default function SideNavBar({ isCollapsed }) {
             <button
               onClick={handleLogout}
               title={isCollapsed ? 'Sair' : ''}
-              className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 text-slate-500 hover:text-error font-body text-sm font-semibold rounded-xl hover:bg-error/10`}
+              className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-error font-body text-sm font-semibold rounded-xl hover:bg-error/10 dark:hover:bg-error/20`}
             >
               <span className="material-symbols-outlined">logout</span> 
               {!isCollapsed && <span>Sair</span>}

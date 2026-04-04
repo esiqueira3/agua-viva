@@ -14,7 +14,7 @@ export default function Locais() {
       const { data, error } = await supabase
         .from('locais')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('codigo', { ascending: true })
       
       if (!error && data) setLocais(data)
       setLoading(false)

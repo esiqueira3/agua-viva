@@ -25,7 +25,7 @@ export default function Calendario() {
     async function fetchEventos() {
       const { data, error } = await supabase
         .from('eventos')
-        .select('*, departamentos ( tipo_departamento, publico_alvo ), locais ( descricao )')
+        .select('*, departamentos ( tipo_departamento, publico_alvo, cor ), locais ( descricao )')
       
       if (error) {
          console.error("Erro calendário:", error)
@@ -42,8 +42,8 @@ export default function Calendario() {
             const isConcluido = ev.status === 'Concluído'
             const isCancelado = ev.status === 'Cancelado'
             
-            let bgColor = STATUS_CONFIG[ev.status]?.color || palette[colorIndex]
-            if (!STATUS_CONFIG[ev.status]) bgColor = palette[colorIndex]
+            // Prioridade: cor do departamento > cor do status > paleta aleatória
+            let bgColor = ev.departamentos?.cor || STATUS_CONFIG[ev.status]?.color || palette[colorIndex]
             
             const results = []
             const [y, m, d] = ev.data_evento.split('-')
@@ -176,7 +176,7 @@ export default function Calendario() {
                 className={`text-[10px] font-black px-3 py-1.5 rounded-full border transition-all ${
                   !filterStatus
                     ? 'bg-primary text-white border-primary shadow-md'
-                    : 'bg-white text-on-surface-variant border-outline-variant/30 hover:border-primary/40 hover:text-primary'
+                    : 'bg-white dark:bg-slate-800 text-on-surface-variant border-outline-variant/30 hover:border-primary/40 hover:text-primary'
                 }`}
               >
                 Todos
@@ -188,7 +188,7 @@ export default function Calendario() {
                   className={`text-[10px] font-black px-3 py-1.5 rounded-full border transition-all flex items-center gap-1 ${
                     filterStatus === key
                       ? 'text-white border-transparent shadow-md'
-                      : 'bg-white text-on-surface-variant border-outline-variant/30 hover:text-on-surface'
+                      : 'bg-white dark:bg-slate-800 text-on-surface-variant border-outline-variant/30 hover:text-on-surface'
                   }`}
                   style={filterStatus === key ? { backgroundColor: cfg.color, borderColor: cfg.color } : {}}
                 >
@@ -385,6 +385,10 @@ export default function Calendario() {
           text-transform: uppercase;
           letter-spacing: -0.02em;
         }
+        .dark .custom-calendar .fc-toolbar-title {
+          color: #b5c4ff;
+        }
+
         .custom-calendar .fc-button {
           font-family: 'Manrope', sans-serif;
           font-weight: 800;
@@ -400,10 +404,18 @@ export default function Calendario() {
           background-color: #011549 !important;
           color: white !important;
         }
+        .dark .custom-calendar .fc-button-primary {
+          background-color: #1e293b !important;
+        }
+
         .custom-calendar .fc-button-primary:hover {
           background-color: #1e3a8a !important;
           transform: translateY(-1px);
         }
+        .dark .custom-calendar .fc-button-primary:hover {
+          background-color: #334155 !important;
+        }
+
         .custom-calendar .fc-button-active,
         .custom-calendar .fc-button-primary:not(:disabled).fc-button-active {
           background-color: #e6c364 !important;
@@ -414,10 +426,17 @@ export default function Calendario() {
         .custom-calendar .fc-theme-standard .fc-scrollgrid { border: none; }
         .custom-calendar .fc-theme-standard td, 
         .custom-calendar .fc-theme-standard th { border-color: rgba(0,0,0,0.06); }
+        .dark .custom-calendar .fc-theme-standard td,
+        .dark .custom-calendar .fc-theme-standard th { border-color: rgba(255,255,255,0.1); }
+
         .custom-calendar .fc-col-header-cell { 
           padding: 10px 0 !important;
           background: #f8fafc;
         }
+        .dark .custom-calendar .fc-col-header-cell {
+          background: #1e293b;
+        }
+
         .custom-calendar .fc-col-header-cell-cushion {
           font-family: 'Manrope', sans-serif;
           font-weight: 900;
@@ -426,6 +445,9 @@ export default function Calendario() {
           letter-spacing: 0.1em;
           color: #64748b;
           text-decoration: none !important;
+        }
+        .dark .custom-calendar .fc-col-header-cell-cushion {
+          color: #94a3b8;
         }
 
         /* Número do dia */
@@ -437,7 +459,13 @@ export default function Calendario() {
           text-decoration: none !important;
           padding: 6px 8px;
         }
+        .dark .custom-calendar .fc-daygrid-day-number {
+          color: #cbd5e1;
+        }
+
         .custom-calendar .fc-day-today { background: rgba(1, 21, 73, 0.04) !important; }
+        .dark .custom-calendar .fc-day-today { background: rgba(181, 196, 255, 0.05) !important; }
+
         .custom-calendar .fc-day-today .fc-daygrid-day-number {
           background-color: #011549;
           color: white;
@@ -448,7 +476,13 @@ export default function Calendario() {
           align-items: center;
           justify-content: center;
         }
+        .dark .custom-calendar .fc-day-today .fc-daygrid-day-number {
+          background-color: #b5c4ff;
+          color: #011549;
+        }
+
         .custom-calendar .fc-day:hover { background: rgba(1, 21, 73, 0.02) !important; }
+        .dark .custom-calendar .fc-day:hover { background: rgba(255, 255, 255, 0.03) !important; }
 
         /* Eventos */
         .custom-calendar .fc-event {
@@ -477,7 +511,12 @@ export default function Calendario() {
           border-radius: 4px;
           text-decoration: none !important;
         }
+        .dark .custom-calendar .fc-more-link {
+          color: #b5c4ff;
+          background: rgba(181,196,255,0.1);
+        }
         .custom-calendar .fc-more-link:hover { background: rgba(1,21,73,0.12); }
+        .dark .custom-calendar .fc-more-link:hover { background: rgba(181,196,255,0.2); }
       `}</style>
     </div>
   )

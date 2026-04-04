@@ -55,7 +55,8 @@ export default function CadastroDepartamento() {
   const [form, setForm] = useState({
     nome: '', descricao: '', status: true,
     tipo_departamento: 'Ministério', publico_alvo: 'Geral',
-    lider_principal_id: '', vice_lider_id: ''
+    lider_principal_id: '', vice_lider_id: '',
+    cor: '#3B82F6'
   })
 
   useEffect(() => {
@@ -109,6 +110,62 @@ export default function CadastroDepartamento() {
           <InputField autoFocus label="Nome do Departamento" name="nome" form={form} setForm={setForm} />
           <InputField label="Descrição" name="descricao" type="textarea" form={form} setForm={setForm} />
           <InputField label="Status do Departamento" name="status" type="toggle" form={form} setForm={setForm} />
+
+          {/* Seletor de Cor */}
+          <div className="flex flex-col gap-2 mb-4">
+            <label className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Cor do Departamento</label>
+            
+            {/* Paleta de cores predefinidas */}
+            <div className="grid grid-cols-10 gap-2">
+              {[
+                '#3B82F6','#6366F1','#8B5CF6','#EC4899','#EF4444',
+                '#F97316','#F59E0B','#EAB308','#10B981','#14B8A6',
+                '#06B6D4','#0EA5E9','#84CC16','#22C55E','#64748B',
+                '#1D4ED8','#7C3AED','#DB2777','#DC2626','#D97706',
+              ].map(c => (
+                <button
+                  key={c} type="button"
+                  onClick={() => setForm({...form, cor: c})}
+                  title={c}
+                  className={`w-8 h-8 rounded-lg transition-all hover:scale-110 ${
+                    form.cor === c ? 'ring-2 ring-offset-2 ring-on-surface scale-110 shadow-md' : ''
+                  }`}
+                  style={{ backgroundColor: c }}
+                />
+              ))}
+            </div>
+
+            {/* Cor customizada */}
+            <div className="flex items-center gap-3 mt-1">
+              <div className="relative">
+                <input
+                  type="color"
+                  value={form.cor || '#3B82F6'}
+                  onChange={e => setForm({...form, cor: e.target.value})}
+                  className="w-10 h-10 rounded-lg cursor-pointer border-2 border-outline-variant/30 p-0.5 bg-transparent"
+                  title="Cor personalizada"
+                />
+              </div>
+              <div className="flex items-center gap-2 px-3 py-2 bg-surface-container-low rounded-lg border border-outline-variant/20 flex-1">
+                <div className="w-5 h-5 rounded-md shadow-sm" style={{ backgroundColor: form.cor }} />
+                <span className="font-mono text-sm font-bold text-on-surface-variant">{form.cor?.toUpperCase()}</span>
+                <span className="text-xs text-on-surface-variant/50 ml-auto">Cor selecionada</span>
+              </div>
+            </div>
+
+            {/* Preview da cor no card */}
+            <div className="mt-2 p-3 rounded-xl border border-outline-variant/20 flex items-center gap-3"
+              style={{ backgroundColor: form.cor + '15', borderColor: form.cor + '40' }}>
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: form.cor }}>
+                <span className="material-symbols-outlined text-white text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>domain</span>
+              </div>
+              <div>
+                <p className="text-xs font-black" style={{ color: form.cor }}>{form.nome || 'Nome do Departamento'}</p>
+                <p className="text-[10px] text-on-surface-variant/60">Prévia de como aparecerá no calendário</p>
+              </div>
+              <div className="ml-auto w-4 h-4 rounded-full" style={{ backgroundColor: form.cor }} />
+            </div>
+          </div>
         </div>
       )
     },

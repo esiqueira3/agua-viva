@@ -42,7 +42,26 @@ export default function Departamentos() {
   }
 
   const columns = [
-    { label: 'Nome', key: 'nome', render: (row) => <span className="font-bold text-primary">{row.nome}</span> },
+    { label: 'Nome', key: 'nome', render: (row) => (
+      <div className="flex items-center gap-2">
+        <div
+          className="w-3 h-3 rounded-full shrink-0 shadow-sm"
+          style={{ backgroundColor: row.cor || '#3B82F6' }}
+        />
+        <span className="font-bold text-primary">{row.nome}</span>
+      </div>
+    )},
+    { label: 'Cor', key: 'cor', render: (row) => (
+      <div className="flex items-center gap-2">
+        <div
+          className="w-7 h-7 rounded-lg shadow-sm border border-white/60"
+          style={{ backgroundColor: row.cor || '#3B82F6' }}
+        />
+        <span className="font-mono text-[11px] font-bold text-on-surface-variant">
+          {(row.cor || '#3B82F6').toUpperCase()}
+        </span>
+      </div>
+    )},
     { label: 'Tipo', key: 'tipo_departamento', render: (row) => <span className="bg-surface-container text-primary text-[10px] uppercase font-bold px-2 py-1 rounded">{row.tipo_departamento}</span> },
     { label: 'Público', key: 'publico_alvo' },
     { label: 'Status', key: 'status', render: (row) => (

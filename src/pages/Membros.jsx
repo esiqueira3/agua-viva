@@ -112,7 +112,7 @@ export default function Membros() {
                 placeholder="Ex: João Silva..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-outline-variant/30 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm"
+                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 dark:text-white dark:border-slate-600 dark:placeholder-slate-400 border border-outline-variant/30 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm"
               />
             </div>
           </div>
@@ -121,7 +121,7 @@ export default function Membros() {
             <select 
               value={filterTipo}
               onChange={(e) => setFilterTipo(e.target.value)}
-              className="w-full p-2.5 bg-white border border-outline-variant/30 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm text-on-surface"
+              className="w-full p-2.5 bg-white dark:bg-slate-800 dark:text-white dark:border-slate-600 border border-outline-variant/30 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm text-on-surface"
             >
               <option value="">Todos os Tipos</option>
               <option value="Membro">Membro</option>
@@ -146,7 +146,7 @@ export default function Membros() {
             <select 
               value={filterFaixaEtaria}
               onChange={(e) => setFilterFaixaEtaria(e.target.value)}
-              className="w-full p-2.5 bg-white border border-outline-variant/30 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm text-on-surface"
+              className="w-full p-2.5 bg-white dark:bg-slate-800 dark:text-white dark:border-slate-600 border border-outline-variant/30 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm text-on-surface"
             >
               <option value="">Todas as Faixas</option>
               <option value="Criança">Criança (0-11 anos)</option>
@@ -164,7 +164,7 @@ export default function Membros() {
             <select 
               value={filterEscolaridade}
               onChange={(e) => setFilterEscolaridade(e.target.value)}
-              className="w-full p-2.5 bg-white border border-outline-variant/30 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm text-on-surface"
+              className="w-full p-2.5 bg-white dark:bg-slate-800 dark:text-white dark:border-slate-600 border border-outline-variant/30 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm text-on-surface"
             >
               <option value="">Todas as Escolaridades</option>
               <option value="Educação Infantil">Educação Infantil</option>

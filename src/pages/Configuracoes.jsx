@@ -14,6 +14,7 @@ export default function Configuracoes() {
   })
   const [currentUser, setCurrentUser] = useState(null)
   const [loadingGlobal, setLoadingGlobal] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     setIsDark(document.documentElement.classList.contains('dark'))
@@ -25,7 +26,26 @@ export default function Configuracoes() {
          setAvatarUrl(user.user_metadata.avatar_url)
       }
 
-      // Carregar Configurações Globais (Independente do Usuário)
+      // Verificação robusta de Admin (Meta + Banco)
+      const metaPerfil = user?.user_metadata?.perfil?.toLowerCase() || ''
+      const isMetaAdmin = metaPerfil === 'administrador' || metaPerfil === 'admin'
+      
+      let isDbAdmin = false
+      if (user?.email) {
+        const { data: uData } = await supabase
+          .from('usuarios_sistema')
+          .select('perfil')
+          .eq('email', user.email)
+          .maybeSingle()
+        
+        if (uData) {
+          const dbPerfil = uData.perfil?.toLowerCase() || ''
+          isDbAdmin = dbPerfil === 'administrador' || dbPerfil === 'admin'
+        }
+      }
+
+      setIsAdmin(isMetaAdmin || isDbAdmin)
+
       const { data: gData } = await supabase.from('configuracoes_gerais').select('*').eq('id', 1).single()
       if (gData) {
         setGlobalConfigs(gData)
@@ -59,12 +79,13 @@ export default function Configuracoes() {
 
   const handleSaveGlobal = async () => {
     setLoadingGlobal(true)
-    const { error } = await supabase.from('configuracoes_gerais').update({
+    const { error } = await supabase.from('configuracoes_gerais').upsert({
+      id: 1,
       url_capa_login: globalConfigs.url_capa_login,
       slogan_login: globalConfigs.slogan_login,
       subtexto_login: globalConfigs.subtexto_login,
       updated_at: new Date().toISOString()
-    }).eq('id', 1)
+    })
     
     setLoadingGlobal(false)
     if (!error) {
@@ -74,7 +95,7 @@ export default function Configuracoes() {
     }
   }
 
-  const isAdmin = currentUser?.user_metadata?.perfil === 'Administrador'
+  const inputClass = "w-full p-3 text-sm bg-white dark:bg-slate-800 dark:text-white dark:placeholder-slate-400 dark:border-slate-600 border border-outline-variant/20 rounded-xl outline-none focus:ring-2 focus:ring-primary transition-all"
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-20 px-4 sm:px-0">
@@ -87,7 +108,7 @@ export default function Configuracoes() {
       {/* Seção Pessoal */}
       <div className="bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/10 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
         <h3 className="text-lg font-black text-primary mb-6 flex items-center gap-2">
-           <span className="material-symbols-outlined font-black">person</span> Perfil & Identidade
+           <span className="material-symbols-outlined font-black">person</span> Perfil &amp; Identidade
         </h3>
         <div className="flex flex-col md:flex-row gap-6 items-start md:items-center p-6 bg-surface-container-low/40 rounded-2xl border border-outline-variant/5">
            <div className="w-20 h-20 rounded-full flex items-center justify-center bg-white shadow-lg overflow-hidden flex-shrink-0 border-4 border-white">
@@ -108,7 +129,7 @@ export default function Configuracoes() {
                    placeholder="https://suafoto.com/perfil.jpg" 
                    value={avatarUrl}
                    onChange={(e) => setAvatarUrl(e.target.value)}
-                   className="flex-1 p-3 text-sm bg-white border border-outline-variant/20 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                   className={`flex-1 ${inputClass}`}
                  />
                  <button 
                     onClick={handleSaveAvatar}
@@ -125,52 +146,52 @@ export default function Configuracoes() {
       {/* Seção Administrador: Personalização Global */}
       {isAdmin && (
         <div className="bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/10 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <h3 className="text-lg font-black text-secondary mb-6 flex items-center gap-2">
+          <h3 className="text-lg font-black text-primary mb-6 flex items-center gap-2">
              <span className="material-symbols-outlined font-black">brush</span> Personalização do Sistema (Adm)
           </h3>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6 bg-surface-container-low/40 rounded-2xl border border-outline-variant/5">
              <div className="space-y-4">
                 <div>
-                   <label className="text-xs font-black text-on-surface-variant/70 uppercase tracking-widest mb-1 block">Capa da Tela de Login (URL)</label>
+                   <label className="text-xs font-black text-on-surface-variant/70 dark:text-white uppercase tracking-widest mb-1 block">Capa da Tela de Login (URL)</label>
                    <input 
                       type="url" 
                       value={globalConfigs.url_capa_login} 
                       onChange={e => setGlobalConfigs({...globalConfigs, url_capa_login: e.target.value})}
                       placeholder="https://exemplo.com/fundo-igreja.jpg"
-                      className="w-full p-3 text-sm bg-white border border-outline-variant/20 rounded-xl outline-none"
+                      className={inputClass}
                    />
                 </div>
                 <div>
-                   <label className="text-xs font-black text-on-surface-variant/70 uppercase tracking-widest mb-1 block">Slogan Principal (Boas-vindas)</label>
+                   <label className="text-xs font-black text-on-surface-variant/70 dark:text-white uppercase tracking-widest mb-1 block">Slogan Principal (Boas-vindas)</label>
                    <input 
                       type="text" 
                       value={globalConfigs.slogan_login} 
                       onChange={e => setGlobalConfigs({...globalConfigs, slogan_login: e.target.value})}
                       placeholder="Ex: Água Viva - Do primeiro contato..."
-                      className="w-full p-3 text-sm bg-white border border-outline-variant/20 rounded-xl outline-none"
+                      className={inputClass}
                    />
                 </div>
                 <div>
-                   <label className="text-xs font-black text-on-surface-variant/70 uppercase tracking-widest mb-1 block">Subtexto (Descrição Curta)</label>
+                   <label className="text-xs font-black text-on-surface-variant/70 dark:text-white uppercase tracking-widest mb-1 block">Subtexto (Descrição Curta)</label>
                    <textarea 
                       rows={2}
                       value={globalConfigs.subtexto_login} 
                       onChange={e => setGlobalConfigs({...globalConfigs, subtexto_login: e.target.value})}
                       placeholder="Ex: Conecte sua comunidade através da tecnologia e fé."
-                      className="w-full p-3 text-sm bg-white border border-outline-variant/20 rounded-xl outline-none resize-none"
+                      className={`${inputClass} resize-none`}
                    />
                 </div>
                 <button 
                     onClick={handleSaveGlobal}
                     disabled={loadingGlobal}
-                    className="w-full py-4 bg-secondary text-white rounded-xl text-sm font-black shadow-lg shadow-secondary/20 hover:bg-secondary/90 transition-all active:scale-95 disabled:opacity-50"
+                    className="w-full py-4 bg-primary text-white rounded-xl text-sm font-black shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50"
                  >
                     {loadingGlobal ? 'Salvando...' : 'Aplicar Alterações Visuais ao Sistema'}
                  </button>
              </div>
              <div className="hidden lg:flex flex-col gap-3">
                 <p className="text-xs font-black text-on-surface-variant/40 uppercase text-center italic">Pré-visualização da Capa</p>
-                <div className="flex-1 rounded-2xl overflow-hidden border-2 border-dashed border-outline-variant/20 flex items-center justify-center bg-white">
+                <div className="flex-1 rounded-2xl overflow-hidden border-2 border-dashed border-outline-variant/20 flex items-center justify-center bg-white dark:bg-slate-800">
                    {globalConfigs.url_capa_login ? (
                       <img src={globalConfigs.url_capa_login} className="w-full h-full object-cover" alt="Preview" />
                    ) : (

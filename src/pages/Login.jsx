@@ -33,7 +33,7 @@ export default function Login() {
 
   useEffect(() => {
     async function loadConfig() {
-      const { data } = await supabase.from('configuracoes_gerais').select('*').eq('id', 1).single()
+      const { data } = await supabase.from('configuracoes_gerais').select('*').eq('id', 1).maybeSingle()
       if (data) setConfig(data)
     }
     loadConfig()
@@ -186,7 +186,7 @@ export default function Login() {
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="Digite seu email"
-                          className="w-full pl-12 pr-4 py-5 bg-surface-container-low/50 border border-transparent rounded-[1.25rem] focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all font-bold text-on-surface placeholder:text-outline/30 outline-none text-sm"
+                          className="w-full pl-12 pr-4 py-5 bg-surface-container-low/50 border border-slate-300 dark:border-transparent rounded-[1.25rem] focus:ring-2 focus:ring-primary/20 focus:bg-white dark:focus:bg-slate-800 transition-all font-bold text-on-surface placeholder:text-outline/30 outline-none text-sm"
                         />
                       </div>
                       <p className="text-[10px] text-on-surface-variant/40 font-bold uppercase text-center pt-2 italic tracking-tight">O e-mail passará pela checagem de Segurança.</p>
@@ -213,7 +213,7 @@ export default function Login() {
                                 value={digit}
                                 onChange={(e) => handleOtpChange(e, i)}
                                 onKeyDown={(e) => handleOtpKeyDown(e, i)}
-                                className="w-full h-14 text-center text-lg font-black bg-surface-container-low border border-outline-variant/20 rounded-xl focus:ring-2 focus:ring-primary outline-none focus:bg-white transition-all"
+                                className="w-full h-14 text-center text-lg font-black bg-surface-container-low border border-slate-300 dark:border-outline-variant/20 rounded-xl focus:ring-2 focus:ring-primary outline-none focus:bg-white dark:focus:bg-slate-800 transition-all"
                              />
                           ))}
                        </div>
@@ -240,17 +240,20 @@ export default function Login() {
       </div>
 
       {/* LADO DIREITO: CAPA DINÂMICA */}
-      <div className="hidden lg:flex relative overflow-hidden bg-slate-900 items-center justify-center p-20 select-none">
-          {/* Imagem de Fundo com Fade-in */}
-          <div 
-            className="absolute inset-0 bg-cover bg-center transition-transform duration-10000 ease-linear scale-110 group-hover:scale-100"
-            style={{ 
-              backgroundImage: `url(${config.url_capa_login})`,
+      <div className="hidden lg:flex relative overflow-hidden bg-slate-950 items-center justify-center p-0 select-none group">
+          {/* Imagem de Fundo (Robusta com a sua capa oficial como reserva) */}
+          <img 
+            src={config.url_capa_login || 'https://kfalhtebjoilpnncpkbd.supabase.co/storage/v1/object/public/profiles/01.capa.jpg'}
+            key={config.url_capa_login}
+            alt="Fundo"
+            className="absolute inset-0 w-full h-full object-cover z-0"
+            onError={(e) => {
+              e.target.src = 'https://kfalhtebjoilpnncpkbd.supabase.co/storage/v1/object/public/profiles/01.capa.jpg'
             }}
-          ></div>
+          />
           
-          {/* Overlay Gradiente Premium */}
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-950/90 via-slate-950/60 to-primary/20 backdrop-blur-[2px]"></div>
+          {/* Overlay Gradiente Premium (Dinamizado) */}
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-950/70 via-slate-950/30 to-primary/10 z-10"></div>
 
           {/* Elementos Decorativos */}
           <div className="absolute top-12 right-12 flex gap-1 animate-pulse">

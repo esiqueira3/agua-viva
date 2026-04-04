@@ -14,7 +14,7 @@ export default function Eventos() {
       const { data, error } = await supabase
         .from('eventos')
         .select(`
-          id, nome, data_evento, hora_evento, status,
+          id, nome, data_evento, hora_evento, status, pago,
           departamentos ( nome ), locais ( descricao )
         `)
         .order('data_evento', { ascending: true })
@@ -62,12 +62,16 @@ export default function Eventos() {
     { label: 'Status', key: 'status', render: (row) => getStatusBadge(row.status) },
     { label: 'Ações Rápidas', key: 'actions', render: (row) => (
        <div className="flex items-center gap-2">
-          <button onClick={() => copyInscricaoLink(row.id)} title="Copiar Link de Inscrição" className="p-2 rounded-lg bg-surface-container-high text-primary hover:bg-primary hover:text-white transition-all">
-             <span className="material-symbols-outlined text-[18px]">link</span>
-          </button>
-          <button onClick={() => navigate('/financeiro-eventos')} title="Ver Financeiro" className="p-2 rounded-lg bg-surface-container-high text-tertiary-fixed-dim hover:bg-tertiary-fixed-dim hover:text-white transition-all">
-             <span className="material-symbols-outlined text-[18px]">monetization_on</span>
-          </button>
+          {row.pago && (
+            <>
+              <button onClick={() => copyInscricaoLink(row.id)} title="Copiar Link de Inscrição" className="p-2 rounded-lg bg-surface-container-high text-primary hover:bg-primary hover:text-white transition-all">
+                 <span className="material-symbols-outlined text-[18px]">link</span>
+              </button>
+              <button onClick={() => navigate('/financeiro-eventos')} title="Ver Financeiro" className="p-2 rounded-lg bg-surface-container-high text-tertiary-fixed-dim hover:bg-tertiary-fixed-dim hover:text-white transition-all">
+                 <span className="material-symbols-outlined text-[18px]">monetization_on</span>
+              </button>
+            </>
+          )}
        </div>
     )}
   ]

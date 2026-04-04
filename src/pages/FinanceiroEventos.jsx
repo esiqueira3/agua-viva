@@ -284,7 +284,7 @@ export default function FinanceiroEventos() {
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <button onClick={consultarMP} disabled={loading}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-xs shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition-all active:scale-95">
+                  className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-xs shadow-lg shadow-emerald-200 dark:shadow-none hover:bg-emerald-700 transition-all active:scale-95">
                   <span className="material-symbols-outlined text-[18px]">sync</span> SINCRONIZAR MP
                 </button>
                 <button onClick={() => setShowModalManual(true)}
@@ -301,23 +301,23 @@ export default function FinanceiroEventos() {
 
             {/* BARRA DE SALDO */}
             <div className="mt-5 grid grid-cols-3 gap-4">
-              <div className="bg-green-50 border border-green-100 rounded-2xl p-4">
-                <p className="text-[9px] font-black uppercase tracking-widest text-green-600/70 mb-1">Total Arrecadado</p>
-                <CurrencyDisplay value={eventoSelecionado.totalArrecadado} className="text-green-700" size="lg" />
+              <div className="bg-green-50 dark:bg-emerald-500/10 border border-green-100 dark:border-emerald-500/20 rounded-2xl p-4">
+                <p className="text-[9px] font-black uppercase tracking-widest text-green-600/70 dark:text-emerald-400/80 mb-1">Total Arrecadado</p>
+                <CurrencyDisplay value={eventoSelecionado.totalArrecadado} className="text-green-700 dark:text-emerald-400" size="lg" />
               </div>
-              <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4">
-                <p className="text-[9px] font-black uppercase tracking-widest text-orange-600/70 mb-1">Total Sacado</p>
-                <CurrencyDisplay value={totalSacado} className="text-orange-600" size="lg" />
-                <div className="mt-2 w-full bg-orange-200 rounded-full h-1.5">
+              <div className="bg-orange-50 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-500/20 rounded-2xl p-4">
+                <p className="text-[9px] font-black uppercase tracking-widest text-orange-600/70 dark:text-orange-400/80 mb-1">Total Sacado</p>
+                <CurrencyDisplay value={totalSacado} className="text-orange-600 dark:text-orange-400" size="lg" />
+                <div className="mt-2 w-full bg-orange-200 dark:bg-white/10 rounded-full h-1.5">
                   <div className="bg-orange-500 h-1.5 rounded-full transition-all duration-700" style={{ width: `${pctSacado}%` }} />
                 </div>
                 <p className="text-[9px] font-bold text-orange-400 mt-1">{pctSacado}% do arrecadado</p>
               </div>
-              <div className={`rounded-2xl p-4 border ${saldoDisponivel > 0 ? 'bg-blue-50 border-blue-100' : 'bg-slate-50 border-slate-200'}`}>
-                <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${saldoDisponivel > 0 ? 'text-blue-600/70' : 'text-slate-400'}`}>
+              <div className={`rounded-2xl p-4 border ${saldoDisponivel > 0 ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-100 dark:border-blue-500/20' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}`}>
+                <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${saldoDisponivel > 0 ? 'text-blue-600/70 dark:text-blue-400/80' : 'text-slate-400'}`}>
                   Saldo Disponível
                 </p>
-                <CurrencyDisplay value={saldoDisponivel} className={saldoDisponivel > 0 ? 'text-blue-700' : 'text-slate-400'} size="lg" />
+                <CurrencyDisplay value={saldoDisponivel} className={saldoDisponivel > 0 ? 'text-blue-700 dark:text-blue-400' : 'text-slate-400'} size="lg" />
                 {saldoDisponivel === 0 && <p className="text-[9px] font-bold text-slate-400 mt-1">✅ Totalmente sacado</p>}
               </div>
             </div>
@@ -334,20 +334,20 @@ export default function FinanceiroEventos() {
                 {saques.map(sq => {
                   const forma = FORMAS_PAGAMENTO.find(f => f.value === sq.forma_pagamento) || FORMAS_PAGAMENTO[0]
                   return (
-                    <div key={sq.id} className="flex items-center gap-4 p-4 rounded-2xl bg-orange-50/60 border border-orange-100 group hover:bg-orange-50 transition-colors">
+                    <div key={sq.id} className="flex items-center gap-4 p-4 rounded-2xl bg-orange-50/60 dark:bg-orange-500/5 border border-orange-100 dark:border-orange-500/10 group hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors">
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm" style={{ backgroundColor: forma.color }}>
                         <span className="material-symbols-outlined text-white text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>{forma.icon}</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-black text-on-surface text-sm">{sq.responsavel}</p>
-                        <p className="text-[10px] text-on-surface-variant/60">
+                        <p className="text-[10px] text-on-surface-variant/60 dark:text-slate-400">
                           {forma.value} • {new Date(sq.data_saque + 'T12:00:00').toLocaleDateString('pt-BR')}
                           {sq.observacao && <span className="ml-2 italic">"{sq.observacao}"</span>}
                         </p>
                       </div>
-                      <p className="font-black text-orange-600 text-base shrink-0">- R$ {parseFloat(sq.valor).toFixed(2)}</p>
+                      <p className="font-black text-orange-600 dark:text-orange-400 text-base shrink-0">- R$ {parseFloat(sq.valor).toFixed(2)}</p>
                       <button onClick={() => handleExcluirSaque(sq.id)}
-                        className="opacity-0 group-hover:opacity-100 p-1.5 bg-red-100 text-red-500 rounded-lg hover:bg-red-200 transition-all shrink-0">
+                        className="opacity-0 group-hover:opacity-100 p-1.5 bg-red-100 dark:bg-red-900/20 text-red-500 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/40 transition-all shrink-0">
                         <span className="material-symbols-outlined text-[16px]">delete</span>
                       </button>
                     </div>
@@ -378,8 +378,8 @@ export default function FinanceiroEventos() {
                   return (
                     <div key={ins.id} className={`flex items-center gap-4 p-4 rounded-2xl border group transition-all hover:shadow-sm ${
                       isConfirmado
-                        ? 'bg-green-50/50 border-green-100 hover:bg-green-50'
-                        : 'bg-amber-50/50 border-amber-100 hover:bg-amber-50'
+                        ? 'bg-green-50/50 dark:bg-emerald-500/5 border-green-100 dark:border-emerald-500/10 hover:bg-green-50 dark:hover:bg-emerald-500/10'
+                        : 'bg-amber-50/50 dark:bg-amber-500/5 border-amber-100 dark:border-amber-500/10 hover:bg-amber-50 dark:hover:bg-amber-500/10'
                     }`}>
                       {/* Avatar */}
                       <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 font-black text-sm shadow-sm text-white ${
@@ -411,7 +411,7 @@ export default function FinanceiroEventos() {
 
                       {/* Status */}
                       <span className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wide shrink-0 ${
-                        isConfirmado ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                        isConfirmado ? 'bg-green-100 dark:bg-emerald-500/20 text-green-700 dark:text-emerald-400' : 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400'
                       }`}>
                         <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>
                           {isConfirmado ? 'check_circle' : 'schedule'}
@@ -421,10 +421,10 @@ export default function FinanceiroEventos() {
 
                       {/* Valor */}
                       <div className="text-right shrink-0">
-                        <p className={`text-base font-black font-mono ${isConfirmado ? 'text-green-700' : 'text-amber-600'}`}>
+                        <p className={`text-base font-black font-mono ${isConfirmado ? 'text-green-700 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
                           R$ {parseFloat(ins.valor_pago || 0).toFixed(2)}
                         </p>
-                        <p className="text-[9px] text-on-surface-variant/50 font-bold">
+                        <p className="text-[9px] text-on-surface-variant/50 dark:text-slate-400 font-bold">
                           {new Date(ins.created_at).toLocaleDateString('pt-BR')}
                         </p>
                       </div>
