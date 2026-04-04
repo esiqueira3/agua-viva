@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
-import { Tabs } from '../components/ui/Tabs'
+import { MultiSelect } from '../components/ui/MultiSelect'
 import { supabase } from '../lib/supabase'
 import { useNavigate, useParams } from 'react-router-dom'
 
@@ -31,10 +31,22 @@ const SelectMenu = ({ label, name, options, form, onChange }) => (
   </div>
 )
 
+// Calcula se é Novo Convertido com base na data de batismo
+function calcularNovoConvertido(dataBatismo) {
+  if (!dataBatismo) return null
+  const [y, m, d] = dataBatismo.split('-')
+  const batismo = new Date(parseInt(y), parseInt(m) - 1, parseInt(d))
+  const hoje = new Date()
+  const diffMs = hoje - batismo
+  const diffDias = diffMs / (1000 * 60 * 60 * 24)
+  return diffDias <= 365 ? 'Sim' : 'Não'
+}
+
 export default function CadastroMembro() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState(0) // 0 = primeira aba aberta por padrão
   const [departamentos, setDepartamentos] = useState([])
 
   const [form, setForm] = useState({
@@ -43,7 +55,10 @@ export default function CadastroMembro() {
     telefone_principal: '', email: '', 
     endereco_cep: '', endereco_rua: '', endereco_numero: '', endereco_bairro: '', endereco_cidade: '', endereco_estado: '',
     data_conversao: '', data_batismo: '', local_batismo: '',
-    tipo_membro: 'Membro', igreja_origem: '', data_entrada: '', departamento_id: '', cargo_funcao: 'Outro',
+    tipo_membro: 'Membro', igreja_origem: '', data_entrada: '', 
+    departamento_id: '',       // mantido para compatibilidade (recebe o primeiro do array)
+    departamentos_ids: [],     // novo campo: array de departamentos
+    cargo_funcao: 'Outro',
     nome_conjuge: '', responsavel_menor: '', observacoes_gerais: '', necessidades_especiais: '',
     status: true, matricula: '', idade: '', faixa_etaria: '', escolaridade: ''
   })
@@ -59,6 +74,12 @@ export default function CadastroMembro() {
            ['data_nascimento', 'data_conversao', 'data_batismo', 'data_entrada'].forEach(df => {
               if(membro[df]) membro[df] = membro[df].split('T')[0]
            })
+           // Compatibilidade: se departamentos_ids não existir ainda, montar a partir de departamento_id
+           if (!membro.departamentos_ids || membro.departamentos_ids === '[]' || !membro.departamentos_ids.length) {
+             membro.departamentos_ids = membro.departamento_id ? [membro.departamento_id] : []
+           } else if (typeof membro.departamentos_ids === 'string') {
+             try { membro.departamentos_ids = JSON.parse(membro.departamentos_ids) } catch { membro.departamentos_ids = [] }
+           }
            setForm(membro)
         }
       } else {
@@ -123,7 +144,13 @@ export default function CadastroMembro() {
     }
 
     const payload = { ...form }
-    if(!payload.departamento_id) payload.departamento_id = null
+    
+    // Serializar departamentos_ids como JSON string
+    const idsArray = Array.isArray(payload.departamentos_ids) ? payload.departamentos_ids : []
+    payload.departamentos_ids = JSON.stringify(idsArray)
+    // Compatibilidade: departamento_id = primeiro do array
+    payload.departamento_id = idsArray.length > 0 ? idsArray[0] : null
+    
     const dateFields = ['data_nascimento', 'data_conversao', 'data_batismo', 'data_entrada']
     dateFields.forEach(df => { if(!payload[df]) payload[df] = null })
 
@@ -156,8 +183,8 @@ export default function CadastroMembro() {
 
     // Formatação de CPF
     if (name === 'cpf') {
-      value = value.replace(/\D/g, '') // remove letras
-      if (value.length > 11) value = value.slice(0, 11) // limite
+      value = value.replace(/\D/g, '')
+      if (value.length > 11) value = value.slice(0, 11)
       value = value.replace(/(\d{3})(\d)/, '$1.$2')
       value = value.replace(/(\d{3})(\d)/, '$1.$2')
       value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2')
@@ -190,6 +217,11 @@ export default function CadastroMembro() {
 
     return { age, group }
   }
+
+  // Derivado: Novo Convertido baseado em data de batismo
+  const novoConvertido = calcularNovoConvertido(form.data_batismo)
+
+  const departamentosOptions = departamentos.map(d => ({ value: d.id, label: d.nome }))
 
   const tabData = [
     {
@@ -285,7 +317,29 @@ export default function CadastroMembro() {
       content: (
         <div className="grid grid-cols-2 gap-4">
            <FormField label="Data Conversão" name="data_conversao" type="date" form={form} onChange={handleFormChange} />
-           <FormField label="Data Batismo" name="data_batismo" type="date" form={form} onChange={handleFormChange} />
+           
+           {/* Data Batismo + Badge Novo Convertido */}
+           <div className="flex flex-col gap-1 mb-4 flex-1">
+             <label className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Data Batismo</label>
+             <input
+               type="date" name="data_batismo"
+               value={form.data_batismo || ''} onChange={handleFormChange}
+               className="p-3 bg-surface-container-low border border-outline-variant/30 rounded-lg focus:ring-2 focus:ring-primary outline-none"
+             />
+             {novoConvertido && (
+               <div className={`mt-1.5 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider w-fit transition-all ${
+                 novoConvertido === 'Sim'
+                   ? 'bg-green-100 text-green-700 border border-green-200'
+                   : 'bg-slate-100 text-slate-500 border border-slate-200'
+               }`}>
+                 <span className="material-symbols-outlined text-[14px]">
+                   {novoConvertido === 'Sim' ? 'new_releases' : 'history'}
+                 </span>
+                 Novo Convertido: <strong>{novoConvertido}</strong>
+                 {novoConvertido === 'Sim' && <span className="text-[10px] opacity-70">(≤ 12 meses)</span>}
+               </div>
+             )}
+           </div>
            
            <FormField label="Local do Batismo" name="local_batismo" form={form} onChange={handleFormChange} />
            <SelectMenu 
@@ -308,7 +362,16 @@ export default function CadastroMembro() {
            <FormField label="Igreja de Origem" name="igreja_origem" form={form} onChange={handleFormChange} />
            <FormField label="Data de Entrada na Igreja" name="data_entrada" type="date" form={form} onChange={handleFormChange} />
 
-           <SelectMenu label="Ministério / Departamento" name="departamento_id" options={departamentos.map(d => ({ value: d.id, label: d.nome }))} form={form} onChange={handleFormChange} />
+           {/* Multi-departamento */}
+           <div className="col-span-2">
+             <MultiSelect
+               label="Ministério / Departamento (múltiplo)"
+               options={departamentosOptions}
+               selectedValues={Array.isArray(form.departamentos_ids) ? form.departamentos_ids : []}
+               onChange={(vals) => setForm(f => ({ ...f, departamentos_ids: vals, departamento_id: vals[0] || '' }))}
+             />
+           </div>
+           
            <SelectMenu label="Cargo ou Função" name="cargo_funcao" options={[{label:'Líder', value:'Líder'}, {label:'Diácono', value:'Diácono'}, {label:'Músico', value:'Músico'}, {label:'Voluntário', value:'Voluntário'}, {label:'Outro', value:'Outro'}]} form={form} onChange={handleFormChange} />
         </div>
       )
@@ -347,21 +410,79 @@ export default function CadastroMembro() {
     }
   ]
 
+  // Ícones para cada aba (seguindo a ordem do tabData)
+  const tabIcons = ['person', 'contact_phone', 'church', 'family_restroom', 'badge', 'accessibility_new']
+
   return (
     <form onSubmit={handleSave} className="max-w-7xl mx-auto space-y-6 pb-24 relative">
       <PageHeader title={id ? "Editar Membro" : "Novo Membro Cadastro Integral"} icon="person_add" />
       
-      <div className="flex items-center gap-4 bg-primary/5 p-6 rounded-xl border border-primary/10">
-         <div className="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xl uppercase">
-            {form.nome_completo ? form.nome_completo.substring(0,2) : "I"}
+      {/* CARD DE IDENTIDADE — sempre visível */}
+      <div className="flex items-center gap-4 bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/20 shadow-sm">
+         <div className="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xl uppercase shadow-lg">
+            {form.nome_completo ? form.nome_completo.substring(0,2) : "\uD83D\uDC64"}
          </div>
-         <div>
-            <h3 className="font-extrabold text-xl text-primary">{form.nome_completo || "Identidade do Membro"}</h3>
-            <span className="text-xs font-mono font-bold text-primary px-2 py-0.5 bg-tertiary-fixed-dim/40 rounded-full">{form.matricula}</span>
+         <div className="flex-1">
+            <h3 className="font-extrabold text-xl text-primary leading-tight">{form.nome_completo || "Identidade do Membro"}</h3>
+            <div className="flex items-center gap-3 mt-1">
+              <span className="text-xs font-mono font-bold text-primary px-2 py-0.5 bg-tertiary-fixed-dim/40 rounded-full">{form.matricula}</span>
+              {form.faixa_etaria && (
+                <span className="text-[10px] font-black uppercase tracking-wider text-on-surface-variant bg-surface-container-low px-2 py-0.5 rounded-full border border-outline-variant/20">
+                  {form.faixa_etaria}{form.idade ? ` • ${form.idade} anos` : ''}
+                </span>
+              )}
+            </div>
          </div>
+         {form.status !== undefined && (
+           <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+             form.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
+           }`}>
+             {form.status ? 'Ativo' : 'Inativo'}
+           </div>
+         )}
       </div>
-      
-      <Tabs tabs={tabData} />
+
+      {/* ABAS EM SANFONA — nenhuma aberta por padrão */}
+      <div className="space-y-3">
+        {tabData.map((tab, index) => {
+          const isOpen = activeTab === index
+          return (
+            <div key={index} className="rounded-xl border border-outline-variant/20 overflow-hidden shadow-sm">
+              {/* Cabeçalho clicável */}
+              <button
+                type="button"
+                onClick={() => setActiveTab(isOpen ? null : index)}
+                className={`w-full flex items-center justify-between px-6 py-4 font-bold text-sm transition-all ${
+                  isOpen
+                    ? 'bg-primary text-white'
+                    : 'bg-surface-container-lowest text-on-surface hover:bg-primary/5 hover:text-primary'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className={`material-symbols-outlined text-[20px] ${
+                    isOpen ? 'text-white/80' : 'text-primary/60'
+                  }`} style={{ fontVariationSettings: "'FILL' 1" }}>
+                    {tabIcons[index]}
+                  </span>
+                  <span className="uppercase tracking-wider text-xs font-black">{tab.label}</span>
+                </div>
+                <span className={`material-symbols-outlined text-[20px] transition-transform duration-300 ${
+                  isOpen ? 'rotate-180 text-white/70' : 'text-on-surface-variant/40'
+                }`}>
+                  expand_more
+                </span>
+              </button>
+
+              {/* Conteúdo — só aparece quando a aba está ativa */}
+              {isOpen && (
+                <div className="p-6 bg-surface-container-lowest animate-in fade-in slide-in-from-top-2 duration-300">
+                  {tab.content}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
 
       <div className="fixed bottom-0 left-64 right-0 p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur border-t border-outline-variant/20 flex gap-4 justify-end z-40">
         <button type="button" onClick={() => navigate('/membros')} className="px-6 py-2.5 rounded-lg font-bold text-red-600 bg-red-100 hover:bg-red-200 transition-colors">Cancelar</button>

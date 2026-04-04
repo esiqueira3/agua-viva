@@ -7,7 +7,7 @@ export default function MainLayout() {
   const [isCollapsed, setIsCollapsed] = useState(() => window.innerWidth < 768)
 
   return (
-    <div className="flex bg-background min-h-screen overflow-hidden">
+    <div className="flex bg-slate-100 dark:bg-background min-h-screen overflow-hidden">
       <SideNavBar isCollapsed={isCollapsed} />
       
       {/* Overlay Mobile */}

@@ -6,6 +6,8 @@ export default function Dashboard() {
   const [proximosEventos, setProximosEventos] = useState([])
   const [aniversariantes, setAniversariantes] = useState([])
   const [departamentosStats, setDepartamentosStats] = useState([])
+  const [deptExpanded, setDeptExpanded] = useState(false)
+  const [demoStats, setDemoStats] = useState({ homens: 0, mulheres: 0, criancas: 0, total: 0, avgHomens: 0, avgMulheres: 0, avgCriancas: 0 })
   
   // Controle Tarefas Inteligentes
   const [tarefas, setTarefas] = useState([])
@@ -55,7 +57,7 @@ export default function Dashboard() {
       // Fetch de todos os membros para contagem e nomes de líderes (Unificado)
       const { data: allMembers } = await supabase
          .from('membros')
-         .select('id, nome_completo, departamento_id')
+         .select('id, nome_completo, departamento_id, departamentos_ids, sexo, faixa_etaria, idade')
          .eq('status', true)
 
       const { data: depts } = await supabase
@@ -64,7 +66,19 @@ export default function Dashboard() {
       
       if (depts && allMembers) {
          const stats = depts.map(d => {
-             const count = allMembers.filter(m => m.departamento_id === d.id).length
+             // Suporte a multi-departamento (departamentos_ids) + retrocompat (departamento_id)
+             const count = allMembers.filter(m => {
+               if (m.departamento_id === d.id) return true
+               if (m.departamentos_ids) {
+                 try {
+                   const ids = typeof m.departamentos_ids === 'string'
+                     ? JSON.parse(m.departamentos_ids)
+                     : m.departamentos_ids
+                   if (Array.isArray(ids) && ids.includes(d.id)) return true
+                 } catch {}
+               }
+               return false
+             }).length
              const leader = allMembers.find(m => m.id === d.lider_principal_id)?.nome_completo || 'Sem líder definido'
              
              return {
@@ -75,6 +89,27 @@ export default function Dashboard() {
              }
          })
          setDepartamentosStats(stats)
+      }
+
+      // Calcula estatísticas demográficas
+      if (allMembers) {
+        const avg = (arr) => {
+          const valid = arr.filter(m => m.idade && Number(m.idade) > 0)
+          if (!valid.length) return 0
+          return Math.round(valid.reduce((s, m) => s + Number(m.idade), 0) / valid.length)
+        }
+        const criancasArr = allMembers.filter(m => m.faixa_etaria === 'Criança')
+        const homensArr = allMembers.filter(m => m.sexo === 'Masculino' && m.faixa_etaria !== 'Criança')
+        const mulheresArr = allMembers.filter(m => m.sexo === 'Feminino' && m.faixa_etaria !== 'Criança')
+        setDemoStats({
+          homens: homensArr.length,
+          mulheres: mulheresArr.length,
+          criancas: criancasArr.length,
+          total: allMembers.length,
+          avgHomens: avg(homensArr),
+          avgMulheres: avg(mulheresArr),
+          avgCriancas: avg(criancasArr)
+        })
       }
 
       // Fetch Tarefas (Motor Híbrido)
@@ -179,7 +214,7 @@ export default function Dashboard() {
         {/* Aniversariantes */}
         <div className="col-span-12 lg:col-span-4 bg-surface-container-lowest rounded-xl p-6 shadow-sm flex flex-col border border-outline-variant/10">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-headline font-bold text-primary flex items-center gap-2">
+            <h3 className="text-base font-black text-on-surface tracking-tight uppercase flex items-center gap-2">
               <span className="material-symbols-outlined text-tertiary-fixed-dim">cake</span> Aniversariantes
             </h3>
             <span className="text-xs font-bold text-on-surface-variant/60 uppercase tracking-widest">Este mês</span>
@@ -212,7 +247,7 @@ export default function Dashboard() {
         {/* Próximos Eventos */}
         <div className="col-span-12 lg:col-span-5 bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant/10">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-headline font-bold text-primary flex items-center gap-2">
+            <h3 className="text-base font-black text-on-surface tracking-tight uppercase flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">theater_comedy</span> Próximos Eventos
             </h3>
             <Link to="/eventos" className="text-xs font-bold text-primary hover:underline uppercase">Ver todos</Link>
@@ -259,9 +294,9 @@ export default function Dashboard() {
         {/* Gestão Ágil de Tarefas */}
         <div className="col-span-12 lg:col-span-3 bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant/10 flex flex-col max-h-[440px]">
           <div className="flex justify-between items-center mb-4 shrink-0">
-            <h3 className="text-lg font-headline font-bold text-primary flex items-center gap-2">
+            <h3 className="text-base font-black text-on-surface tracking-tight uppercase flex items-center gap-2">
               <span className="material-symbols-outlined text-on-tertiary-container">task_alt</span> 
-              {currentUser?.user_metadata?.perfil === 'Administrador' ? 'Notas Privadas' : 'Mural da Equipe'}
+              TAREFAS
             </h3>
           </div>
           
@@ -338,46 +373,174 @@ export default function Dashboard() {
 
       </div>
 
-      {/* Seção de Departamentos (Design Premium conforme Referência) */}
-      <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-8 border border-outline-variant/10 shadow-sm transition-all hover:shadow-md">
-        <div className="flex items-center gap-3 mb-8">
-          <span className="material-symbols-outlined text-3xl text-primary font-black">grid_view</span>
-          <h3 className="text-2xl font-black text-on-surface tracking-tight uppercase">Departamentos</h3>
-        </div>
+      {/* Seção de Departamentos */}
+      <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-outline-variant/10 shadow-sm transition-all hover:shadow-md overflow-hidden">
+        {/* Header clicável */}
+        <button
+          type="button"
+          onClick={() => setDeptExpanded(v => !v)}
+          className="w-full flex items-center justify-between p-8 pb-6 hover:bg-primary/5 transition-colors group"
+        >
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-3xl text-primary font-black" style={{ fontVariationSettings: "'FILL' 1" }}>grid_view</span>
+            <div className="text-left">
+              <h3 className="text-base font-black text-on-surface tracking-tight uppercase">Departamentos</h3>
+              <p className="text-[10px] font-bold text-on-surface-variant/50 uppercase tracking-widest mt-0.5">
+                {departamentosStats.length} departamento{departamentosStats.length !== 1 ? 's' : ''} cadastrado{departamentosStats.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+          </div>
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center border border-outline-variant/20 bg-surface-container-low transition-all group-hover:bg-primary group-hover:border-primary group-hover:text-white ${
+            deptExpanded ? 'bg-primary border-primary' : ''
+          }`}>
+            <span className={`material-symbols-outlined text-[20px] transition-transform duration-300 ${
+              deptExpanded ? 'rotate-180 text-white' : 'text-on-surface-variant'
+            }`}>
+              expand_more
+            </span>
+          </div>
+        </button>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {departamentosStats.length === 0 ? (
-            <p className="col-span-full text-center py-10 text-on-surface-variant/40 italic font-medium uppercase tracking-widest text-xs">
-              Configure seus departamentos para vê-los aqui.
-            </p>
-          ) : (
-            departamentosStats.map(dept => {
-              const config = getDeptConfig(dept.nome);
-              return (
-                <div key={dept.id} className="flex items-center justify-between p-5 rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/40 hover:bg-white dark:hover:bg-slate-800 transition-all hover:shadow-lg hover:shadow-primary/5 group">
-                  <div className="flex items-center gap-5">
-                    <div className={`w-14 h-14 rounded-2xl ${config.bg} flex items-center justify-center transition-transform group-hover:scale-110 duration-300 shadow-sm`}>
-                      <span className={`material-symbols-outlined text-2xl ${config.iconColor}`} style={{ fontVariationSettings: "'FILL' 1" }}>
-                        {config.icon}
-                      </span>
+        <div className="px-8 pb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {departamentosStats.length === 0 ? (
+              <p className="col-span-full text-center py-10 text-on-surface-variant/40 italic font-medium uppercase tracking-widest text-xs">
+                Configure seus departamentos para vê-los aqui.
+              </p>
+            ) : (
+              // Colapsado: mostra só 4 (2 linhas de 2). Expandido: mostra todos
+              (deptExpanded ? departamentosStats : departamentosStats.slice(0, 4)).map(dept => {
+                const config = getDeptConfig(dept.nome);
+                return (
+                  <div key={dept.id} className="flex items-center justify-between p-5 rounded-2xl border border-outline-variant/10 bg-surface-container-lowest/40 hover:bg-white dark:hover:bg-slate-800 transition-all hover:shadow-lg hover:shadow-primary/5 group">
+                    <div className="flex items-center gap-5">
+                      <div className={`w-14 h-14 rounded-2xl ${config.bg} flex items-center justify-center transition-transform group-hover:scale-110 duration-300 shadow-sm`}>
+                        <span className={`material-symbols-outlined text-2xl ${config.iconColor}`} style={{ fontVariationSettings: "'FILL' 1" }}>
+                          {config.icon}
+                        </span>
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-black text-on-surface leading-tight">{dept.nome}</h4>
+                        <p className="text-xs font-bold text-on-surface-variant flex items-center gap-1 mt-1">
+                          <span className="opacity-40 uppercase tracking-tighter">Líder:</span> {dept.lider}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-lg font-black text-on-surface leading-tight">{dept.nome}</h4>
-                      <p className="text-xs font-bold text-on-surface-variant flex items-center gap-1 mt-1">
-                        <span className="opacity-40 uppercase tracking-tighter">Líder:</span> {dept.lider}
-                      </p>
+                    <div className={`px-4 py-2 rounded-xl ${config.badge} flex flex-col items-center justify-center min-w-[100px] shadow-sm transform transition-transform group-hover:scale-105`}>
+                      <span className="text-xl font-black leading-none">{String(dept.membrosCount).padStart(2, '0')}</span>
+                      <span className="text-[9px] font-black uppercase tracking-tighter mt-1">Membros</span>
                     </div>
                   </div>
-                  <div className={`px-4 py-2 rounded-xl ${config.badge} flex flex-col items-center justify-center min-w-[100px] shadow-sm transform transition-transform group-hover:scale-105`}>
-                    <span className="text-xl font-black leading-none">{String(dept.membrosCount).padStart(2, '0')}</span>
-                    <span className="text-[9px] font-black uppercase tracking-tighter mt-1">Membros</span>
-                  </div>
-                </div>
-              )
-            })
+                )
+              })
+            )}
+          </div>
+
+          {/* Rodapé: botão "Ver mais" quando há mais de 4 e está colapsado */}
+          {departamentosStats.length > 4 && (
+            <button
+              onClick={() => setDeptExpanded(v => !v)}
+              className="mt-4 w-full py-2.5 rounded-xl border border-outline-variant/20 text-[11px] font-black uppercase tracking-widest text-on-surface-variant hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all flex items-center justify-center gap-2"
+            >
+              <span className={`material-symbols-outlined text-[16px] transition-transform duration-300 ${deptExpanded ? 'rotate-180' : ''}`}>expand_more</span>
+              {deptExpanded
+                ? `Recolher (mostrar menos)`
+                : `Ver todos (${departamentosStats.length - 4} ocultos)`}
+            </button>
           )}
         </div>
       </div>
+
+      {/* Card de Perfil Demográfico */}
+      <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-outline-variant/10 shadow-sm p-8">
+        <div className="flex items-center gap-3 mb-6">
+          <span className="material-symbols-outlined text-2xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>diversity_3</span>
+          <div>
+            <h3 className="text-base font-black text-on-surface tracking-tight uppercase">Perfil da Congregação</h3>
+            <p className="text-[10px] font-bold text-on-surface-variant/50 uppercase tracking-widest">
+              {demoStats.total} membro{demoStats.total !== 1 ? 's' : ''} ativo{demoStats.total !== 1 ? 's' : ''}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-4">
+          {/* Homens */}
+          <div className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-blue-50 border border-blue-100">
+            <div className="w-14 h-14 rounded-2xl bg-blue-500 flex items-center justify-center shadow-md">
+              <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>man</span>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl font-black text-blue-700 leading-none">{String(demoStats.homens).padStart(2, '0')}</p>
+              <p className="text-[10px] font-black uppercase tracking-wider text-blue-500 mt-1">Homens</p>
+            </div>
+            <div className="w-full bg-blue-200 rounded-full h-1.5">
+              <div
+                className="bg-blue-500 h-1.5 rounded-full transition-all duration-700"
+                style={{ width: demoStats.total > 0 ? `${Math.round((demoStats.homens / demoStats.total) * 100)}%` : '0%' }}
+              />
+            </div>
+            <p className="text-[10px] font-bold text-blue-400">
+              {demoStats.total > 0 ? `${Math.round((demoStats.homens / demoStats.total) * 100)}%` : '0%'}
+            </p>
+            {demoStats.avgHomens > 0 && (
+              <p className="text-[10px] font-black text-blue-500/70 uppercase tracking-wider">
+                Média: {demoStats.avgHomens} anos
+              </p>
+            )}
+          </div>
+
+          {/* Mulheres */}
+          <div className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-pink-50 border border-pink-100">
+            <div className="w-14 h-14 rounded-2xl bg-pink-500 flex items-center justify-center shadow-md">
+              <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>woman</span>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl font-black text-pink-700 leading-none">{String(demoStats.mulheres).padStart(2, '0')}</p>
+              <p className="text-[10px] font-black uppercase tracking-wider text-pink-500 mt-1">Mulheres</p>
+            </div>
+            <div className="w-full bg-pink-200 rounded-full h-1.5">
+              <div
+                className="bg-pink-500 h-1.5 rounded-full transition-all duration-700"
+                style={{ width: demoStats.total > 0 ? `${Math.round((demoStats.mulheres / demoStats.total) * 100)}%` : '0%' }}
+              />
+            </div>
+            <p className="text-[10px] font-bold text-pink-400">
+              {demoStats.total > 0 ? `${Math.round((demoStats.mulheres / demoStats.total) * 100)}%` : '0%'}
+            </p>
+            {demoStats.avgMulheres > 0 && (
+              <p className="text-[10px] font-black text-pink-500/70 uppercase tracking-wider">
+                Média: {demoStats.avgMulheres} anos
+              </p>
+            )}
+          </div>
+
+          {/* Crianças */}
+          <div className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-amber-50 border border-amber-100">
+            <div className="w-14 h-14 rounded-2xl bg-amber-400 flex items-center justify-center shadow-md">
+              <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>child_care</span>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl font-black text-amber-700 leading-none">{String(demoStats.criancas).padStart(2, '0')}</p>
+              <p className="text-[10px] font-black uppercase tracking-wider text-amber-500 mt-1">Crianças</p>
+            </div>
+            <div className="w-full bg-amber-200 rounded-full h-1.5">
+              <div
+                className="bg-amber-400 h-1.5 rounded-full transition-all duration-700"
+                style={{ width: demoStats.total > 0 ? `${Math.round((demoStats.criancas / demoStats.total) * 100)}%` : '0%' }}
+              />
+            </div>
+            <p className="text-[10px] font-bold text-amber-400">
+              {demoStats.total > 0 ? `${Math.round((demoStats.criancas / demoStats.total) * 100)}%` : '0%'}
+            </p>
+            {demoStats.avgCriancas > 0 && (
+              <p className="text-[10px] font-black text-amber-500/70 uppercase tracking-wider">
+                Média: {demoStats.avgCriancas} anos
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
     </div>
   )
 }

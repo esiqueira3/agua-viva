@@ -1,17 +1,16 @@
 import { useState, useEffect } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
-import { Tabs } from '../components/ui/Tabs'
 import { MultiSelect } from '../components/ui/MultiSelect'
 import { supabase } from '../lib/supabase'
 import { useNavigate, useParams } from 'react-router-dom'
 import { SearchableSelect } from '../components/ui/SearchableSelect'
 
 // Instanciados FORA para proteger o foco do DOM virtual
-const FormField = ({ label, name, type="text", required=false, disabled=false, form, onChange, autoFocus, min }) => (
+const FormField = ({ label, name, type="text", required=false, disabled=false, form, onChange, autoFocus, min, step }) => (
   <div className="flex flex-col gap-1 mb-4 flex-1">
     <label className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">{label}</label>
     <input 
-        autoFocus={autoFocus} min={min}
+        autoFocus={autoFocus} min={min} step={step}
         type={type} name={name} required={required} disabled={disabled}
         value={form[name] || ''} onChange={onChange}
         className={`p-3 bg-surface-container-low border border-outline-variant/30 rounded-lg focus:ring-2 focus:ring-primary outline-none ${disabled?'bg-surface-variant/50 cursor-not-allowed':''}`}
@@ -49,6 +48,7 @@ export default function CadastroEvento() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState(0) // 0 = primeira aba aberta por padrão
   
   const [locais, setLocais] = useState([])
   const [departamentos, setDepartamentos] = useState([])
@@ -60,7 +60,8 @@ export default function CadastroEvento() {
     limite_participantes: false, quantidade_maxima: '', link_inscricao: '', 
     link_pagamento_mp: '', confirmacao_presenca: false,
     frequencia: 'nao_repetir',
-    pago: false, valor_base: '0.00', taxa_porc: '4.99', taxa_fixa: '0.40', valor_total: '0.00'
+    pago: false, valor_base: '0.00', taxa_porc: '4.99', taxa_fixa: '0.40', valor_total: '0.00',
+    mostrar_link_calendario: true
   })
 
   useEffect(() => {
@@ -81,6 +82,10 @@ export default function CadastroEvento() {
            const ev = {...data}
            if (ev.data_evento) ev.data_evento = ev.data_evento.split('T')[0]
            if (ev.hora_evento) ev.hora_evento = ev.hora_evento.substring(0, 5)
+           // Garantir que mostrar_link_calendario nunca seja null (default true)
+           if (ev.mostrar_link_calendario === null || ev.mostrar_link_calendario === undefined) {
+             ev.mostrar_link_calendario = true
+           }
            setForm(ev)
         }
       }
@@ -102,14 +107,11 @@ export default function CadastroEvento() {
     if (form.pago) {
         const base = parseFloat(form.valor_base) || 0
         const porc = parseFloat(form.taxa_porc) || 0
-        
-        // Ajuste 2: Taxa Fixa agora é o resultado do Líquido + Percentual
         const resultadoComPorcentagem = (base + (base * (porc / 100))).toFixed(2)
-        
         setForm(f => ({
           ...f, 
-          taxa_fixa: resultadoComPorcentagem, // Campo atualizado automaticamente
-          valor_total: resultadoComPorcentagem // Valor total segue o mesmo cálculo
+          taxa_fixa: resultadoComPorcentagem,
+          valor_total: resultadoComPorcentagem
         }))
     } else {
         setForm(f => ({...f, taxa_fixa: '0.00', valor_total: '0.00'}))
@@ -118,12 +120,9 @@ export default function CadastroEvento() {
 
   const handleFormChange = (e) => {
     let value = e.target.type === 'checkbox' ? e.target.checked : e.target.value
-    
-    // Padronização para CAIXA ALTA no nome do evento
     if (e.target.name === 'nome' && typeof value === 'string') {
       value = value.toUpperCase()
     }
-    
     setForm({...form, [e.target.name]: value})
   }
 
@@ -138,7 +137,6 @@ export default function CadastroEvento() {
     if(!payload.quantidade_maxima || !payload.limite_participantes) payload.quantidade_maxima = null
     if(payload.hora_evento.length === 5) payload.hora_evento += ':00'
 
-    // Bloco Validador: Impede inserção de Datas Anteriores para Novos Eventos
     const todayStr = new Date().toISOString().split('T')[0]
     if (!id && payload.data_evento && payload.data_evento < todayStr) {
        alert("⚠️ Erro de Validação:\nNão é permitido planejar e cadastrar Novos Eventos com datas retroativas (anteriores a data de hoje). Para histórico use o módulo correto.")
@@ -167,112 +165,6 @@ export default function CadastroEvento() {
 
   const membrosOptions = membros.map(m => ({ value: m.id, label: m.nome_completo }))
 
-  const tabData = [
-    {
-      label: "1. Organização",
-      content: (
-        <div className="grid grid-cols-2 gap-4 max-w-4xl">
-           <SelectMenu label="Departamento Responsável" name="departamento_id" options={departamentos.map(d => ({ value: d.id, label: d.nome }))} form={form} onChange={handleFormChange} />
-           <SearchableSelect 
-              label="Líder Responsável (Editável)" 
-              name="lider_responsavel_id" 
-              options={membrosOptions} 
-              value={form.lider_responsavel_id} 
-              onChange={handleFormChange} 
-           />
-           
-           <div className="col-span-2">
-             <MultiSelect 
-               label="Equipe Envolvida no Evento" 
-               options={membrosOptions}
-               selectedValues={form.equipe_envolvida}
-               onChange={(vals) => setForm({...form, equipe_envolvida: vals})}
-             />
-           </div>
-        </div>
-      )
-    },
-    {
-      label: "2. Participação e Inscrição",
-      content: (
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-6 max-w-4xl bg-surface-container-low/30 p-6 rounded-2xl border border-outline-variant/10">
-            <div className="col-span-2">
-                <h4 className="text-sm font-bold text-primary flex items-center gap-2 mb-2">
-                  <span className="material-symbols-outlined text-[18px]">group</span> Controle de Público
-                </h4>
-            </div>
-            <Toggle label="Habilitar Limite de Participantes?" name="limite_participantes" form={form} onChange={handleFormChange} />
-            {form.limite_participantes && (
-                <FormField label="Quantidade Máxima de Inscrições" name="quantidade_maxima" type="number" form={form} onChange={handleFormChange} />
-            )}
-            <div className="col-span-2">
-                <FormField label="Link Exclusivo de Inscrição Externa (URL)" name="link_inscricao" type="url" form={form} onChange={handleFormChange} />
-            </div>
-            <Toggle label="Exigir Confirmação de Presença no Local?" name="confirmacao_presenca" form={form} onChange={handleFormChange} />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-4xl bg-tertiary-container/10 p-6 rounded-2xl border border-tertiary-container/20">
-             <div className="col-span-4">
-                <h4 className="text-sm font-bold text-tertiary-fixed-dim flex items-center gap-2 mb-2 uppercase tracking-tighter">
-                  <span className="material-symbols-outlined text-[18px]">payments</span> Financeiro e Mercado Pago
-                </h4>
-             </div>
-             
-             <div className="col-span-4 md:col-span-4">
-                <Toggle label="Evento Pago?" name="pago" form={form} onChange={handleFormChange} />
-             </div>
-
-             {form.pago && (
-                <>
-                  <div className="col-span-4 bg-primary/5 p-4 rounded-xl border border-primary/20 mb-4 animate-in fade-in zoom-in duration-500">
-                     <div className="flex items-start gap-3">
-                        <span className="material-symbols-outlined text-primary">info</span>
-                        <div>
-                           <p className="text-xs font-bold text-primary uppercase">💡 Dica de Automação:</p>
-                           <p className="text-[11px] text-on-surface-variant leading-relaxed">
-                              Ao criar o link no Mercado Pago, coloque o ID abaixo no campo <strong>"Referência Externa"</strong>. 
-                              Isso permite que o sistema gerencie os valores e mude o status para "PAGO" automaticamente.
-                           </p>
-                           <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-white border border-primary/20 rounded-md">
-                              <span className="text-[10px] font-black font-mono text-primary">ID DO EVENTO:</span>
-                              <span className="text-xs font-black font-mono text-on-surface">{id || 'NOVO_EVENTO'}</span>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-                  
-                  <div className="col-span-4">
-                     <FormField label="Link do Mercado Pago (Cole a URL aqui)" name="link_pagamento_mp" type="url" form={form} onChange={handleFormChange} />
-                  </div>
-
-                  <div className="col-span-4 grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
-                    <FormField label="Valor Líquido (Igreja) R$" name="valor_base" type="number" step="0.01" form={form} onChange={handleFormChange} />
-                    <FormField label="Estimativa Taxa MP (%)" name="taxa_porc" type="number" step="0.01" form={form} onChange={handleFormChange} />
-                    <FormField label="Estimativa Taxa Fixa (R$)" name="taxa_fixa" type="number" step="0.01" disabled form={form} onChange={handleFormChange} />
-                  </div>
-                  
-                  <div className="col-span-4 p-4 rounded-xl bg-primary text-white flex justify-between items-center shadow-lg transform transition-all hover:scale-[1.01]">
-                     <div className="flex items-center gap-3">
-                        <span className="material-symbols-outlined text-3xl">shopping_cart_checkout</span>
-                        <div>
-                           <p className="text-[10px] uppercase font-black tracking-widest opacity-80">Valor final para o Fiel</p>
-                           <h5 className="text-2xl font-black">R$ {form.valor_total}</h5>
-                        </div>
-                     </div>
-                     <div className="text-right">
-                        <p className="text-[10px] font-bold uppercase opacity-60">Fórmula de Acréscimo Aplicada</p>
-                        <p className="text-xs font-mono">Líquido + % + Fixo</p>
-                     </div>
-                  </div>
-                </>
-             )}
-          </div>
-        </div>
-      )
-    }
-  ]
-
   const statusOpts = [
     {label: '🔵 Agendado', value: 'Agendado'},
     {label: '🟢 Confirmado', value: 'Confirmado'},
@@ -288,10 +180,120 @@ export default function CadastroEvento() {
     {label: 'Todo ano', value: 'anual'}
   ]
 
+  // =====================================================================
+  // TABS — definidas ANTES do return para ficarem acima no visual
+  // =====================================================================
+  const tabData = [
+    {
+      label: "1. Organização",
+      content: (
+        <div className="grid grid-cols-2 gap-4 max-w-4xl">
+           <SelectMenu label="Departamento Responsável" name="departamento_id" options={departamentos.map(d => ({ value: d.id, label: d.nome }))} form={form} onChange={handleFormChange} />
+           <SearchableSelect 
+              label="Líder Responsável (Editável)" 
+              name="lider_responsavel_id" 
+              options={membrosOptions} 
+              value={form.lider_responsavel_id} 
+              onChange={handleFormChange} 
+           />
+           
+        </div>
+      )
+    },
+    {
+      label: "2. Evento Pago",
+
+      content: (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+           {/* Linha de toggles */}
+           <div className="col-span-4 flex items-center justify-between">
+             <Toggle label="Evento Pago?" name="pago" form={form} onChange={handleFormChange} />
+             {form.pago && (
+               <label className="flex items-center cursor-pointer gap-3 bg-[#009EE3]/5 px-4 py-3 rounded-xl border border-[#009EE3]/20 hover:bg-[#009EE3]/10 transition-colors">
+                 <div className="relative">
+                   <input type="checkbox" className="sr-only" name="mostrar_link_calendario" checked={form.mostrar_link_calendario} onChange={handleFormChange} />
+                   <div className={`block w-10 h-6 rounded-full transition-colors ${form.mostrar_link_calendario ? 'bg-[#009EE3]' : 'bg-outline-variant/50'}`}></div>
+                   <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${form.mostrar_link_calendario ? 'translate-x-4' : ''}`}></div>
+                 </div>
+                 <div className="flex flex-col">
+                   <span className="font-bold text-sm text-on-surface">Mostrar link no Calendário?</span>
+                   <span className="text-[10px] text-on-surface-variant font-medium">
+                     {form.mostrar_link_calendario ? '✅ Botão de inscrição visível no card' : '🔒 Botão oculto no calendário'}
+                   </span>
+                 </div>
+               </label>
+             )}
+           </div>
+
+           {form.pago && (
+              <>
+                {/* Banner Mercado Pago */}
+                <div className="col-span-4 rounded-2xl overflow-hidden animate-in fade-in zoom-in duration-300"
+                  style={{ background: 'linear-gradient(135deg, #009EE3 0%, #00BCFF 100%)' }}>
+                  <div className="flex items-center justify-between p-5">
+                    <div className="flex items-center gap-4">
+                      {/* Logo MP em SVG */}
+                      <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-md shrink-0">
+                        <svg viewBox="0 0 48 48" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M24 4C12.95 4 4 12.95 4 24s8.95 20 20 20 20-8.95 20-20S35.05 4 24 4z" fill="#009EE3"/>
+                          <path d="M33.5 19.5c0 5.25-4.25 9.5-9.5 9.5S14.5 24.75 14.5 19.5 18.75 10 24 10s9.5 4.25 9.5 9.5z" fill="white"/>
+                          <path d="M24 14c-3.03 0-5.5 2.47-5.5 5.5S20.97 25 24 25s5.5-2.47 5.5-5.5S27.03 14 24 14z" fill="#009EE3"/>
+                          <path d="M17 30h14l-2 8H19l-2-8z" fill="white" opacity="0.9"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-white font-black text-base uppercase tracking-wider">Mercado Pago</p>
+                        <p className="text-white/80 text-[11px] font-medium">Checkout Transparente integrado</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-white/70 text-[10px] uppercase font-bold tracking-widest">Referência Externa</p>
+                      <div className="mt-1 inline-flex items-center gap-2 px-3 py-1.5 bg-white/20 backdrop-blur rounded-lg border border-white/30">
+                        <span className="text-white text-[11px] font-black font-mono">{id || 'ID gerado ao salvar'}</span>
+                      </div>
+                      <p className="text-white/60 text-[9px] mt-1">Cole esse ID no campo "Referência Externa" no MP</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="col-span-4">
+                   <FormField label="Link do Mercado Pago (Cole a URL aqui)" name="link_pagamento_mp" type="url" form={form} onChange={handleFormChange} />
+                </div>
+
+                <div className="col-span-4 grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                  <FormField label="Valor Líquido (Igreja) R$" name="valor_base" type="number" step="0.01" form={form} onChange={handleFormChange} />
+                  <FormField label="Estimativa Taxa MP (%)" name="taxa_porc" type="number" step="0.01" form={form} onChange={handleFormChange} />
+                  <FormField label="Estimativa Taxa Fixa (R$)" name="taxa_fixa" type="number" step="0.01" disabled form={form} onChange={handleFormChange} />
+                </div>
+                
+                <div className="col-span-4 p-5 rounded-2xl text-white flex justify-between items-center shadow-lg transform transition-all hover:scale-[1.01]"
+                  style={{ background: 'linear-gradient(135deg, #009EE3 0%, #00BCFF 100%)' }}>
+                   <div className="flex items-center gap-3">
+                      <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>payments</span>
+                      <div>
+                         <p className="text-[10px] uppercase font-black tracking-widest opacity-80">Valor final para o Fiel</p>
+                         <h5 className="text-2xl font-black">R$ {form.valor_total}</h5>
+                      </div>
+                   </div>
+                   <div className="text-right">
+                      <p className="text-[10px] font-bold uppercase opacity-60">Fórmula Aplicada</p>
+                      <p className="text-xs font-mono">Líquido × (1 + Taxa%)</p>
+                   </div>
+                </div>
+              </>
+           )}
+        </div>
+      )
+    }
+  ]
+
+
   return (
     <form onSubmit={handleSave} className="max-w-7xl mx-auto space-y-6 pb-24 relative">
       <PageHeader title={id ? "Editar Evento" : "Hospedar Novo Evento"} icon="festival" />
-      
+
+      {/* CARD PRINCIPAL — sempre visível */}
       <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/20 shadow-sm grid grid-cols-1 md:grid-cols-4 gap-4">
          <div className="col-span-4 md:col-span-2">
             <FormField autoFocus label="Nome do Evento *" name="nome" required form={form} onChange={handleFormChange} />
@@ -317,8 +319,48 @@ export default function CadastroEvento() {
             <SelectMenu label="Status (Farol)" name="status" options={statusOpts} form={form} onChange={handleFormChange} />
          </div>
       </div>
-      
-      <Tabs tabs={tabData} />
+
+      {/* ABAS COLAPSÁVEIS — nenhuma aberta por padrão */}
+      <div className="space-y-3">
+        {tabData.map((tab, index) => {
+          const isOpen = activeTab === index
+          return (
+            <div key={index} className="rounded-xl border border-outline-variant/20 overflow-hidden shadow-sm">
+              {/* Cabeçalho da aba — clicável */}
+              <button
+                type="button"
+                onClick={() => setActiveTab(isOpen ? null : index)}
+                className={`w-full flex items-center justify-between px-6 py-4 font-bold text-sm transition-all ${
+                  isOpen
+                    ? 'bg-primary text-white'
+                    : 'bg-surface-container-lowest text-on-surface hover:bg-primary/5 hover:text-primary'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className={`material-symbols-outlined text-[20px] ${
+                    isOpen ? 'text-white/80' : 'text-primary/60'
+                  }`}>
+                    {index === 0 ? 'groups' : 'payments'}
+                  </span>
+                  <span className="uppercase tracking-wider text-xs font-black">{tab.label}</span>
+                </div>
+                <span className={`material-symbols-outlined text-[20px] transition-transform duration-300 ${
+                  isOpen ? 'rotate-180 text-white/70' : 'text-on-surface-variant/40'
+                }`}>
+                  expand_more
+                </span>
+              </button>
+
+              {/* Conteúdo — só aparece se aba ativa */}
+              {isOpen && (
+                <div className="p-6 bg-surface-container-lowest animate-in fade-in slide-in-from-top-2 duration-300">
+                  {tab.content}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
 
       <div className="fixed bottom-0 left-64 right-0 p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur border-t border-outline-variant/20 flex gap-4 justify-end z-40">
         <button type="button" onClick={() => navigate('/eventos')} className="px-6 py-2.5 rounded-lg font-bold text-red-600 bg-red-100 hover:bg-red-200 transition-colors">Cancelar</button>

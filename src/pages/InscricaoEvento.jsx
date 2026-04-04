@@ -181,7 +181,7 @@ export default function InscricaoEvento() {
           <h2 className="text-3xl font-black text-white mb-2">Inscrição Recebida!</h2>
           <p className="text-slate-300 mb-8">
             {evento.pago 
-               ? "Inscrição registrada! Estamos te levando para o ambiente seguro do Mercado Pago para concluir o pagamento." 
+               ? "Pagamento confirmado! Sua inscrição está garantida. Te esperamos no evento! 🎉" 
                : "Sua vaga está garantida! Te esperamos no evento."}
           </p>
           <Link to="/" className="inline-block bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-primary/80 transition-all">
@@ -202,7 +202,10 @@ export default function InscricaoEvento() {
          <div className="flex flex-wrap justify-center gap-6 mt-6 text-slate-400 font-bold text-sm uppercase tracking-widest">
             <div className="flex items-center gap-2">
                <span className="material-symbols-outlined text-primary">calendar_today</span>
-               {new Date(evento.data_evento).toLocaleDateString('pt-BR')}
+               {/* Parse manual para evitar deslocamento de fuso UTC-3 */}
+               {evento.data_evento
+                 ? (() => { const [y, m, d] = evento.data_evento.split('-'); return `${d}/${m}/${y}`; })()
+                 : 'Data a definir'}
             </div>
             <div className="flex items-center gap-2">
                <span className="material-symbols-outlined text-primary">location_on</span>
