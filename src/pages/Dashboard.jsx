@@ -112,15 +112,15 @@ export default function Dashboard() {
         })
       }
 
-      // Fetch Tarefas (Motor Híbrido)
+      // Fetch Tarefas (Filtrado por Usuário Logado)
       if (user) {
-        let tarefasQuery = supabase.from('tarefas').select('*').order('concluida', { ascending: true }).order('created_at', { ascending: false })
-        if (user.user_metadata?.perfil === 'Administrador') {
-           tarefasQuery = tarefasQuery.eq('user_email', user.email)
-        } else {
-           tarefasQuery = tarefasQuery.neq('user_perfil', 'Administrador')
-        }
-        const { data: tarData } = await tarefasQuery
+        const { data: tarData } = await supabase
+          .from('tarefas')
+          .select('*')
+          .eq('user_email', user.email)
+          .order('concluida', { ascending: true })
+          .order('created_at', { ascending: false })
+        
         if (tarData) setTarefas(tarData)
       }
     }

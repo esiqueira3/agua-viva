@@ -74,6 +74,14 @@ export default function FinanceiroEventos() {
   useEffect(() => { loadFinanceiro() }, [])
 
   const verDetalhes = async (evento) => {
+    // Se clicar no mesmo evento que já está aberto, fecha o detalhamento
+    if (eventoSelecionado?.id === evento.id) {
+      setEventoSelecionado(null)
+      setInscritos([])
+      setSaques([])
+      return
+    }
+
     setEventoSelecionado(evento)
     const [{ data: inscData }, { data: saqueData }] = await Promise.all([
       supabase.from('inscricoes').select('*').eq('evento_id', evento.id).order('created_at', { ascending: false }),

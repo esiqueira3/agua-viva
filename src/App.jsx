@@ -19,6 +19,9 @@ import CadastroUsuario from './pages/CadastroUsuario'
 import InscricaoEvento from './pages/InscricaoEvento'
 import FinanceiroEventos from './pages/FinanceiroEventos'
 import ConfigMercadoPago from './pages/ConfigMercadoPago'
+import MembrosPreCadastro from './pages/MembrosPreCadastro'
+import LinkPublicoMembros from './pages/LinkPublicoMembros'
+import InscricaoMembro from './pages/InscricaoMembro'
 import { useEffect } from 'react'
 
 function App() {
@@ -44,6 +47,8 @@ function App() {
           <Route path="/membros" element={<Membros />} />
           <Route path="/membros/novo" element={<CadastroMembro />} />
           <Route path="/membros/editar/:id" element={<CadastroMembro />} />
+          <Route path="/membros/pre-cadastro" element={<MembrosPreCadastro />} />
+          <Route path="/membros/link-publico" element={<LinkPublicoMembros />} />
           
           <Route path="/usuarios" element={<Usuarios />} />
           <Route path="/usuarios/novo" element={<CadastroUsuario />} />
@@ -67,8 +72,9 @@ function App() {
           <Route path="/configuracoes" element={<Configuracoes />} />
         </Route>
         
-        {/* Rota Pública de Inscrição (Cereja do Bolo) */}
+        {/* Rotas Públicas */}
         <Route path="/inscricao/:id" element={<InscricaoEvento />} />
+        <Route path="/inscrever" element={<InscricaoMembro />} />
         
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -3,7 +3,8 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 
 export default function SideNavBar({ isCollapsed }) {
-  const [isFinanceiroExpanded, setIsFinanceiroExpanded] = useState(true)
+  const [isFinanceiroExpanded, setIsFinanceiroExpanded] = useState(false)
+  const [isMembrosExpanded, setIsMembrosExpanded] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -61,16 +62,19 @@ export default function SideNavBar({ isCollapsed }) {
                   </span>
                   {!isCollapsed && <span className="whitespace-nowrap flex-1">{item.name}</span>}
                   
-                  {!isCollapsed && item.name === 'Financeiro' && (
+                  {!isCollapsed && (item.name === 'Financeiro' || item.name === 'Membros') && (
                     <div 
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
-                        setIsFinanceiroExpanded(!isFinanceiroExpanded)
+                        if (item.name === 'Financeiro') setIsFinanceiroExpanded(!isFinanceiroExpanded)
+                        if (item.name === 'Membros') setIsMembrosExpanded(!isMembrosExpanded)
                       }}
                       className="p-1 hover:bg-slate-300/30 dark:hover:bg-white/10 rounded-md transition-all cursor-pointer"
                     >
-                      <span className={`material-symbols-outlined text-[18px] transition-transform duration-300 ${isFinanceiroExpanded ? 'rotate-180' : ''}`}>
+                      <span className={`material-symbols-outlined text-[18px] transition-transform duration-300 ${
+                        (item.name === 'Financeiro' && isFinanceiroExpanded) || (item.name === 'Membros' && isMembrosExpanded) ? 'rotate-180' : ''
+                      }`}>
                         expand_more
                       </span>
                     </div>
@@ -90,6 +94,34 @@ export default function SideNavBar({ isCollapsed }) {
                       >
                         <span className="material-symbols-outlined text-[16px]">api</span>
                         API MERCADO PAGO
+                      </Link>
+                   </div>
+                )}
+
+                {/* Submenu para Membros */}
+                {item.name === 'Membros' && !isCollapsed && isMembrosExpanded && (
+                   <div className="ml-9 mt-1 space-y-1">
+                      <Link 
+                        to="/membros/pre-cadastro"
+                        className={`flex items-center gap-2 px-3 py-2 text-[11px] font-black uppercase tracking-wider rounded-lg transition-all ${
+                          location.pathname === '/membros/pre-cadastro'
+                            ? 'text-primary bg-primary/10 dark:bg-primary/20'
+                            : 'text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5'
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-[16px]">how_to_reg</span>
+                        PRÉ-CADASTRO
+                      </Link>
+                      <Link 
+                        to="/membros/link-publico"
+                        className={`flex items-center gap-2 px-3 py-2 text-[11px] font-black uppercase tracking-wider rounded-lg transition-all ${
+                          location.pathname === '/membros/link-publico'
+                            ? 'text-primary bg-primary/10 dark:bg-primary/20'
+                            : 'text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5'
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-[16px]">public</span>
+                        LINK PÚBLICO
                       </Link>
                    </div>
                 )}

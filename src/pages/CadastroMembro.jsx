@@ -86,7 +86,7 @@ export default function CadastroMembro() {
         const { data: lastMembro } = await supabase
            .from('membros')
            .select('matricula')
-           .order('created_at', { ascending: false })
+           .order('matricula', { ascending: false })
            .limit(1)
            
         let nextNum = 1
