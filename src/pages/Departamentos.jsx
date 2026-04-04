@@ -26,8 +26,17 @@ export default function Departamentos() {
 
   const handleDelete = async (row) => {
     if(window.confirm(`Tem certeza que deseja excluir o departamento: ${row.nome}?`)) {
-      await supabase.from('departamentos').delete().eq('id', row.id)
-      setDepartamentos(prev => prev.filter(d => d.id !== row.id))
+      setLoading(true)
+      const { error } = await supabase.from('departamentos').delete().eq('id', row.id)
+      
+      if (error) {
+        alert("❌ Erro ao excluir do banco de dados:\n\n" + error.message)
+        setLoading(false)
+      } else {
+        setDepartamentos(prev => prev.filter(d => d.id !== row.id))
+        setLoading(false)
+        alert("✅ Departamento excluído com sucesso!")
+      }
     }
   }
 

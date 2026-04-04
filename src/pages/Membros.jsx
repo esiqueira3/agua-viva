@@ -42,8 +42,17 @@ export default function Membros() {
 
   const handleDelete = async (row) => {
     if(window.confirm(`Tem certeza que deseja excluir o membro: ${row.nome_completo}?`)) {
-      await supabase.from('membros').delete().eq('id', row.id)
-      setMembros(prev => prev.filter(m => m.id !== row.id))
+      setLoading(true)
+      const { error } = await supabase.from('membros').delete().eq('id', row.id)
+      
+      if (error) {
+        alert("❌ Erro ao excluir do banco de dados:\n\n" + error.message)
+        setLoading(false)
+      } else {
+        setMembros(prev => prev.filter(m => m.id !== row.id))
+        setLoading(false)
+        alert("✅ Membro excluído com sucesso!")
+      }
     }
   }
 
