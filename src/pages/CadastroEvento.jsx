@@ -61,6 +61,7 @@ export default function CadastroEvento() {
     link_pagamento_mp: '', confirmacao_presenca: false,
     frequencia: 'nao_repetir',
     pago: false, valor_base: '0.00', taxa_porc: '4.99', taxa_fixa: '0.40', valor_total: '0.00',
+    max_parcelas: 1,
     mostrar_link_calendario: true
   })
 
@@ -120,10 +121,12 @@ export default function CadastroEvento() {
 
   const handleFormChange = (e) => {
     let value = e.target.type === 'checkbox' ? e.target.checked : e.target.value
+    let finalValue = value
+    if (e.target.name === 'max_parcelas') finalValue = Number(value)
     if (e.target.name === 'nome' && typeof value === 'string') {
-      value = value.toUpperCase()
+      finalValue = value.toUpperCase()
     }
-    setForm({...form, [e.target.name]: value})
+    setForm({...form, [e.target.name]: finalValue})
   }
 
   const handleSave = async (e) => {
@@ -257,14 +260,13 @@ export default function CadastroEvento() {
                   </div>
                 </div>
 
-                <div className="col-span-4">
-                   <FormField label="Link do Mercado Pago (Cole a URL aqui)" name="link_pagamento_mp" type="url" form={form} onChange={handleFormChange} />
-                </div>
+                 {/* Removido: Usando Checkout Transparente Agora */}
 
                 <div className="col-span-4 grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
-                  <FormField label="Valor Líquido (Igreja) R$" name="valor_base" type="number" step="0.01" form={form} onChange={handleFormChange} />
-                  <FormField label="Estimativa Taxa MP (%)" name="taxa_porc" type="number" step="0.01" form={form} onChange={handleFormChange} />
-                  <FormField label="Estimativa Taxa Fixa (R$)" name="taxa_fixa" type="number" step="0.01" disabled form={form} onChange={handleFormChange} />
+                   <FormField label="Valor Líquido (Igreja) R$" name="valor_base" type="number" step="0.01" form={form} onChange={handleFormChange} />
+                   <FormField label="Estimativa Taxa MP (%)" name="taxa_porc" type="number" step="0.01" form={form} onChange={handleFormChange} />
+                   <FormField label="Máximo Parcelas Card" name="max_parcelas" type="number" min="1" step="1" form={form} onChange={handleFormChange} />
+                   <FormField label="Estimativa Taxa Fixa (R$)" name="taxa_fixa" type="number" step="0.01" disabled form={form} onChange={handleFormChange} />
                 </div>
                 
                 <div className="col-span-4 p-5 rounded-2xl text-white flex justify-between items-center shadow-lg transform transition-all hover:scale-[1.01]"

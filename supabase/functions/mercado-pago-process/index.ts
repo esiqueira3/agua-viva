@@ -40,8 +40,8 @@ serve(async (req) => {
         token,
         issuer_id,
         payment_method_id,
-        transaction_amount,
-        installments,
+        transaction_amount: Number(transaction_amount),
+        installments: Number(installments),
         description: `Agua Viva - Inscrição Evento ID: ${evento_id}`,
         payer: {
           email: payer_email

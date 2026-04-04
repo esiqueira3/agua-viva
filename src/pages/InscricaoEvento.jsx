@@ -69,39 +69,49 @@ export default function InscricaoEvento() {
   }
 
   useEffect(() => {
-    if (step === 2 && window.MercadoPago && publicKey && !window.bricksBuilder) {
+    if (step === 2 && window.MercadoPago && publicKey && evento) {
+      // Remover qualquer Brick anterior se existir para garantir nova configuração
+      const container = document.getElementById('paymentCardBrick_container');
+      if (container) container.innerHTML = '';
+      
       const mp = new window.MercadoPago(publicKey, { locale: 'pt-BR' });
       const bricksBuilder = mp.bricks();
-      window.bricksBuilder = bricksBuilder; // Prevenir duplicidade
 
       const renderCardPaymentBrick = async (builder) => {
+        const amountValue = Number(evento.valor_total) || 0;
+        const maxInstallmentsValue = Number(evento.max_parcelas) || 1;
+
+        console.log("Configurando Brick - Valor:", amountValue, "Max Parcelas:", maxInstallmentsValue);
+
         const settings = {
           initialization: {
-            amount: evento.valor_total,
+            amount: Number(amountValue.toFixed(2)),
             payer: { email: form.email },
+            installments: 1
           },
           customization: {
             visual: {
               style: {
-                theme: 'default', // Tema Claro para melhor acessibilidade
+                theme: 'default',
                 customVariables: {
                   baseColor: '#8B5CF6',
                 }
               }
             },
             paymentMethods: {
-              maxInstallments: 1
+              maxInstallments: maxInstallmentsValue,
+              minInstallments: 1
             }
           },
           callbacks: {
             onReady: () => {
-              console.log("Card Brick Pronto! ✨");
+              console.log("Card Brick Pronto com", maxInstallmentsValue, "parcelas! ✨");
               setBrickLoading(false);
             },
             onSubmit: async (formData) => {
               setSubmitting(true);
+              console.log("Enviando pagamento: ", formData.installments, "parcelas");
               try {
-                // 1. Chamar a nossa Edge Function segura (O Robô)
                 const response = await fetch('https://kfalhtebjoilpnncpkbd.supabase.co/functions/v1/mercado-pago-process', {
                   method: 'POST',
                   body: JSON.stringify({
@@ -114,7 +124,6 @@ export default function InscricaoEvento() {
                 const result = await response.json();
 
                 if (result.status === 'approved') {
-                  // 1. Pagamento Aprovado Instantaneamente
                   const payload = {
                     evento_id: id,
                     nome_participante: form.nome,
@@ -126,21 +135,19 @@ export default function InscricaoEvento() {
                   await supabase.from('inscricoes').insert([payload])
                   setSuccess(true);
                 } else if (result.status === 'in_process') {
-                  // 2. Pagamento em Análise (Ex: pending_review_manual)
                   const payload = {
                     evento_id: id,
                     nome_participante: form.nome,
                     email_participante: form.email,
                     whatsapp: form.whatsapp,
                     valor_pago: result.transaction_amount,
-                    status: 'pendente' // Fica pendente aguardando MP
+                    status: 'pendente'
                   }
                   await supabase.from('inscricoes').insert([payload])
-                  alert("⏳ Seu pagamento está em análise pelo Mercado Pago. Fique tranquilo, sua reserva já foi pré-confirmada e avisaremos assim que for liberado!");
+                  alert("⏳ Seu pagamento está em análise. Fique tranquilo!");
                   setSuccess(true);
                 } else {
-                  // 3. Pagamento Rejeitado
-                  alert(`❌ Pagamento ${result.status}: ${result.status_detail || 'Operação recusada'}. Verifique os dados ou use outro cartão.`);
+                  alert(`❌ Pagamento ${result.status}: ${result.status_detail || 'Operação recusada'}`);
                 }
               } catch (e) {
                 alert("⚠️ Erro no processamento: " + e.message);
@@ -158,7 +165,7 @@ export default function InscricaoEvento() {
 
       renderCardPaymentBrick(bricksBuilder);
     }
-  }, [step, publicKey, id]);
+  }, [step, publicKey, id, evento?.valor_total, evento?.max_parcelas]);
 
   if (loading) return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center font-headline text-primary font-bold">
