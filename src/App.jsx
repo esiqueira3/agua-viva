@@ -22,6 +22,9 @@ import ConfigMercadoPago from './pages/ConfigMercadoPago'
 import MembrosPreCadastro from './pages/MembrosPreCadastro'
 import LinkPublicoMembros from './pages/LinkPublicoMembros'
 import InscricaoMembro from './pages/InscricaoMembro'
+import CertificadosHome from './pages/CertificadosHome'
+import CertificadoApresentacao from './pages/CertificadoApresentacao'
+import CertificadoBatismo from './pages/CertificadoBatismo'
 import { useEffect } from 'react'
 
 function App() {
@@ -49,6 +52,9 @@ function App() {
           <Route path="/membros/editar/:id" element={<CadastroMembro />} />
           <Route path="/membros/pre-cadastro" element={<MembrosPreCadastro />} />
           <Route path="/membros/link-publico" element={<LinkPublicoMembros />} />
+          <Route path="/membros/certificados" element={<CertificadosHome />} />
+          <Route path="/membros/certificados/apresentacao" element={<CertificadoApresentacao />} />
+          <Route path="/membros/certificados/batismo" element={<CertificadoBatismo />} />
           
           <Route path="/usuarios" element={<Usuarios />} />
           <Route path="/usuarios/novo" element={<CadastroUsuario />} />

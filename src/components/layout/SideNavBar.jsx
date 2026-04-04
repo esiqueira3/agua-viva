@@ -123,6 +123,17 @@ export default function SideNavBar({ isCollapsed }) {
                         <span className="material-symbols-outlined text-[16px]">public</span>
                         LINK PÚBLICO
                       </Link>
+                      <Link 
+                        to="/membros/certificados"
+                        className={`flex items-center gap-2 px-3 py-2 text-[11px] font-black uppercase tracking-wider rounded-lg transition-all ${
+                          location.pathname.includes('/membros/certificados')
+                            ? 'text-primary bg-primary/10 dark:bg-primary/20'
+                            : 'text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5'
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-[16px]">workspace_premium</span>
+                        CERTIFICADOS
+                      </Link>
                    </div>
                 )}
               </div>

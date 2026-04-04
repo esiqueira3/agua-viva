@@ -465,8 +465,8 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-3 gap-4">
           {/* Homens */}
-          <div className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-blue-50 border border-blue-100">
-            <div className="w-14 h-14 rounded-2xl bg-blue-500 flex items-center justify-center shadow-md">
+          <div className="flex flex-col items-center gap-3 p-6 rounded-[2rem] bg-blue-50 dark:bg-blue-900/10 border-2 border-blue-100/50 dark:border-blue-800/30 shadow-sm hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-500 hover:-translate-y-2 group">
+            <div className="w-14 h-14 rounded-2xl bg-blue-500 flex items-center justify-center shadow-md transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
               <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>man</span>
             </div>
             <div className="text-center">
@@ -490,8 +490,8 @@ export default function Dashboard() {
           </div>
 
           {/* Mulheres */}
-          <div className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-pink-50 border border-pink-100">
-            <div className="w-14 h-14 rounded-2xl bg-pink-500 flex items-center justify-center shadow-md">
+          <div className="flex flex-col items-center gap-3 p-6 rounded-[2rem] bg-pink-50 dark:bg-pink-900/10 border-2 border-pink-100/50 dark:border-pink-800/30 shadow-sm hover:shadow-xl hover:shadow-pink-500/10 transition-all duration-500 hover:-translate-y-2 group">
+            <div className="w-14 h-14 rounded-2xl bg-pink-500 flex items-center justify-center shadow-md transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
               <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>woman</span>
             </div>
             <div className="text-center">
@@ -515,8 +515,8 @@ export default function Dashboard() {
           </div>
 
           {/* Crianças */}
-          <div className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-amber-50 border border-amber-100">
-            <div className="w-14 h-14 rounded-2xl bg-amber-400 flex items-center justify-center shadow-md">
+          <div className="flex flex-col items-center gap-3 p-6 rounded-[2rem] bg-amber-50 dark:bg-amber-900/10 border-2 border-amber-100/50 dark:border-amber-800/30 shadow-sm hover:shadow-xl hover:shadow-amber-500/10 transition-all duration-500 hover:-translate-y-2 group">
+            <div className="w-14 h-14 rounded-2xl bg-amber-400 flex items-center justify-center shadow-md transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
               <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>child_care</span>
             </div>
             <div className="text-center">
