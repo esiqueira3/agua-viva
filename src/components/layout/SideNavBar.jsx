@@ -7,6 +7,7 @@ export default function SideNavBar({ isCollapsed }) {
   const [isFinanceiroExpanded, setIsFinanceiroExpanded] = useState(false)
   const [isMembrosExpanded, setIsMembrosExpanded] = useState(false)
   const [isUsuariosExpanded, setIsUsuariosExpanded] = useState(false)
+  const [isCalendarioExpanded, setIsCalendarioExpanded] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const { canAccess, isAdmin } = usePermissions()
@@ -99,11 +100,15 @@ export default function SideNavBar({ isCollapsed }) {
                         e.stopPropagation()
                         if (item.name === 'Financeiro') setIsFinanceiroExpanded(!isFinanceiroExpanded)
                         if (item.name === 'Membros') setIsMembrosExpanded(!isMembrosExpanded)
+                        if (item.name === 'Calendário') setIsCalendarioExpanded(!isCalendarioExpanded)
                       }}
                       className="p-1 hover:bg-slate-300/30 dark:hover:bg-white/10 rounded-md transition-all cursor-pointer"
                     >
                       <span className={`material-symbols-outlined text-[18px] transition-transform duration-300 ${
-                        (item.name === 'Financeiro' && isFinanceiroExpanded) || (item.name === 'Membros' && isMembrosExpanded) ? 'rotate-180' : ''
+                        (item.name === 'Financeiro' && isFinanceiroExpanded) || 
+                        (item.name === 'Membros' && isMembrosExpanded) ||
+                        (item.name === 'Calendário' && isCalendarioExpanded) 
+                        ? 'rotate-180' : ''
                       }`}>
                         expand_more
                       </span>
@@ -174,6 +179,23 @@ export default function SideNavBar({ isCollapsed }) {
                           CERTIFICADOS
                         </Link>
                       )}
+                   </div>
+                )}
+
+                {/* Submenu para Calendário */}
+                {item.name === 'Calendário' && !isCollapsed && (isCalendarioExpanded || location.pathname === '/agenda') && (
+                   <div className="ml-9 mt-1 space-y-1">
+                      <Link 
+                        to="/agenda"
+                        className={`flex items-center gap-2 px-3 py-2 text-[11px] font-black uppercase tracking-wider rounded-lg transition-all ${
+                          location.pathname === '/agenda'
+                            ? 'text-primary bg-primary/10 dark:bg-primary/20'
+                            : 'text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5'
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-[16px]">public</span>
+                        AGENDA PÚBLICA
+                      </Link>
                    </div>
                 )}
               </div>

@@ -26,6 +26,7 @@ import CertificadosHome from './pages/CertificadosHome'
 import CertificadoApresentacao from './pages/CertificadoApresentacao'
 import CertificadoBatismo from './pages/CertificadoBatismo'
 import GestaoAcessos from './pages/GestaoAcessos'
+import CalendarioPublico from './pages/CalendarioPublico'
 import { useEffect } from 'react'
 
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
@@ -87,6 +88,7 @@ function App() {
         {/* Rotas Públicas */}
         <Route path="/inscricao/:id" element={<InscricaoEvento />} />
         <Route path="/inscrever" element={<InscricaoMembro />} />
+        <Route path="/agenda" element={<CalendarioPublico />} />
         
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
