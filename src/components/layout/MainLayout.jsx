@@ -33,16 +33,24 @@ export default function MainLayout() {
         <div className="flex-1 p-4 md:p-8 overflow-x-hidden min-w-0">
           <Outlet />
         </div>
-        <footer className="px-8 py-6 border-t border-outline-variant/5 flex flex-col md:flex-row justify-between items-center gap-4 mt-auto">
-          <p className="text-[10px] font-black text-on-surface-variant/30 uppercase tracking-[0.2em] select-none">
-            Avadora System ® - 2026
-          </p>
-          <button 
-            onClick={() => setShowReadOnlyTermo(true)}
-            className="text-[10px] font-black text-primary/40 hover:text-primary uppercase tracking-[0.1em] transition-colors"
-          >
-            Termo de Uso
-          </button>
+        <footer className="px-8 py-6 border-t border-outline-variant/5 grid grid-cols-1 md:grid-cols-3 items-center gap-4 mt-auto">
+          {/* Espaçador Esquerdo para centralização perfeita */}
+          <div className="hidden md:block"></div>
+
+          <div className="text-center">
+            <p className="text-[10px] font-black text-on-surface-variant/30 uppercase tracking-[0.2em] select-none">
+              Avadora System ® - 2026
+            </p>
+          </div>
+
+          <div className="text-center md:text-right">
+            <button 
+              onClick={() => setShowReadOnlyTermo(true)}
+              className="text-[10px] font-black text-primary/40 hover:text-primary uppercase tracking-[0.1em] transition-colors"
+            >
+              Termo de Uso
+            </button>
+          </div>
         </footer>
       </main>
     </div>
