@@ -337,11 +337,11 @@ export default function Dashboard() {
         </div>
         
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white/50 dark:bg-slate-900 shadow-xl shadow-primary/5 p-5 rounded-[1.5rem] border border-white dark:border-slate-800">
+          <div className="bg-white/50 dark:bg-slate-900 shadow-xl shadow-primary/5 p-5 rounded-[1.5rem] border border-white dark:border-slate-800 text-center">
              <p className="text-[10px] font-black uppercase text-on-surface-variant/40 mb-1">Membros Ativos</p>
              <p className="text-3xl font-black text-primary">{demoStats.total}</p>
           </div>
-          <div className="bg-white/50 dark:bg-slate-900 shadow-xl shadow-primary/5 p-5 rounded-[1.5rem] border border-white dark:border-slate-800">
+          <div className="bg-white/50 dark:bg-slate-900 shadow-xl shadow-primary/5 p-5 rounded-[1.5rem] border border-white dark:border-slate-800 text-center">
              <p className="text-[10px] font-black uppercase text-on-surface-variant/40 mb-1">Eventos Atuais</p>
              <p className="text-3xl font-black text-tertiary-fixed-dim">{proximosEventos.length}</p>
           </div>
