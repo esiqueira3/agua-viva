@@ -29,6 +29,11 @@ export default function MainLayout() {
         <div className="flex-1 p-4 md:p-8 overflow-x-hidden min-w-0">
           <Outlet />
         </div>
+        <footer className="p-8 border-t border-outline-variant/5 text-center mt-auto">
+          <p className="text-[10px] font-black text-on-surface-variant/30 uppercase tracking-[0.2em] select-none">
+            Avadora Systema ® - 2026
+          </p>
+        </footer>
       </main>
     </div>
   )

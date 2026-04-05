@@ -366,9 +366,11 @@ export default function InscricaoEvento() {
         )}
       </div>
       
-      <p className="mt-12 text-slate-700 text-xs font-bold uppercase tracking-widest text-center">
-         © {new Date().getFullYear()} Comunidade Evangélica Água Viva • Gestão Inteligente
-      </p>
+      <footer className="mt-12 text-center">
+         <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] select-none">
+            Avadora Systema ® - 2026
+         </p>
+      </footer>
 
       {/* Selo de Segurança Mercado Pago */}
       <div className="mt-4 flex items-center justify-center gap-2 px-4 py-2 bg-slate-100 rounded-full border border-slate-200">

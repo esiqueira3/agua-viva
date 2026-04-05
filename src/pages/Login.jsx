@@ -242,6 +242,12 @@ export default function Login() {
                 )}
              </div>
           </section>
+
+          <footer className="pt-10 text-center animate-in fade-in duration-1000 delay-500">
+             <p className="text-on-surface-variant/30 text-[10px] font-black uppercase tracking-[0.2em] select-none">
+                Avadora Systema ® - 2026
+             </p>
+          </footer>
         </div>
       </div>
 
