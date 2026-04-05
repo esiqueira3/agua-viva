@@ -24,8 +24,17 @@ export default function Locais() {
 
   const handleDelete = async (row) => {
     if(window.confirm(`Tem certeza que deseja excluir o local: ${row.descricao}?`)) {
-      await supabase.from('locais').delete().eq('id', row.id)
-      setLocais(prev => prev.filter(m => m.id !== row.id))
+      setLoading(true)
+      const { error } = await supabase.from('locais').delete().eq('id', row.id)
+      
+      if (error) {
+        alert("❌ Erro ao excluir do banco de dados:\n\n" + error.message)
+        setLoading(false)
+      } else {
+        setLocais(prev => prev.filter(m => m.id !== row.id))
+        setLoading(false)
+        alert("✅ Local excluído com sucesso!")
+      }
     }
   }
 

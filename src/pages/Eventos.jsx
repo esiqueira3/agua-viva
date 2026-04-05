@@ -27,8 +27,17 @@ export default function Eventos() {
 
   const handleDelete = async (row) => {
     if(window.confirm(`Cancelar e Excluir o evento: ${row.nome}?`)) {
-      await supabase.from('eventos').delete().eq('id', row.id)
-      setEventos(prev => prev.filter(m => m.id !== row.id))
+      setLoading(true)
+      const { error } = await supabase.from('eventos').delete().eq('id', row.id)
+      
+      if (error) {
+        alert("❌ Erro ao excluir do banco de dados:\n\n" + error.message)
+        setLoading(false)
+      } else {
+        setEventos(prev => prev.filter(m => m.id !== row.id))
+        setLoading(false)
+        alert("✅ Evento excluído com sucesso!")
+      }
     }
   }
 

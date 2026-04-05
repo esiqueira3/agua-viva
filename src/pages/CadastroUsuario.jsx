@@ -9,7 +9,7 @@ export default function CadastroUsuario() {
   const [loading, setLoading] = useState(false)
   
   const [form, setForm] = useState({
-    nome: '', email: '', telefone: '', perfil: 'Liderança'
+    nome: '', email: '', telefone: '', perfil: 'Liderança', status: true
   })
 
   useEffect(() => {
@@ -98,6 +98,17 @@ export default function CadastroUsuario() {
                  <option value="Liderança">🛡️ Líder de Departamento</option>
                  <option value="Financeiro">💰 Tesouraria e Dízimos</option>
               </select>
+            </div>
+
+            <div className="flex flex-col gap-2 mb-2 justify-center">
+              <label className="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Status de Acesso</label>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" className="sr-only peer" checked={form.status} onChange={e => setForm({...form, status: e.target.checked})} />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                <span className="ml-3 text-sm font-bold text-on-surface">
+                  {form.status ? '✅ Ativo (Pode Acessar)' : '🛑 Inativo (Acesso Bloqueado)'}
+                </span>
+              </label>
             </div>
          </div>
       </div>

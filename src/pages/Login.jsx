@@ -62,6 +62,12 @@ export default function Login() {
        return
     }
 
+    if (autorizacao.status === false) {
+       setErrorMsg("Acesso bloqueado! Sua conta está inativa. Entre em contato com o administrador.")
+       setLoading(false)
+       return
+    }
+
     // PASSO 2: AUTORIZADO! ENVIANDO OTP
     const { error: authError } = await supabase.auth.signInWithOtp({
       email: autorizacao.email,
