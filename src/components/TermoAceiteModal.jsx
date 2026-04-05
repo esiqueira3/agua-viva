@@ -2,8 +2,8 @@ import React, { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { usePermissions } from '../context/PermissionsContext'
 
-export default function TermoAcceptModal() {
-  const { user, refetchPermissions } = usePermissions()
+export default function TermoAceiteModal({ readOnly = false, onClose }) {
+  const { user, refetchPermissions, dataAceite } = usePermissions()
   const [loading, setLoading] = useState(false)
 
   const handleAccept = async () => {
@@ -154,27 +154,49 @@ export default function TermoAcceptModal() {
 
         {/* Footer Actions */}
         <div className="p-8 bg-surface-container-low shrink-0 border-t border-outline-variant/10 flex flex-col md:flex-row items-center gap-4">
-          <button
-            onClick={handleDecline}
-            disabled={loading}
-            className="w-full md:w-auto px-8 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant hover:text-red-500 transition-colors"
-          >
-            Não aceito os termos
-          </button>
-          <button
-            onClick={handleAccept}
-            disabled={loading}
-            className="w-full flex-1 py-4 bg-primary text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
-          >
-            {loading ? (
-              <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-            ) : (
-              <>
-                <span className="material-symbols-outlined text-[18px]">verified_user</span>
-                Li e concordo com o Termo de Aceite
-              </>
-            )}
-          </button>
+          {readOnly ? (
+            <div className="w-full flex flex-col md:flex-row justify-between items-center gap-6">
+              <div className="flex items-center gap-3 text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-4 py-2.5 rounded-2xl border border-emerald-200/50">
+                 <span className="material-symbols-outlined text-[18px]">verified</span>
+                 <p className="text-[10px] font-black uppercase tracking-tight">
+                    Você aceitou este termo em: {' '}
+                    <span className="text-on-surface">
+                       {dataAceite ? new Date(dataAceite).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Data não registrada'}
+                    </span>
+                 </p>
+              </div>
+              <button
+                onClick={onClose}
+                className="w-full md:w-auto px-12 py-4 bg-primary text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+              >
+                Fechar Termo
+              </button>
+            </div>
+          ) : (
+            <>
+              <button
+                onClick={handleDecline}
+                disabled={loading}
+                className="w-full md:w-auto px-8 py-4 text-xs font-black uppercase tracking-widest text-on-surface-variant hover:text-red-500 transition-colors"
+              >
+                Não aceito os termos
+              </button>
+              <button
+                onClick={handleAccept}
+                disabled={loading}
+                className="w-full flex-1 py-4 bg-primary text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+              >
+                {loading ? (
+                  <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-[18px]">verified_user</span>
+                    Li e concordo com o Termo de Aceite
+                  </>
+                )}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

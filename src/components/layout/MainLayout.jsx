@@ -7,12 +7,16 @@ import { usePermissions } from '../../context/PermissionsContext'
 
 export default function MainLayout() {
   const [isCollapsed, setIsCollapsed] = useState(() => window.innerWidth < 768)
+  const [showReadOnlyTermo, setShowReadOnlyTermo] = useState(false)
   const { userAceite, loading, user } = usePermissions()
 
   return (
     <div className="flex bg-slate-100 dark:bg-background min-h-screen overflow-hidden">
-      {/* Bloqueio por Termo de Aceite */}
+      {/* Bloqueio por Termo de Aceite (Primeiro acesso) */}
       {!userAceite && !loading && user && <TermoAceiteModal />}
+
+      {/* Visualização de Termos (Via Rodapé) */}
+      {showReadOnlyTermo && <TermoAceiteModal readOnly={true} onClose={() => setShowReadOnlyTermo(false)} />}
 
       <SideNavBar isCollapsed={isCollapsed} />
       
@@ -29,10 +33,16 @@ export default function MainLayout() {
         <div className="flex-1 p-4 md:p-8 overflow-x-hidden min-w-0">
           <Outlet />
         </div>
-        <footer className="p-8 border-t border-outline-variant/5 text-center mt-auto">
+        <footer className="px-8 py-6 border-t border-outline-variant/5 flex flex-col md:flex-row justify-between items-center gap-4 mt-auto">
           <p className="text-[10px] font-black text-on-surface-variant/30 uppercase tracking-[0.2em] select-none">
             Avadora System ® - 2026
           </p>
+          <button 
+            onClick={() => setShowReadOnlyTermo(true)}
+            className="text-[10px] font-black text-primary/40 hover:text-primary uppercase tracking-[0.1em] transition-colors"
+          >
+            Termo de Uso
+          </button>
         </footer>
       </main>
     </div>

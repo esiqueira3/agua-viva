@@ -13,6 +13,7 @@ export function PermissionsProvider({ children }) {
   const [userProfile, setUserProfile] = useState('Liderança')
   const [userNome, setUserNome] = useState('')
   const [userAceite, setUserAceite] = useState(true) // Por padrão true para não piscar o modal durante o load
+  const [dataAceite, setDataAceite] = useState(null)
 
   useEffect(() => {
     // 1. Escuta mudanças na sessão
@@ -50,7 +51,7 @@ export function PermissionsProvider({ children }) {
       // 1. Busca perfil do usuário na nossa tabela (Fonte da Verdade)
       const { data: userData } = await supabase
         .from('usuarios_sistema')
-        .select('nome, perfil, departamentos_vinculados, aceite_termo')
+        .select('nome, perfil, departamentos_vinculados, aceite_termo, data_aceite')
         .eq('email', email)
         .maybeSingle()
 
@@ -59,6 +60,7 @@ export function PermissionsProvider({ children }) {
       setUserProfile(perfil)
       setUserNome(userData?.nome || currentUser.user_metadata?.nome || 'Usuário')
       setUserAceite(userData?.aceite_termo === true)
+      setDataAceite(userData?.data_aceite || null)
       
       const deptoVinc = userData?.departamentos_vinculados || []
 
@@ -139,6 +141,7 @@ export function PermissionsProvider({ children }) {
       userProfile,
       userNome,
       userAceite,
+      dataAceite,
       refetchPermissions: () => loadAllPermissions(user)
     }}>
       {children}
