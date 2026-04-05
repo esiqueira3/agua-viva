@@ -1,10 +1,41 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase'
 import { usePermissions } from '../../context/PermissionsContext'
 
 export default function TopNavBar({ toggleSidebar, isCollapsed }) {
   const { userNome, userProfile, isAdmin, loading } = usePermissions()
   const [showMenu, setShowMenu] = useState(false)
+  const menuRef = useRef(null)
+  const searchRef = useRef(null)
+  
+  // Efeito para fechar ao clicar fora ou apertar ESC
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowMenu(false)
+      }
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowSearch(false)
+      }
+    }
+
+    function handleEscape(event) {
+      if (event.key === 'Escape') {
+        setShowMenu(false)
+        setShowSearch(false)
+      }
+    }
+
+    if (showMenu || showSearch) {
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('keydown', handleEscape)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [showMenu, showSearch])
   
   // Estados da Busca Global
   const [searchQuery, setSearchQuery] = useState('')
@@ -63,7 +94,7 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
         >
           <span className="material-symbols-outlined">{isCollapsed ? 'menu_open' : 'menu'}</span>
         </button>
-        <div className="relative ml-4 hidden md:block group">
+        <div ref={searchRef} className="relative ml-4 hidden md:block group">
           <span className={`absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined transition-colors ${searchQuery ? 'text-primary' : 'text-outline-variant'}`}>
             {isSearching ? 'sync' : 'search'}
           </span>
@@ -143,7 +174,7 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
           <span className="material-symbols-outlined">help</span>
         </button>
         
-        <div className="relative pl-6 border-l border-outline-variant/30">
+        <div ref={menuRef} className="relative pl-6 border-l border-outline-variant/30">
           <button 
              onClick={() => setShowMenu(!showMenu)}
              className="flex items-center gap-3 hover:bg-surface-container-low p-1.5 rounded-2xl transition-all active:scale-95 group"
@@ -158,11 +189,7 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
           </button>
 
           {showMenu && (
-            <>
-              {/* Overlay invisível para fechar ao clicar fora */}
-              <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)}></div>
-              
-              <div className="absolute right-0 mt-3 w-48 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-outline-variant/10 py-2 z-50 animate-in fade-in zoom-in-95 duration-200">
+            <div className="absolute right-0 mt-3 w-48 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-outline-variant/10 py-2 z-50 animate-in fade-in zoom-in-95 duration-200">
                   <div className="px-4 py-2 border-b border-outline-variant/10 md:hidden">
                     <p className="text-xs font-bold text-primary truncate">{userNome}</p>
                   </div>
@@ -181,7 +208,6 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
                     Sair do Sistema
                  </button>
               </div>
-            </>
           )}
         </div>
       </div>
