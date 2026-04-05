@@ -188,6 +188,33 @@ export default function Dashboard() {
         .order('created_at', { ascending: false })
       
       if (avData) setAvisos(avData)
+
+      // 5. Sensor Inteligente: Notificações Automáticas (Hoje)
+      if (allMembers && user) {
+        const todayStr = new Date().toLocaleDateString('pt-BR')
+        const keyAniv = `notif-aniv-${todayStr}`
+        
+        // Verifica se já notificamos hoje (usando localStorage como cache rápido para evitar spam de consulta)
+        if (localStorage.getItem(keyAniv) !== 'sent') {
+          const bdayToday = allMembers.filter(m => {
+            if(!m.data_nascimento) return false
+            const [y, mStr, dStr] = m.data_nascimento.split('-')
+            return parseInt(mStr, 10) === currentMonth && parseInt(dStr, 10) === todayDate.getDate()
+          })
+
+          if (bdayToday.length > 0) {
+            const nomes = bdayToday.map(m => m.nome_completo.split(' ')[0]).join(', ')
+            await supabase.from('notificacoes').insert([{
+              user_email: user.email,
+              titulo: '🎈 Aniversariante(s) de Hoje!',
+              mensagem: `Hoje comemoramos o dia de: ${nomes}. Que tal enviar uma mensagem?`,
+              tipo: 'aniversario',
+              link: '/membros'
+            }])
+            localStorage.setItem(keyAniv, 'sent')
+          }
+        }
+      }
     }
     loadDashboard()
   }, [loadingPermissions, isAdmin, meusDepartamentos])
@@ -260,6 +287,15 @@ export default function Dashboard() {
     const { data, error } = await supabase.from('mural_avisos').insert([novoAviso]).select()
     if (!error && data) {
       setAvisos([data[0], ...avisos])
+      
+      // Notificação Global para o novo aviso
+      await supabase.from('notificacoes').insert([{
+        titulo: '📢 Novo Aviso no Mural',
+        mensagem: `${novoAviso.titulo}: ${novoAviso.conteudo.substring(0, 50)}...`,
+        tipo: 'mural',
+        link: '/home'
+      }])
+
       setNovoAviso({ tipo: 'aviso', titulo: '', conteudo: '' })
       setShowAddAviso(false)
     }

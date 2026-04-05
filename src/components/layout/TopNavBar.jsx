@@ -11,9 +11,14 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
   const [searchResults, setSearchResults] = useState({ membros: [], eventos: [], departamentos: [] })
   const [isSearching, setIsSearching] = useState(false)
   const [showSearch, setShowSearch] = useState(false)
+  const [showHelpMenu, setShowHelpMenu] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
+  const [notificacoes, setNotificacoes] = useState([])
 
   const menuRef = useRef(null)
   const searchRef = useRef(null)
+  const helpRef = useRef(null)
+  const notifRef = useRef(null)
   
   // Efeito para fechar ao clicar fora ou apertar ESC
   useEffect(() => {
@@ -24,16 +29,24 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         setShowSearch(false)
       }
+      if (helpRef.current && !helpRef.current.contains(event.target)) {
+        setShowHelpMenu(false)
+      }
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setShowNotifications(false)
+      }
     }
 
     function handleEscape(event) {
       if (event.key === 'Escape') {
         setShowMenu(false)
         setShowSearch(false)
+        setShowHelpMenu(false)
+        setShowNotifications(false)
       }
     }
 
-    if (showMenu || showSearch) {
+    if (showMenu || showSearch || showHelpMenu || showNotifications) {
       document.addEventListener('mousedown', handleClickOutside)
       document.addEventListener('keydown', handleEscape)
     }
@@ -42,7 +55,40 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
       document.removeEventListener('mousedown', handleClickOutside)
       document.removeEventListener('keydown', handleEscape)
     }
-  }, [showMenu, showSearch])
+  }, [showMenu, showSearch, showHelpMenu, showNotifications])
+
+  // Busca Notificações
+  useEffect(() => {
+    async function loadNotifications() {
+      if (!user) return
+      
+      const { data } = await supabase
+        .from('notificacoes')
+        .select('*')
+        .or(`user_email.eq.${user.email},user_email.is.null`)
+        .order('created_at', { ascending: false })
+        .limit(10)
+      
+      if (data) setNotificacoes(data)
+    }
+
+    loadNotifications()
+
+    // Real-time
+    const subscription = supabase
+      .channel('notificacoes-realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notificacoes' }, (payload) => {
+        const newNotif = payload.new
+        if (!newNotif.user_email || newNotif.user_email === user?.email) {
+          setNotificacoes(prev => [newNotif, ...prev].slice(0, 10))
+        }
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(subscription)
+    }
+  }, [user])
 
   // Motor da Busca Global (Debounced)
   useEffect(() => {
@@ -168,12 +214,127 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
       </div>
       
       <div className="flex items-center gap-6">
-        <button className="text-on-surface-variant hover:text-primary transition-colors">
-          <span className="material-symbols-outlined">notifications</span>
-        </button>
-        <button className="text-on-surface-variant hover:text-primary transition-colors">
-          <span className="material-symbols-outlined">help</span>
-        </button>
+        {/* Sino de Notificações */}
+        <div ref={notifRef} className="relative">
+          <button 
+            onClick={() => setShowNotifications(!showNotifications)}
+            className={`relative w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+              showNotifications ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[23px]" style={{ fontVariationSettings: "'FILL' 0" }}>notifications</span>
+            {!loading && notificacoes.filter(n => !n.lida).length > 0 && (
+              <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 border-2 border-white dark:border-slate-900 rounded-full animate-pulse"></span>
+            )}
+          </button>
+
+          {showNotifications && (
+            <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-outline-variant/10 flex flex-col z-50 animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
+               <div className="p-4 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-lowest">
+                  <p className="text-xs font-black text-on-surface uppercase tracking-tight">Notificações</p>
+                  <button 
+                    onClick={async () => {
+                      await supabase.from('notificacoes').update({ lida: true }).or(`user_email.eq.${user.email},user_email.is.null`)
+                      setNotificacoes(prev => prev.map(n => ({ ...n, lida: true })))
+                    }}
+                    className="text-[10px] font-black text-primary uppercase hover:underline"
+                  >
+                    Marcar tudo como lida
+                  </button>
+               </div>
+               
+               <div className="max-h-[350px] overflow-y-auto custom-scrollbar">
+                  {notificacoes.length === 0 ? (
+                     <div className="p-8 text-center opacity-30">
+                        <span className="material-symbols-outlined text-4xl mb-2">notifications_off</span>
+                        <p className="text-[10px] font-black uppercase tracking-widest">Nada por agora</p>
+                     </div>
+                  ) : (
+                     notificacoes.map(n => (
+                        <button 
+                          key={n.id} 
+                          onClick={async () => {
+                             if(!n.lida) await supabase.from('notificacoes').update({ lida: true }).eq('id', n.id)
+                             setNotificacoes(prev => prev.map(nt => nt.id === n.id ? { ...nt, lida: true } : nt))
+                             if(n.link) window.location.href = n.link
+                          }}
+                          className={`w-full p-4 border-b border-outline-variant/5 text-left transition-colors hover:bg-surface-container-low flex items-start gap-3 relative ${!n.lida ? 'bg-primary/5' : ''}`}
+                        >
+                           <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                             n.tipo === 'aniversario' ? 'bg-pink-100 text-pink-600' :
+                             n.tipo === 'inscricao' ? 'bg-emerald-100 text-emerald-600' :
+                             n.tipo === 'mural' ? 'bg-orange-100 text-orange-600' :
+                             'bg-blue-100 text-blue-600'
+                           }`}>
+                              <span className="material-symbols-outlined text-[18px]">
+                                {n.tipo === 'aniversario' ? 'cake' : 
+                                 n.tipo === 'inscricao' ? 'payments' : 
+                                 n.tipo === 'mural' ? 'campaign' : 
+                                 'info'}
+                              </span>
+                           </div>
+                           <div className="min-w-0 pr-2">
+                              <p className={`text-xs font-black text-on-surface leading-tight truncate ${!n.lida ? 'text-primary' : ''}`}>{n.titulo}</p>
+                              <p className="text-[11px] font-bold text-on-surface-variant/70 leading-snug mt-1 line-clamp-2">{n.mensagem}</p>
+                              <p className="text-[9px] font-black uppercase text-on-surface-variant/30 mt-1.5">
+                                 {new Date(n.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} • {new Date(n.created_at).toLocaleDateString('pt-BR')}
+                              </p>
+                           </div>
+                           {!n.lida && (
+                             <div className="absolute right-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-primary rounded-full"></div>
+                           )}
+                        </button>
+                     ))
+                  )}
+               </div>
+               
+               <div className="p-3 border-t border-outline-variant/10 text-center bg-surface-container-lowest">
+                  <button className="text-[10px] font-black text-on-surface-variant/50 uppercase tracking-widest hover:text-primary transition-colors">Ver todas as notificações</button>
+               </div>
+            </div>
+          )}
+        </div>
+
+        <div ref={helpRef} className="relative">
+          <button 
+            onClick={() => setShowHelpMenu(!showHelpMenu)}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+              showHelpMenu ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[20px]">help</span>
+          </button>
+
+          {showHelpMenu && (
+            <div className="absolute right-0 mt-3 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-outline-variant/10 p-5 z-50 animate-in fade-in zoom-in-95 duration-200">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[20px]">verified</span>
+                </div>
+                <div>
+                  <p className="text-xs font-black text-on-surface uppercase tracking-tight">Avadora System</p>
+                  <p className="text-[10px] font-bold text-primary">Versão 0.9.1 (BETA)</p>
+                </div>
+              </div>
+              
+              <div className="space-y-2 pt-3 border-t border-outline-variant/10">
+                <p className="text-[10px] font-black uppercase text-on-surface-variant/40 tracking-widest">Recursos de Ajuda</p>
+                <button className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-surface-container-low transition-colors text-left group">
+                  <span className="material-symbols-outlined text-[18px] text-on-surface-variant group-hover:text-primary transition-colors">description</span>
+                  <span className="text-xs font-bold text-on-surface">Guia do Usuário</span>
+                </button>
+                <button className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-surface-container-low transition-colors text-left group">
+                  <span className="material-symbols-outlined text-[18px] text-on-surface-variant group-hover:text-primary transition-colors">support_agent</span>
+                  <span className="text-xs font-bold text-on-surface">Suporte Técnico</span>
+                </button>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-outline-variant/10">
+                 <p className="text-[9px] text-on-surface-variant/40 font-bold italic text-center">Orgulhosamente servindo à <br/> Comunidade Água Viva.</p>
+              </div>
+            </div>
+          )}
+        </div>
         
         <div ref={menuRef} className="relative pl-6 border-l border-outline-variant/30">
           <button 

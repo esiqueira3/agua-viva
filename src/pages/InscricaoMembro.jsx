@@ -71,6 +71,29 @@ export default function InscricaoMembro() {
     setForm(f => ({ ...f, [name]: val }))
   }
 
+  const notifyAdmin = async (nome) => {
+    try {
+      // Busca todos os Administradores para notificar
+      const { data: admins } = await supabase
+        .from('usuarios_sistema')
+        .select('email')
+        .eq('perfil', 'Administrador')
+      
+      if (admins && admins.length > 0) {
+        const notifications = admins.map(a => ({
+          user_email: a.email,
+          titulo: '🆕 Novo Pré-Cadastro!',
+          mensagem: `${nome} preencheu o formulário de novo membro.`,
+          tipo: 'cadastro',
+          link: '/membros/pre-cadastro'
+        }))
+        await supabase.from('notificacoes').insert(notifications)
+      }
+    } catch (err) {
+      console.error("Erro ao notificar admins:", err)
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
@@ -111,6 +134,8 @@ export default function InscricaoMembro() {
       }])
 
       if (error) throw error
+      
+      await notifyAdmin(form.nome_completo)
 
       setSucesso(true)
       window.scrollTo(0, 0)
