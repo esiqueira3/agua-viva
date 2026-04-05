@@ -93,7 +93,7 @@ export default function SideNavBar({ isCollapsed }) {
                   </span>
                   {!isCollapsed && <span className="whitespace-nowrap flex-1">{item.name}</span>}
                   
-                  {!isCollapsed && (item.name === 'Financeiro' || item.name === 'Membros') && (
+                  {!isCollapsed && (item.name === 'Financeiro' || item.name === 'Membros' || item.name === 'Calendário') && (
                     <div 
                       onClick={(e) => {
                         e.preventDefault()
