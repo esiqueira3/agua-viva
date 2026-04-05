@@ -273,7 +273,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-10">
+    <div className="max-w-7xl mx-auto space-y-10 pb-20">
       {/* Banner de Capa Home */}
       <div className="w-full h-48 md:h-64 rounded-[2rem] overflow-hidden shadow-xl border border-outline-variant/10 relative group">
           <img 
@@ -292,7 +292,7 @@ export default function Dashboard() {
           </div>
           <h2 className="text-4xl md:text-5xl font-headline font-black tracking-tighter text-primary leading-none">
             {saudacao}, <br className="md:hidden" />
-            <span className="text-on-surface">{userNome?.split(' ')[0] || 'Liderança'}!</span> ✨
+            <span className="text-on-surface">{(userNome && userNome !== 'Usuário') ? userNome.split(' ')[0] : (currentUser?.user_metadata?.nome?.split(' ')[0] || 'Liderança')}!</span> ✨
           </h2>
           <p className="text-on-surface-variant/70 mt-4 text-base font-bold flex items-center gap-2">
             <span className="material-symbols-outlined text-[18px]">calendar_month</span>
@@ -312,40 +312,7 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* NOVO: Gráfico de Crescimento */}
-      <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-outline-variant/10 p-8 shadow-sm">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-          <div>
-            <h3 className="text-base font-black text-on-surface uppercase tracking-tight flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>insights</span> 
-              Crescimento Ministerial
-            </h3>
-            <p className="text-[10px] font-bold text-on-surface-variant/50 uppercase tracking-widest mt-0.5">Evolução do número de membros ativos</p>
-          </div>
-          <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-100 dark:border-emerald-500/20">
-             <span className="material-symbols-outlined text-[16px] text-emerald-600">trending_up</span>
-             <span className="text-[11px] font-bold text-emerald-600">+{graficoCrescimento[5]?.total - graficoCrescimento[4]?.total} este mês</span>
-          </div>
-        </div>
-        
-        <div className="h-[180px] min-h-[180px] w-full mt-4">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={graficoCrescimento}>
-              <defs>
-                <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.1}/>
-                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <Tooltip 
-                contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }}
-              />
-              <Area type="monotone" dataKey="total" stroke="#3B82F6" strokeWidth={4} fillOpacity={1} fill="url(#colorTotal)" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
+      {/* Row 1: Aniversários, Atividades, Próximos Eventos */}
       <div className="grid grid-cols-12 gap-6">
         <div className="col-span-12 lg:col-span-3 bg-surface-container-lowest rounded-3xl p-6 shadow-sm border border-outline-variant/10 overflow-hidden">
           <div className="flex justify-between items-center mb-6">
@@ -415,21 +382,59 @@ export default function Dashboard() {
                   <div key={ev.id} className="p-3 rounded-2xl border border-outline-variant/10 bg-surface shadow-sm relative overflow-hidden transition-all hover:bg-primary/5 flex items-center justify-between group/card">
                      <div className="absolute top-0 left-0 w-1 h-full bg-primary/40"></div>
                      <div className="flex-1 pl-2">
-                      <h4 className="font-extrabold text-on-surface leading-tight text-xs uppercase">{ev.nome}</h4>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <div className="flex items-center gap-1 text-[9px] text-on-surface-variant font-black uppercase">
-                          <span className="material-symbols-outlined text-xs">calendar_today</span> 
-                          {ev.data_evento.split('-').reverse().join('/')}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-[8px] font-black uppercase text-on-surface-variant/30">{ev.status}</div>
+                       <h4 className="font-extrabold text-on-surface leading-tight text-xs uppercase">{ev.nome}</h4>
+                       <div className="flex items-center gap-2 mt-1.5">
+                         <div className="flex items-center gap-1 text-[9px] text-on-surface-variant font-black uppercase">
+                           <span className="material-symbols-outlined text-xs">calendar_today</span> 
+                           {ev.data_evento.split('-').reverse().join('/')}
+                         </div>
+                       </div>
+                     </div>
+                     <div className="text-[8px] font-black uppercase text-on-surface-variant/30">{ev.status}</div>
                   </div>
                ))
              )}
           </div>
         </div>
-         {/* Mural de Avisos e Oração */}
+      </div>
+
+      {/* Row 2: Gráfico de Crescimento */}
+      <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-outline-variant/10 p-8 shadow-sm">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+          <div>
+            <h3 className="text-base font-black text-on-surface uppercase tracking-tight flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>insights</span> 
+              Crescimento Ministerial
+            </h3>
+            <p className="text-[10px] font-bold text-on-surface-variant/50 uppercase tracking-widest mt-0.5">Evolução do número de membros ativos</p>
+          </div>
+          <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-100 dark:border-emerald-500/20">
+             <span className="material-symbols-outlined text-[16px] text-emerald-600">trending_up</span>
+             <span className="text-[11px] font-bold text-emerald-600">+{graficoCrescimento[5]?.total - graficoCrescimento[4]?.total} este mês</span>
+          </div>
+        </div>
+        
+        <div className="h-[180px] min-h-[180px] w-full mt-4">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={graficoCrescimento}>
+              <defs>
+                <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.1}/>
+                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <Tooltip 
+                contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }}
+              />
+              <Area type="monotone" dataKey="total" stroke="#3B82F6" strokeWidth={4} fillOpacity={1} fill="url(#colorTotal)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Row 3: Mural e Tarefas */}
+      <div className="grid grid-cols-12 gap-6">
+        {/* Mural de Avisos e Oração */}
         <div className="col-span-12 lg:col-span-5 bg-surface-container-lowest rounded-3xl p-8 shadow-sm border border-outline-variant/10">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-sm font-black text-on-surface tracking-tight uppercase flex items-center gap-2">
@@ -620,7 +625,6 @@ export default function Dashboard() {
                 Configure seus departamentos para vê-los aqui.
               </p>
             ) : (
-              // Colapsado: mostra só 4 (2 linhas de 2). Expandido: mostra todos
               (deptExpanded ? departamentosStats : departamentosStats.slice(0, 4)).map(dept => {
                 const config = getDeptConfig(dept.nome);
                 return (
@@ -648,7 +652,6 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Rodapé: botão "Ver mais" quando há mais de 4 e está colapsado */}
           {departamentosStats.length > 4 && (
             <button
               onClick={() => setDeptExpanded(v => !v)}
@@ -676,7 +679,6 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-3 gap-4">
-          {/* Homens */}
           <div className="flex flex-col items-center gap-3 p-6 rounded-[2rem] bg-blue-50 dark:bg-blue-900/10 border-2 border-blue-100/50 dark:border-blue-800/30 shadow-sm hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-500 hover:-translate-y-2 group">
             <div className="w-14 h-14 rounded-2xl bg-blue-500 flex items-center justify-center shadow-md transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
               <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>man</span>
@@ -701,7 +703,6 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Mulheres */}
           <div className="flex flex-col items-center gap-3 p-6 rounded-[2rem] bg-pink-50 dark:bg-pink-900/10 border-2 border-pink-100/50 dark:border-pink-800/30 shadow-sm hover:shadow-xl hover:shadow-pink-500/10 transition-all duration-500 hover:-translate-y-2 group">
             <div className="w-14 h-14 rounded-2xl bg-pink-500 flex items-center justify-center shadow-md transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
               <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>woman</span>
@@ -726,7 +727,6 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Crianças */}
           <div className="flex flex-col items-center gap-3 p-6 rounded-[2rem] bg-amber-50 dark:bg-amber-900/10 border-2 border-amber-100/50 dark:border-amber-800/30 shadow-sm hover:shadow-xl hover:shadow-amber-500/10 transition-all duration-500 hover:-translate-y-2 group">
             <div className="w-14 h-14 rounded-2xl bg-amber-400 flex items-center justify-center shadow-md transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
               <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>child_care</span>
@@ -752,7 +752,6 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-
     </div>
   )
 }
