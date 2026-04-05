@@ -328,7 +328,7 @@ export default function Dashboard() {
           </div>
         </div>
         
-        <div className="h-[250px] min-h-[250px] w-full mt-4">
+        <div className="h-[180px] min-h-[180px] w-full mt-4">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={graficoCrescimento}>
               <defs>
