@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
 import { supabase } from '../lib/supabase'
+import { usePermissions } from '../context/PermissionsContext'
 
 export default function Configuracoes() {
   const [isDark, setIsDark] = useState(false)
@@ -14,7 +15,7 @@ export default function Configuracoes() {
   })
   const [currentUser, setCurrentUser] = useState(null)
   const [loadingGlobal, setLoadingGlobal] = useState(false)
-  const [isAdmin, setIsAdmin] = useState(false)
+  const { canAccess } = usePermissions()
 
   useEffect(() => {
     setIsDark(document.documentElement.classList.contains('dark'))
@@ -25,26 +26,6 @@ export default function Configuracoes() {
       if (user?.user_metadata?.avatar_url) {
          setAvatarUrl(user.user_metadata.avatar_url)
       }
-
-      // Verificação robusta de Admin (Meta + Banco)
-      const metaPerfil = user?.user_metadata?.perfil?.toLowerCase() || ''
-      const isMetaAdmin = metaPerfil === 'administrador' || metaPerfil === 'admin'
-      
-      let isDbAdmin = false
-      if (user?.email) {
-        const { data: uData } = await supabase
-          .from('usuarios_sistema')
-          .select('perfil')
-          .eq('email', user.email)
-          .maybeSingle()
-        
-        if (uData) {
-          const dbPerfil = uData.perfil?.toLowerCase() || ''
-          isDbAdmin = dbPerfil === 'administrador' || dbPerfil === 'admin'
-        }
-      }
-
-      setIsAdmin(isMetaAdmin || isDbAdmin)
 
       const { data: gData } = await supabase.from('configuracoes_gerais').select('*').eq('id', 1).single()
       if (gData) {
@@ -144,7 +125,7 @@ export default function Configuracoes() {
       </div>
 
       {/* Seção Administrador: Personalização Global */}
-      {isAdmin && (
+      {canAccess('menu_configuracoes_adm') && (
         <div className="bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/10 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
           <h3 className="text-lg font-black text-primary mb-6 flex items-center gap-2">
              <span className="material-symbols-outlined font-black">brush</span> Personalização do Sistema (Adm)

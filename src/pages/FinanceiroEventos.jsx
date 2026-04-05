@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { PageHeader } from '../components/ui/PageHeader'
+import { usePermissions } from '../context/PermissionsContext'
 
 const FORMAS_PAGAMENTO = [
   { value: 'PIX',           icon: 'qr_code_2',         color: '#32BCAD' },
@@ -25,6 +26,7 @@ export default function FinanceiroEventos() {
   const [eventos, setEventos] = useState([])
   const [loading, setLoading] = useState(true)
   const [eventoSelecionado, setEventoSelecionado] = useState(null)
+  const { canAccess, membroId, meusDepartamentos, isAdmin, loading: loadingPermissions } = usePermissions()
   const [inscritos, setInscritos] = useState([])
   const [saques, setSaques] = useState([])
   const [resumoDepto, setResumoDepto] = useState({})
@@ -33,7 +35,7 @@ export default function FinanceiroEventos() {
   const [showModalManual, setShowModalManual] = useState(false)
   const [showModalSaque, setShowModalSaque] = useState(false)
   const [savingSaque, setSavingSaque] = useState(false)
-
+ 
   // Forms
   const [novoLancamento, setNovoLancamento] = useState({ nome: '', email: '', whatsapp: '', valor: '' })
   const [novoSaque, setNovoSaque] = useState({
@@ -43,15 +45,34 @@ export default function FinanceiroEventos() {
     data_saque: new Date().toISOString().split('T')[0],
     observacao: ''
   })
-
+ 
   const loadFinanceiro = async () => {
     setLoading(true)
-    const { data } = await supabase
+    let query = supabase
       .from('eventos')
-      .select('*, departamentos ( nome ), inscricoes ( valor_pago, status )')
+      .select('*, departamentos ( id, nome ), inscricoes ( valor_pago, status )')
       .eq('pago', true)
-      .order('data_evento', { ascending: false })
+ 
+    // APLICAÇÃO DO FILTRO DE SEGURANÇA (RBAC)
+    if (canAccess('menu_financeiro_filtro_lider') && !isAdmin) {
+      const filters = []
+      if (membroId) filters.push(`lider_responsavel_id.eq.${membroId}`)
+      if (meusDepartamentos.length > 0) {
+        filters.push(`departamento_id.in.(${meusDepartamentos.join(',')})`)
+      }
 
+      if (filters.length > 0) {
+        query = query.or(filters.join(','))
+      } else {
+        // Se é líder mas não tem nada vinculado, não vê nada
+        setEventos([])
+        setLoading(false)
+        return
+      }
+    }
+ 
+    const { data } = await query.order('data_evento', { ascending: false })
+ 
     if (data) {
       const deptos = {}
       const stats = data.map(ev => {
@@ -70,8 +91,12 @@ export default function FinanceiroEventos() {
     }
     setLoading(false)
   }
-
-  useEffect(() => { loadFinanceiro() }, [])
+ 
+  useEffect(() => { 
+    if (!loadingPermissions) {
+      loadFinanceiro() 
+    }
+  }, [membroId, isAdmin, meusDepartamentos, loadingPermissions])
 
   const verDetalhes = async (evento) => {
     // Se clicar no mesmo evento que já está aberto, fecha o detalhamento
@@ -221,7 +246,7 @@ export default function FinanceiroEventos() {
           <p className="text-3xl font-black text-primary">{eventos.reduce((s, ev) => s + ev.qtdeConfirmados, 0)}</p>
           <p className="text-[10px] text-on-surface-variant/40 mt-1">confirmados</p>
         </div>
-        {Object.entries(resumoDepto).slice(0, 2).map(([depto, saldo]) => (
+        {isAdmin && Object.entries(resumoDepto).slice(0, 2).map(([depto, saldo]) => (
           <div key={depto} className="bg-surface-container-lowest rounded-2xl border border-outline-variant/20 shadow-sm p-5">
             <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/60 mb-1 truncate">{depto}</p>
             <CurrencyDisplay value={saldo} className="text-primary" />

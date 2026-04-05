@@ -3,27 +3,59 @@ import { PageHeader } from '../components/ui/PageHeader'
 import { Table } from '../components/ui/Table'
 import { supabase } from '../lib/supabase'
 import { useNavigate } from 'react-router-dom'
+import { usePermissions } from '../context/PermissionsContext'
 
 export default function Eventos() {
   const [eventos, setEventos] = useState([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
+  const { canAccess, membroId, meusDepartamentos, isAdmin, loading: loadingPermissions } = usePermissions()
 
   useEffect(() => {
     async function fetchEventos() {
-      const { data, error } = await supabase
+      setLoading(true)
+      let query = supabase
         .from('eventos')
         .select(`
-          id, nome, data_evento, hora_evento, status, pago,
-          departamentos ( nome ), locais ( descricao )
+          id, nome, data_evento, data_fim, hora_evento, status, pago,
+          departamentos ( id, nome ), locais ( descricao ),
+          lider_responsavel_id
         `)
-        .order('data_evento', { ascending: true })
+
+      // APLICAÇÃO DO FILTRO DE SEGURANÇA (RBAC)
+      if (canAccess('menu_eventos_filtro_lider') && !isAdmin) {
+        // O líder vê eventos onde ele é o responsável OU do departamento dele
+        const filters = []
+        if (membroId) filters.push(`lider_responsavel_id.eq.${membroId}`)
+        if (meusDepartamentos.length > 0) {
+          filters.push(`departamento_id.in.(${meusDepartamentos.join(',')})`)
+        }
+
+        if (filters.length > 0) {
+          query = query.or(filters.join(','))
+        } else {
+          // Se é líder mas não tem nada vinculado, não vê nada (proteção contra "buraco")
+          setEventos([])
+          setLoading(false)
+          return
+        }
+      }
+
+      const { data, error } = await query.order('data_evento', { ascending: true })
       
-      if (!error && data) setEventos(data)
+      if (!error && data) {
+        setEventos(data)
+      } else if (error) {
+        console.error("Erro ao buscar eventos:", error)
+      }
       setLoading(false)
     }
-    fetchEventos()
-  }, [])
+    
+    // Aguarda o carregamento inicial do contexto de permissões
+    if (!loadingPermissions) {
+       fetchEventos()
+    }
+  }, [membroId, isAdmin, meusDepartamentos, loadingPermissions])
 
   const handleDelete = async (row) => {
     if(window.confirm(`Cancelar e Excluir o evento: ${row.nome}?`)) {
@@ -61,8 +93,20 @@ export default function Eventos() {
 
   const columns = [
     { label: 'Data', key: 'data_evento', render: (row) => {
-        const d = new Date(row.data_evento + 'T00:00:00')
-        return <span className="font-bold text-on-surface-variant text-xs">{d.toLocaleDateString('pt-BR')}</span>
+        const dstart = new Date(row.data_evento + 'T00:00:00')
+        const dfim = row.data_fim ? new Date(row.data_fim + 'T00:00:00') : null
+        
+        if (dfim && row.data_fim !== row.data_evento) {
+           return (
+             <div className="flex flex-col">
+                <span className="font-bold text-primary text-[10px] uppercase tracking-tighter">Intervalo</span>
+                <span className="font-bold text-on-surface-variant text-xs">
+                   {dstart.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'})} a {dfim.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'})}
+                </span>
+             </div>
+           )
+        }
+        return <span className="font-bold text-on-surface-variant text-xs">{dstart.toLocaleDateString('pt-BR')}</span>
     }},
     { label: 'Hora', key: 'hora_evento', render: (row) => <span className="font-mono text-xs">{row.hora_evento.substring(0,5)}</span> },
     { label: 'Nome do Evento', key: 'nome', render: (row) => <span className="font-bold text-primary">{row.nome}</span> },

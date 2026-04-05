@@ -42,10 +42,15 @@ export default function Dashboard() {
          .not('data_nascimento', 'is', null)
 
       if(memData) {
+         const todayDay = todayDate.getDate()
          const filt = memData.filter(m => {
             if(!m.data_nascimento) return false
-            const [y, mStr, d] = m.data_nascimento.split('-')
-            return parseInt(mStr, 10) === currentMonth
+            const [y, mStr, dStr] = m.data_nascimento.split('-')
+            const month = parseInt(mStr, 10)
+            const day = parseInt(dStr, 10)
+            
+            // Filtra: apenas do mês atual E do dia de hoje para frente
+            return month === currentMonth && day >= todayDay
          }).sort((a, b) => {
             const dayA = parseInt(a.data_nascimento.split('-')[2], 10)
             const dayB = parseInt(b.data_nascimento.split('-')[2], 10)
@@ -263,7 +268,10 @@ export default function Dashboard() {
                     <div className="flex items-center gap-4 mt-2">
                       <div className="flex items-center gap-1 text-[11px] text-on-surface-variant font-medium">
                         <span className="material-symbols-outlined text-sm">calendar_today</span> 
-                        {ev.data_evento.split('-').reverse().join('/')}
+                        {ev.data_fim && ev.data_fim !== ev.data_evento 
+                          ? `${ev.data_evento.split('-').reverse().join('/')} a ${ev.data_fim.split('-').reverse().join('/')}`
+                          : ev.data_evento.split('-').reverse().join('/')
+                        }
                       </div>
                       {ev.hora_evento && (
                         <div className="flex items-center gap-1 text-[11px] text-on-surface-variant font-medium">
@@ -278,13 +286,15 @@ export default function Dashboard() {
                     <div className="text-[9px] font-black uppercase tracking-wider text-slate-400">
                       {ev.status}
                     </div>
-                    <button 
-                      onClick={() => copyToClipboard(`${window.location.origin}/inscricao/${ev.id}`)}
-                      className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shadow-lg hover:scale-110 transition-all active:scale-95 translate-y-1"
-                      title="Copiar Link de Inscrição"
-                    >
-                      <span className="material-symbols-outlined text-[16px]">content_copy</span>
-                    </button>
+                    {ev.pago && (
+                      <button 
+                        onClick={() => copyToClipboard(`${window.location.origin}/inscricao/${ev.id}`)}
+                        className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shadow-lg hover:scale-110 transition-all active:scale-95 translate-y-1"
+                        title="Copiar Link de Inscrição"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">content_copy</span>
+                      </button>
+                    )}
                   </div>
                 </div>
              ))}
@@ -307,7 +317,7 @@ export default function Dashboard() {
                value={novaTarefaTexto}
                onChange={e => setNovaTarefaTexto(e.target.value)}
                onKeyDown={handleAddTarefa}
-               className="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg py-3 pl-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:bg-white transition-all font-medium text-on-surface shadow-inner"
+               className="w-full bg-surface-container-low dark:bg-slate-800/50 border border-outline-variant/30 dark:border-slate-700 rounded-lg py-3 pl-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 dark:focus:bg-slate-800 transition-all font-medium text-on-surface dark:text-white shadow-inner"
              />
              <span className="material-symbols-outlined absolute right-3 top-3.5 text-outline text-[18px] group-focus-within:text-primary transition-colors">add_task</span>
           </div>

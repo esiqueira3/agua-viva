@@ -4,6 +4,7 @@ import { MultiSelect } from '../components/ui/MultiSelect'
 import { supabase } from '../lib/supabase'
 import { useNavigate, useParams } from 'react-router-dom'
 import { SearchableSelect } from '../components/ui/SearchableSelect'
+import { usePermissions } from '../context/PermissionsContext'
 
 // Instanciados FORA para proteger o foco do DOM virtual
 const FormField = ({ label, name, type="text", required=false, disabled=false, form, onChange, autoFocus, min, step }) => (
@@ -47,6 +48,7 @@ const Toggle = ({ label, name, form, onChange }) => (
 export default function CadastroEvento() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { isAdmin, meusDepartamentos } = usePermissions()
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState(0) // 0 = primeira aba aberta por padrão
   
@@ -55,7 +57,7 @@ export default function CadastroEvento() {
   const [membros, setMembros] = useState([])
 
   const [form, setForm] = useState({
-    nome: '', data_evento: '', hora_evento: '', local_id: '', status: 'Agendado',
+    nome: '', data_evento: '', data_fim: '', hora_evento: '', local_id: '', status: 'Agendado',
     departamento_id: '', lider_responsavel_id: '', equipe_envolvida: [],
     limite_participantes: false, quantidade_maxima: '', link_inscricao: '', 
     link_pagamento_mp: '', confirmacao_presenca: false,
@@ -82,6 +84,8 @@ export default function CadastroEvento() {
         if (data) {
            const ev = {...data}
            if (ev.data_evento) ev.data_evento = ev.data_evento.split('T')[0]
+           if (ev.data_fim) ev.data_fim = ev.data_fim.split('T')[0]
+           if (!ev.data_fim && ev.data_evento) ev.data_fim = ev.data_evento
            if (ev.hora_evento) ev.hora_evento = ev.hora_evento.substring(0, 5)
            // Garantir que mostrar_link_calendario nunca seja null (default true)
            if (ev.mostrar_link_calendario === null || ev.mostrar_link_calendario === undefined) {
@@ -94,14 +98,15 @@ export default function CadastroEvento() {
     loadResources()
   }, [id])
 
+  // Gatilha o líder padrão APENAS se estiver criando novo ou se o campo estiver vazio
   useEffect(() => {
-    if(form.departamento_id) {
+    if(form.departamento_id && !form.lider_responsavel_id) {
        const dept = departamentos.find(d => d.id === form.departamento_id)
        if(dept && dept.lider_principal_id) {
           setForm(f => ({...f, lider_responsavel_id: dept.lider_principal_id}))
        }
     }
-  }, [form.departamento_id, departamentos])
+  }, [form.departamento_id, departamentos, form.lider_responsavel_id])
 
   // Lógica de Cálculo de Taxas Automática
   useEffect(() => {
@@ -126,7 +131,18 @@ export default function CadastroEvento() {
     if (e.target.name === 'nome' && typeof value === 'string') {
       finalValue = value.toUpperCase()
     }
-    setForm({...form, [e.target.name]: finalValue})
+    
+    const newForm = { ...form, [e.target.name]: finalValue }
+    
+    // Automatização: Troca de Departamento puxa o Líder Padrão
+    if (e.target.name === 'departamento_id' && value) {
+       const dept = departamentos.find(d => d.id === value)
+       if (dept && dept.lider_principal_id) {
+          newForm.lider_responsavel_id = dept.lider_principal_id
+       }
+    }
+
+    setForm(newForm)
   }
 
   const handleSave = async (e) => {
@@ -143,6 +159,12 @@ export default function CadastroEvento() {
     const todayStr = new Date().toISOString().split('T')[0]
     if (!id && payload.data_evento && payload.data_evento < todayStr) {
        alert("⚠️ Erro de Validação:\nNão é permitido planejar e cadastrar Novos Eventos com datas retroativas (anteriores a data de hoje). Para histórico use o módulo correto.")
+       setLoading(false)
+       return
+    }
+
+    if (payload.data_fim && payload.data_fim < payload.data_evento) {
+       alert("⚠️ Erro de Validação:\nA data de término não pode ser anterior à data de início.")
        setLoading(false)
        return
     }
@@ -191,7 +213,13 @@ export default function CadastroEvento() {
       label: "1. Organização",
       content: (
         <div className="grid grid-cols-2 gap-4 max-w-4xl">
-           <SelectMenu label="Departamento Responsável" name="departamento_id" options={departamentos.map(d => ({ value: d.id, label: d.nome }))} form={form} onChange={handleFormChange} />
+           <SelectMenu 
+             label="Departamento Responsável" 
+             name="departamento_id" 
+             options={(isAdmin ? departamentos : departamentos.filter(d => meusDepartamentos.includes(d.id))).map(d => ({ value: d.id, label: d.nome }))} 
+             form={form} 
+             onChange={handleFormChange} 
+           />
            <SearchableSelect 
               label="Líder Responsável (Editável)" 
               name="lider_responsavel_id" 
@@ -297,17 +325,26 @@ export default function CadastroEvento() {
 
       {/* CARD PRINCIPAL — sempre visível */}
       <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/20 shadow-sm grid grid-cols-1 md:grid-cols-4 gap-4">
-         <div className="col-span-4 md:col-span-2">
+         <div className="col-span-4 md:col-span-1">
             <FormField autoFocus label="Nome do Evento *" name="nome" required form={form} onChange={handleFormChange} />
          </div>
          <FormField 
-            label="Data Oficial *" 
+            label="Inicia em *" 
             name="data_evento" 
             type="date" 
             required 
             form={form} 
             onChange={handleFormChange} 
             min={!id ? new Date().toISOString().split('T')[0] : undefined}
+         />
+         <FormField 
+            label="Termina em *" 
+            name="data_fim" 
+            type="date" 
+            required 
+            form={form} 
+            onChange={handleFormChange} 
+            min={form.data_evento}
          />
          <FormField label="Horário *" name="hora_evento" type="time" required form={form} onChange={handleFormChange} />
          

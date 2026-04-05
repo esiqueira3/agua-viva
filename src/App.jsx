@@ -25,7 +25,11 @@ import InscricaoMembro from './pages/InscricaoMembro'
 import CertificadosHome from './pages/CertificadosHome'
 import CertificadoApresentacao from './pages/CertificadoApresentacao'
 import CertificadoBatismo from './pages/CertificadoBatismo'
+import GestaoAcessos from './pages/GestaoAcessos'
 import { useEffect } from 'react'
+
+import { ProtectedRoute } from './components/auth/ProtectedRoute'
+import { PermissionsProvider } from './context/PermissionsContext'
 
 function App() {
   // Restaura o Dark Mode global na inicialização garantindo persistência sem piscar
@@ -37,45 +41,47 @@ function App() {
   }, [])
 
   return (
-    <BrowserRouter>
+    <PermissionsProvider>
+      <BrowserRouter>
       <Routes>
         <Route path="/" element={<Login />} />
         <Route element={<MainLayout />}>
           <Route path="/home" element={<Dashboard />} />
           
-          <Route path="/departamentos" element={<Departamentos />} />
-          <Route path="/departamentos/novo" element={<CadastroDepartamento />} />
-          <Route path="/departamentos/editar/:id" element={<CadastroDepartamento />} />
+          <Route path="/departamentos" element={<ProtectedRoute permission="menu_departamentos"><Departamentos /></ProtectedRoute>} />
+          <Route path="/departamentos/novo" element={<ProtectedRoute permission="menu_departamentos"><CadastroDepartamento /></ProtectedRoute>} />
+          <Route path="/departamentos/editar/:id" element={<ProtectedRoute permission="menu_departamentos"><CadastroDepartamento /></ProtectedRoute>} />
           
-          <Route path="/membros" element={<Membros />} />
-          <Route path="/membros/novo" element={<CadastroMembro />} />
-          <Route path="/membros/editar/:id" element={<CadastroMembro />} />
-          <Route path="/membros/pre-cadastro" element={<MembrosPreCadastro />} />
-          <Route path="/membros/link-publico" element={<LinkPublicoMembros />} />
-          <Route path="/membros/certificados" element={<CertificadosHome />} />
-          <Route path="/membros/certificados/apresentacao" element={<CertificadoApresentacao />} />
-          <Route path="/membros/certificados/batismo" element={<CertificadoBatismo />} />
+          <Route path="/membros" element={<ProtectedRoute permission="menu_membros"><Membros /></ProtectedRoute>} />
+          <Route path="/membros/novo" element={<ProtectedRoute permission="menu_membros"><CadastroMembro /></ProtectedRoute>} />
+          <Route path="/membros/editar/:id" element={<ProtectedRoute permission="menu_membros"><CadastroMembro /></ProtectedRoute>} />
+          <Route path="/membros/pre-cadastro" element={<ProtectedRoute permission="menu_membros_pre_cadastro"><MembrosPreCadastro /></ProtectedRoute>} />
+          <Route path="/membros/link-publico" element={<ProtectedRoute permission="menu_membros_link"><LinkPublicoMembros /></ProtectedRoute>} />
+          <Route path="/membros/certificados" element={<ProtectedRoute permission="menu_membros_certificados"><CertificadosHome /></ProtectedRoute>} />
+          <Route path="/membros/certificados/apresentacao" element={<ProtectedRoute permission="menu_membros_certificados"><CertificadoApresentacao /></ProtectedRoute>} />
+          <Route path="/membros/certificados/batismo" element={<ProtectedRoute permission="menu_membros_certificados"><CertificadoBatismo /></ProtectedRoute>} />
           
-          <Route path="/usuarios" element={<Usuarios />} />
-          <Route path="/usuarios/novo" element={<CadastroUsuario />} />
-          <Route path="/usuarios/editar/:id" element={<CadastroUsuario />} />
+          <Route path="/usuarios" element={<ProtectedRoute permission="menu_usuarios"><Usuarios /></ProtectedRoute>} />
+          <Route path="/usuarios/novo" element={<ProtectedRoute permission="menu_usuarios"><CadastroUsuario /></ProtectedRoute>} />
+          <Route path="/usuarios/editar/:id" element={<ProtectedRoute permission="menu_usuarios"><CadastroUsuario /></ProtectedRoute>} />
+          <Route path="/usuarios/gestao-acessos" element={<ProtectedRoute permission="all"><GestaoAcessos /></ProtectedRoute>} />
 
-          <Route path="/locais" element={<Locais />} />
-          <Route path="/locais/novo" element={<CadastroLocal />} />
-          <Route path="/locais/editar/:id" element={<CadastroLocal />} />
+          <Route path="/locais" element={<ProtectedRoute permission="menu_locais"><Locais /></ProtectedRoute>} />
+          <Route path="/locais/novo" element={<ProtectedRoute permission="menu_locais"><CadastroLocal /></ProtectedRoute>} />
+          <Route path="/locais/editar/:id" element={<ProtectedRoute permission="menu_locais"><CadastroLocal /></ProtectedRoute>} />
           
-          <Route path="/igrejas" element={<Igrejas />} />
-          <Route path="/igrejas/novo" element={<CadastroIgreja />} />
-          <Route path="/igrejas/editar/:id" element={<CadastroIgreja />} />
+          <Route path="/igrejas" element={<ProtectedRoute permission="menu_igrejas"><Igrejas /></ProtectedRoute>} />
+          <Route path="/igrejas/novo" element={<ProtectedRoute permission="menu_igrejas"><CadastroIgreja /></ProtectedRoute>} />
+          <Route path="/igrejas/editar/:id" element={<ProtectedRoute permission="menu_igrejas"><CadastroIgreja /></ProtectedRoute>} />
           
-          <Route path="/eventos" element={<Eventos />} />
-          <Route path="/eventos/novo" element={<CadastroEvento />} />
-          <Route path="/eventos/editar/:id" element={<CadastroEvento />} />
+          <Route path="/eventos" element={<ProtectedRoute permission="menu_eventos"><Eventos /></ProtectedRoute>} />
+          <Route path="/eventos/novo" element={<ProtectedRoute permission="menu_eventos"><CadastroEvento /></ProtectedRoute>} />
+          <Route path="/eventos/editar/:id" element={<ProtectedRoute permission="menu_eventos"><CadastroEvento /></ProtectedRoute>} />
           
-          <Route path="/calendario" element={<Calendario />} />
-          <Route path="/financeiro-eventos" element={<FinanceiroEventos />} />
-          <Route path="/financeiro/mercado-pago" element={<ConfigMercadoPago />} />
-          <Route path="/configuracoes" element={<Configuracoes />} />
+          <Route path="/calendario" element={<ProtectedRoute permission="menu_calendario"><Calendario /></ProtectedRoute>} />
+          <Route path="/financeiro-eventos" element={<ProtectedRoute permission="menu_financeiro"><FinanceiroEventos /></ProtectedRoute>} />
+          <Route path="/financeiro/mercado-pago" element={<ProtectedRoute permission="menu_financeiro_mp"><ConfigMercadoPago /></ProtectedRoute>} />
+          <Route path="/configuracoes" element={<ProtectedRoute permission="menu_configuracoes"><Configuracoes /></ProtectedRoute>} />
         </Route>
         
         {/* Rotas Públicas */}
@@ -85,7 +91,8 @@ function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
-  )
+  </PermissionsProvider>
+)
 }
 
 export default App

@@ -6,6 +6,7 @@ import interactionPlugin from '@fullcalendar/interaction'
 import { PageHeader } from '../components/ui/PageHeader'
 import { supabase } from '../lib/supabase'
 import { useNavigate } from 'react-router-dom'
+import { usePermissions } from '../context/PermissionsContext'
 
 const STATUS_CONFIG = {
   'Agendado':   { color: '#3B82F6', icon: 'schedule',       badge: 'bg-blue-100 text-blue-700 border-blue-200' },
@@ -19,6 +20,7 @@ export default function Calendario() {
   const [loading, setLoading] = useState(true)
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [filterStatus, setFilterStatus] = useState('') // '' = todos
+  const { isAdmin, membroId, meusDepartamentos } = usePermissions()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -69,12 +71,26 @@ export default function Calendario() {
                const dd = String(loopDate.getDate()).padStart(2, '0')
                const formattedDate = `${yyyy}-${mm}-${dd}`
                const dtStart = ev.hora_evento ? `${formattedDate}T${ev.hora_evento}` : formattedDate
+               
+               // Lógica para data de término (Exclusive no FullCalendar para all-day)
+               let dtEnd = dtStart
+               if (freq === 'nao_repetir' && ev.data_fim && ev.data_fim !== ev.data_evento) {
+                  // Para abranger o dia inteiro do fim, adicionamos +1 dia à data_fim para o FullCalendar
+                  const endDateObj = new Date(ev.data_fim.split('-')[0], ev.data_fim.split('-')[1] - 1, ev.data_fim.split('-')[2])
+                  endDateObj.setDate(endDateObj.getDate() + 1)
+                  const ey = endDateObj.getFullYear()
+                  const em = String(endDateObj.getMonth() + 1).padStart(2, '0')
+                  const ed = String(endDateObj.getDate()).padStart(2, '0')
+                  dtEnd = `${ey}-${em}-${ed}`
+               }
+
                const horaLabel = ev.hora_evento ? ev.hora_evento.substring(0, 5) : ''
 
                results.push({
                   id: `${ev.id}_${i}`,
                   title: horaLabel ? `${horaLabel} ${ev.nome}` : ev.nome,
                   start: dtStart,
+                  end: dtEnd !== dtStart ? dtEnd : undefined,
                   backgroundColor: bgColor,
                   borderColor: 'transparent',
                   textColor: '#FFFFFF',
@@ -86,14 +102,18 @@ export default function Calendario() {
                   extendedProps: { 
                      status: ev.status,
                      nome_original: ev.nome,
-                     data_formatada: `${dd}/${mm}/${yyyy}`,
+                     data_formatada: ev.data_fim && ev.data_fim !== ev.data_evento 
+                        ? `${dd}/${mm}/${yyyy} a ${ev.data_fim.split('-')[2]}/${ev.data_fim.split('-')[1]}/${ev.data_fim.split('-')[0]}`
+                        : `${dd}/${mm}/${yyyy}`,
                      hora_formatada: ev.hora_evento ? ev.hora_evento.substring(0,5) : 'O dia todo',
                      local: ev.locais?.descricao || 'Local não informado',
                      original_id: ev.id,
                      link_inscricao: ev.link_inscricao,
                      link_pagamento_mp: ev.link_pagamento_mp,
                      pago: ev.pago,
-                     mostrar_link_calendario: ev.mostrar_link_calendario !== false
+                     mostrar_link_calendario: ev.mostrar_link_calendario !== false,
+                     lider_responsavel_id: ev.lider_responsavel_id,
+                     departamento_id: ev.departamento_id
                   }
                })
             }
@@ -345,13 +365,17 @@ export default function Calendario() {
                  )}
 
                  <div className="flex gap-2">
-                   <button
-                     onClick={() => navigate(`/eventos/editar/${selectedEvent.extendedProps.original_id}`)}
-                     className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[11px] font-black uppercase tracking-wide text-primary bg-primary/5 hover:bg-primary/10 border border-primary/10 transition-colors"
-                   >
-                     <span className="material-symbols-outlined text-[16px]">edit</span>
-                     Editar
-                   </button>
+                   {(isAdmin || 
+                     (membroId && selectedEvent.extendedProps.lider_responsavel_id === membroId) || 
+                     (selectedEvent.extendedProps.departamento_id && meusDepartamentos.includes(selectedEvent.extendedProps.departamento_id))) && (
+                     <button
+                       onClick={() => navigate(`/eventos/editar/${selectedEvent.extendedProps.original_id}`)}
+                       className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[11px] font-black uppercase tracking-wide text-primary bg-primary/5 hover:bg-primary/10 border border-primary/10 transition-colors"
+                     >
+                       <span className="material-symbols-outlined text-[16px]">edit</span>
+                       Editar
+                     </button>
+                   )}
                    <button
                      onClick={() => setSelectedEvent(null)}
                      className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[11px] font-black uppercase tracking-wide text-on-surface-variant bg-surface-container-low hover:bg-surface-container transition-colors"

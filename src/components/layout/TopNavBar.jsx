@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
+import { usePermissions } from '../../context/PermissionsContext'
 
 export default function TopNavBar({ toggleSidebar, isCollapsed }) {
-  const [avatarUrl, setAvatarUrl] = useState('')
-  const [userName, setUserName] = useState('Consultando...')
-  const [userRole, setUserRole] = useState('Online')
+  const { userNome, userProfile, isAdmin, loading } = usePermissions()
   const [showMenu, setShowMenu] = useState(false)
   
   // Estados da Busca Global
@@ -12,35 +11,6 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
   const [searchResults, setSearchResults] = useState({ membros: [], eventos: [], departamentos: [] })
   const [isSearching, setIsSearching] = useState(false)
   const [showSearch, setShowSearch] = useState(false)
-
-  useEffect(() => {
-    async function loadUser() {
-      // 1. Pega o usuário logado no Auth
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-         // 2. Busca o nome real na tabela de controle de acesso (Sincronização Viva)
-         const { data: profile } = await supabase
-            .from('usuarios_sistema')
-            .select('nome, perfil')
-            .eq('email', user.email)
-            .single()
-         
-         if (profile) {
-            setUserName(profile.nome)
-            setUserRole(profile.perfil)
-         } else {
-            // Fallback se não encontrar na tabela
-            setUserName(user.user_metadata?.nome || 'Usuário')
-            setUserRole(user.user_metadata?.perfil || 'Online')
-         }
-
-         if (user.user_metadata?.avatar_url) {
-            setAvatarUrl(user.user_metadata.avatar_url)
-         }
-      }
-    }
-    loadUser()
-  }, [])
 
   // Motor da Busca Global (Debounced)
   useEffect(() => {
@@ -61,11 +31,16 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
     setShowSearch(true)
     
     // Consultas em paralelo para máxima velocidade
-    const [resMembros, resEventos, resDepts] = await Promise.all([
-      supabase.from('membros').select('id, nome_completo').ilike('nome_completo', `%${query}%`).limit(5),
-      supabase.from('eventos').select('id, nome').ilike('nome', `%${query}%`).limit(5),
-      supabase.from('departamentos').select('id, nome').ilike('nome', `%${query}%`).limit(5)
-    ])
+    // Se não for admin, não busca na tabela de membros (REPETIÇÃO DO FILTRO RBAC)
+    const queries = [
+       isAdmin 
+         ? supabase.from('membros').select('id, nome_completo').ilike('nome_completo', `%${query}%`).limit(5)
+         : Promise.resolve({ data: [] }),
+       supabase.from('eventos').select('id, nome').ilike('nome', `%${query}%`).limit(5),
+       supabase.from('departamentos').select('id, nome').ilike('nome', `%${query}%`).limit(5)
+    ]
+
+    const [resMembros, resEventos, resDepts] = await Promise.all(queries)
 
     setSearchResults({
       membros: resMembros.data || [],
@@ -174,15 +149,11 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
              className="flex items-center gap-3 hover:bg-surface-container-low p-1.5 rounded-2xl transition-all active:scale-95 group"
           >
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-bold text-primary font-headline">{userName}</p>
-              <p className="text-[10px] text-on-surface-variant uppercase font-semibold">{userRole}</p>
+              <p className="text-sm font-bold text-primary font-headline">{userNome}</p>
+              <p className="text-[10px] text-on-surface-variant uppercase font-semibold">{userProfile}</p>
             </div>
             <div className={`w-10 h-10 rounded-full border-2 bg-surface-variant flex items-center justify-center overflow-hidden transition-all ${showMenu ? 'border-primary ring-4 ring-primary/10' : 'border-tertiary-fixed'}`}>
-              {avatarUrl ? (
-                 <img src={avatarUrl} alt="Perfil" className="w-full h-full object-cover" />
-              ) : (
-                 <span className="material-symbols-outlined text-outline">person</span>
-              )}
+              <span className="material-symbols-outlined text-outline">person</span>
             </div>
           </button>
 
@@ -192,9 +163,9 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
               <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)}></div>
               
               <div className="absolute right-0 mt-3 w-48 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-outline-variant/10 py-2 z-50 animate-in fade-in zoom-in-95 duration-200">
-                 <div className="px-4 py-2 border-b border-outline-variant/10 md:hidden">
-                    <p className="text-xs font-bold text-primary truncate">{userName}</p>
-                 </div>
+                  <div className="px-4 py-2 border-b border-outline-variant/10 md:hidden">
+                    <p className="text-xs font-bold text-primary truncate">{userNome}</p>
+                  </div>
                  <button 
                     onClick={() => { setShowMenu(false); window.location.href = '/configuracoes' }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-on-surface-variant hover:bg-surface-container-low transition-colors"
