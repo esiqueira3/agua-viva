@@ -11,6 +11,8 @@ const FORMAS_PAGAMENTO = [
   { value: 'Cartão',        icon: 'credit_card',        color: '#F59E0B' },
 ]
 
+const ITENS_POR_PAGINA = 9
+
 function CurrencyDisplay({ value, size = 'lg', className = '' }) {
   const formatted = parseFloat(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   const [int, dec] = formatted.split(',')
@@ -40,6 +42,7 @@ export default function FinanceiroEventos() {
   const [filtroAno, setFiltroAno] = useState(new Date().getFullYear().toString())
   const [filtroDepto, setFiltroDepto] = useState('Todos')
   const [listaDeptos, setListaDeptos] = useState([])
+  const [paginaAtual, setPaginaAtual] = useState(1)
  
   // Forms
   const [novoLancamento, setNovoLancamento] = useState({ nome: '', email: '', whatsapp: '', valor: '' })
@@ -53,6 +56,7 @@ export default function FinanceiroEventos() {
  
   const loadFinanceiro = async () => {
     setLoading(true)
+    setPaginaAtual(1) // Sempre reseta a página ao carregar novos dados
     let query = supabase
       .from('eventos')
       .select('*, departamentos ( id, nome ), inscricoes ( valor_pago, status )')
@@ -113,6 +117,14 @@ export default function FinanceiroEventos() {
     }
     setLoading(false)
   }
+
+  const { eventosPaginados, totalPaginas } = useMemo(() => {
+    const total = Math.ceil(eventos.length / ITENS_POR_PAGINA)
+    const inicio = (paginaAtual - 1) * ITENS_POR_PAGINA
+    const fim = inicio + ITENS_POR_PAGINA
+    const paginados = eventos.slice(inicio, fim)
+    return { eventosPaginados: paginados, totalPaginas: total }
+  }, [eventos, paginaAtual])
  
   useEffect(() => { 
     if (!loadingPermissions) {
@@ -318,12 +330,12 @@ export default function FinanceiroEventos() {
             <span className="material-symbols-outlined animate-spin text-primary text-4xl">refresh</span>
             <p className="text-sm font-bold text-on-surface-variant/50">Carregando...</p>
           </div>
-        ) : eventos.length === 0 ? (
+        ) : eventosPaginados.length === 0 ? (
           <div className="col-span-3 text-center py-16">
             <span className="material-symbols-outlined text-6xl text-on-surface-variant/20">monetization_on</span>
             <p className="font-bold text-on-surface-variant/40 mt-2">Nenhum evento pago cadastrado ainda.</p>
           </div>
-        ) : eventos.map(ev => (
+        ) : eventosPaginados.map(ev => (
           <div
             key={ev.id}
             onClick={() => verDetalhes(ev)}
@@ -359,6 +371,43 @@ export default function FinanceiroEventos() {
             </div>
           </div>
         ))}
+
+        {/* PAGINADOR */}
+        {totalPaginas > 1 && (
+          <div className="col-span-1 md:col-span-3 flex justify-center items-center gap-2 mt-4 pb-4">
+            <button
+              onClick={() => setPaginaAtual(p => Math.max(1, p - 1))}
+              disabled={paginaAtual === 1}
+              className="p-2.5 rounded-xl border border-outline-variant/10 bg-surface-container-lowest text-on-surface hover:bg-primary/5 disabled:opacity-30 disabled:pointer-events-none transition-all"
+            >
+              <span className="material-symbols-outlined text-sm">arrow_back_ios</span>
+            </button>
+            
+            <div className="flex items-center gap-1.5 px-3">
+              {Array.from({ length: totalPaginas }, (_, i) => i + 1).map(p => (
+                <button
+                  key={p}
+                  onClick={() => setPaginaAtual(p)}
+                  className={`w-10 h-10 rounded-xl text-xs font-black transition-all ${
+                    paginaAtual === p
+                      ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-110'
+                      : 'bg-surface-container-lowest text-on-surface-variant hover:bg-primary/5 border border-outline-variant/5'
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setPaginaAtual(p => Math.min(totalPaginas, p + 1))}
+              disabled={paginaAtual === totalPaginas}
+              className="p-2.5 rounded-xl border border-outline-variant/10 bg-surface-container-lowest text-on-surface hover:bg-primary/5 disabled:opacity-30 disabled:pointer-events-none transition-all"
+            >
+              <span className="material-symbols-outlined text-sm">arrow_forward_ios</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* PAINEL DE DETALHES DO EVENTO SELECIONADO */}
