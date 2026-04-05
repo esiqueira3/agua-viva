@@ -53,7 +53,12 @@ export default function SideNavBar({ isCollapsed }) {
             <img 
                src="/logo.png" 
                alt="Logo Água Viva" 
-               className={`object-contain transition-all duration-300 drop-shadow-sm ${isCollapsed ? 'w-10 h-10' : 'w-[140px] max-h-12'}`}
+               className={`dark:hidden object-contain transition-all duration-300 drop-shadow-sm ${isCollapsed ? 'w-10 h-10' : 'w-[140px] max-h-12'}`}
+            />
+            <img 
+               src="/logo_branco.png" 
+               alt="Logo Água Viva" 
+               className={`hidden dark:block object-contain transition-all duration-300 drop-shadow-sm ${isCollapsed ? 'w-10 h-10' : 'w-[140px] max-h-12'}`}
             />
             {!isCollapsed && (
                <p className="text-[9px] uppercase tracking-[0.2em] text-on-surface-variant/80 font-bold mt-1 text-center">
