@@ -2,12 +2,18 @@ import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import SideNavBar from './SideNavBar'
 import TopNavBar from './TopNavBar'
+import TermoAceiteModal from '../TermoAceiteModal'
+import { usePermissions } from '../../context/PermissionsContext'
 
 export default function MainLayout() {
   const [isCollapsed, setIsCollapsed] = useState(() => window.innerWidth < 768)
+  const { userAceite, loading, user } = usePermissions()
 
   return (
     <div className="flex bg-slate-100 dark:bg-background min-h-screen overflow-hidden">
+      {/* Bloqueio por Termo de Aceite */}
+      {!userAceite && !loading && user && <TermoAceiteModal />}
+
       <SideNavBar isCollapsed={isCollapsed} />
       
       {/* Overlay Mobile */}
