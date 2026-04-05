@@ -35,6 +35,11 @@ export default function FinanceiroEventos() {
   const [showModalManual, setShowModalManual] = useState(false)
   const [showModalSaque, setShowModalSaque] = useState(false)
   const [savingSaque, setSavingSaque] = useState(false)
+  
+  // Filtros
+  const [filtroAno, setFiltroAno] = useState(new Date().getFullYear().toString())
+  const [filtroDepto, setFiltroDepto] = useState('Todos')
+  const [listaDeptos, setListaDeptos] = useState([])
  
   // Forms
   const [novoLancamento, setNovoLancamento] = useState({ nome: '', email: '', whatsapp: '', valor: '' })
@@ -55,14 +60,14 @@ export default function FinanceiroEventos() {
  
     // APLICAÇÃO DO FILTRO DE SEGURANÇA (RBAC)
     if (canAccess('menu_financeiro_filtro_lider') && !isAdmin) {
-      const filters = []
-      if (membroId) filters.push(`lider_responsavel_id.eq.${membroId}`)
+      const securityFilters = []
+      if (membroId) securityFilters.push(`lider_responsavel_id.eq.${membroId}`)
       if (meusDepartamentos.length > 0) {
-        filters.push(`departamento_id.in.(${meusDepartamentos.join(',')})`)
+        securityFilters.push(`departamento_id.in.(${meusDepartamentos.join(',')})`)
       }
 
-      if (filters.length > 0) {
-        query = query.or(filters.join(','))
+      if (securityFilters.length > 0) {
+        query = query.or(securityFilters.join(','))
       } else {
         // Se é líder mas não tem nada vinculado, não vê nada
         setEventos([])
@@ -70,8 +75,25 @@ export default function FinanceiroEventos() {
         return
       }
     }
- 
+
+    // FILTRO DE DEPARTAMENTO (ADMIN)
+    if (isAdmin && filtroDepto !== 'Todos') {
+      query = query.eq('departamento_id', filtroDepto)
+    }
+
+    // FILTRO DE ANO
+    if (filtroAno !== 'Todos') {
+      const startOfYear = `${filtroAno}-01-01`
+      const endOfYear = `${filtroAno}-12-31`
+      query = query.gte('data_evento', startOfYear).lte('data_evento', endOfYear)
+    }
+
     const { data } = await query.order('data_evento', { ascending: false })
+
+    if (isAdmin) {
+      const { data: deptosData } = await supabase.from('departamentos').select('id, nome').order('nome')
+      if (deptosData) setListaDeptos(deptosData)
+    }
  
     if (data) {
       const deptos = {}
@@ -96,7 +118,7 @@ export default function FinanceiroEventos() {
     if (!loadingPermissions) {
       loadFinanceiro() 
     }
-  }, [membroId, isAdmin, meusDepartamentos, loadingPermissions])
+  }, [membroId, isAdmin, meusDepartamentos, loadingPermissions, filtroAno, filtroDepto])
 
   const verDetalhes = async (evento) => {
     // Se clicar no mesmo evento que já está aberto, fecha o detalhamento
@@ -232,7 +254,48 @@ export default function FinanceiroEventos() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-20">
-      <PageHeader title="Gestão Financeira e Arrecadação" icon="monetization_on" />
+      <PageHeader title="Gestão Financeira e Arrecadação" icon="monetization_on">
+        <div className="flex items-center gap-3">
+          {/* Filtro de Ano */}
+          <div className="flex flex-col">
+            <span className="text-[10px] font-black uppercase text-on-surface-variant/50 ml-1 mb-1">Filtrar Ano</span>
+            <div className="relative group">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-on-surface-variant/40 group-focus-within:text-primary transition-colors">calendar_today</span>
+              <select
+                value={filtroAno}
+                onChange={(e) => setFiltroAno(e.target.value)}
+                className="pl-9 pr-8 py-2.5 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl text-xs font-black text-on-surface outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer transition-all hover:bg-surface-container-low shadow-sm"
+              >
+                {['Todos', ...Array.from({ length: 5 }, (_, i) => (new Date().getFullYear() - i).toString())].map(ano => (
+                  <option key={ano} value={ano}>{ano}</option>
+                ))}
+              </select>
+              <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant/30 pointer-events-none text-base">expand_more</span>
+            </div>
+          </div>
+
+          {/* Filtro de Departamento (Apenas Admin) */}
+          {isAdmin && (
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase text-on-surface-variant/50 ml-1 mb-1">Departamento</span>
+              <div className="relative group">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-on-surface-variant/40 group-focus-within:text-primary transition-colors">hub</span>
+                <select
+                  value={filtroDepto}
+                  onChange={(e) => setFiltroDepto(e.target.value)}
+                  className="pl-9 pr-10 py-2.5 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl text-xs font-black text-on-surface outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer transition-all hover:bg-surface-container-low shadow-sm max-w-[200px]"
+                >
+                  <option value="Todos">Todos</option>
+                  {listaDeptos.map(d => (
+                    <option key={d.id} value={d.id}>{d.nome}</option>
+                  ))}
+                </select>
+                <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant/30 pointer-events-none text-base">expand_more</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </PageHeader>
 
       {/* KPIs GLOBAIS */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -246,12 +309,6 @@ export default function FinanceiroEventos() {
           <p className="text-3xl font-black text-primary">{eventos.reduce((s, ev) => s + ev.qtdeConfirmados, 0)}</p>
           <p className="text-[10px] text-on-surface-variant/40 mt-1">confirmados</p>
         </div>
-        {isAdmin && Object.entries(resumoDepto).slice(0, 2).map(([depto, saldo]) => (
-          <div key={depto} className="bg-surface-container-lowest rounded-2xl border border-outline-variant/20 shadow-sm p-5">
-            <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/60 mb-1 truncate">{depto}</p>
-            <CurrencyDisplay value={saldo} className="text-primary" />
-          </div>
-        ))}
       </div>
 
       {/* GRID DE EVENTOS */}
