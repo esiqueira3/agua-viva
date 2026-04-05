@@ -353,7 +353,7 @@ export default function Dashboard() {
         <div className="col-span-12 lg:col-span-3 bg-surface-container-lowest rounded-3xl p-6 shadow-sm border border-outline-variant/10 overflow-hidden">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-sm font-black text-on-surface tracking-tight uppercase flex items-center gap-2">
-              <span className="material-symbols-outlined text-tertiary-fixed-dim">cake</span> Aniversários
+              <span className="material-symbols-outlined text-tertiary-fixed-dim">cake</span> Aniversários • {new Intl.DateTimeFormat('pt-BR', { month: 'long' }).format(new Date())}
             </h3>
           </div>
           <div className="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
