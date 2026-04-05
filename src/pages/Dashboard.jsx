@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [tarefas, setTarefas] = useState([])
   const [novaTarefaTexto, setNovaTarefaTexto] = useState('')
   const [currentUser, setCurrentUser] = useState(null)
+  const [userProfile, setUserProfile] = useState(null)
   const [graficoCrescimento, setGraficoCrescimento] = useState([])
   const [atividadesRecentes, setAtividadesRecentes] = useState([])
   const [saudacao, setSaudacao] = useState('')
@@ -30,6 +31,17 @@ export default function Dashboard() {
       // Identidade Logada
       const { data: { user } } = await supabase.auth.getUser()
       setCurrentUser(user)
+
+      if (user) {
+        // Busca perfil atualizado no banco (mais confiável que metadata)
+        const { data: userData } = await supabase
+          .from('usuarios_sistema')
+          .select('perfil')
+          .eq('email', user.email)
+          .single()
+        
+        if (userData) setUserProfile(userData.perfil)
+      }
 
       // Fetch Eventos
       const { data: evData } = await supabase
@@ -260,7 +272,7 @@ export default function Dashboard() {
     }
   }
 
-  const isAdmin = currentUser?.user_metadata?.perfil?.toLowerCase().includes('admin')
+  const isAdmin = userProfile?.toLowerCase().includes('admin') || currentUser?.user_metadata?.perfil?.toLowerCase().includes('admin')
 
   return (
     <div className="max-w-7xl mx-auto space-y-10">
