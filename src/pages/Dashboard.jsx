@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { Link } from 'react-router-dom'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts'
 
 export default function Dashboard() {
   const [proximosEventos, setProximosEventos] = useState([])
@@ -13,6 +14,9 @@ export default function Dashboard() {
   const [tarefas, setTarefas] = useState([])
   const [novaTarefaTexto, setNovaTarefaTexto] = useState('')
   const [currentUser, setCurrentUser] = useState(null)
+  const [graficoCrescimento, setGraficoCrescimento] = useState([])
+  const [atividadesRecentes, setAtividadesRecentes] = useState([])
+  const [saudacao, setSaudacao] = useState('')
 
   useEffect(() => {
     async function loadDashboard() {
@@ -128,6 +132,38 @@ export default function Dashboard() {
         
         if (tarData) setTarefas(tarData)
       }
+
+      // 1. Saudação Inteligente
+      const hora = new Date().getHours()
+      if (hora >= 5 && hora < 12) setSaudacao('Bom dia')
+      else if (hora >= 12 && hora < 18) setSaudacao('Boa tarde')
+      else setSaudacao('Boa noite')
+
+      // 2. Gráfico de Crescimento (Últimos 6 meses)
+      if (allMembers) {
+        const meses = []
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date()
+          d.setMonth(d.getMonth() - i)
+          const mesNome = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase()
+          const totalAteAqueleMes = allMembers.filter(m => new Date(m.created_at || new Date()) <= d).length
+          meses.push({ name: mesNome, total: totalAteAqueleMes })
+        }
+        setGraficoCrescimento(meses)
+      }
+
+      // 3. Atividades Recentes (Unificado de várias tabelas)
+      const [{data: recentMembros}, {data: recentSaques}] = await Promise.all([
+        supabase.from('membros').select('id, nome_completo, created_at').order('created_at', { ascending: false }).limit(3),
+        supabase.from('saques_eventos').select('id, responsavel, valor, created_at').order('created_at', { ascending: false }).limit(2)
+      ])
+
+      const acts = [
+        ...(recentMembros || []).map(m => ({ id: `m-${m.id}`, label: `${m.nome_completo} se cadastrou`, date: m.created_at, icon: 'person_add', color: 'text-emerald-500' })),
+        ...(recentSaques || []).map(s => ({ id: `s-${s.id}`, label: `Saque de R$ ${s.valor} by ${s.responsavel}`, date: s.created_at, icon: 'payments', color: 'text-orange-500' }))
+      ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5)
+      
+      setAtividadesRecentes(acts)
     }
     loadDashboard()
   }, [])
@@ -206,125 +242,195 @@ export default function Dashboard() {
          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent"></div>
       </div>
 
-      <section className="flex justify-between items-end">
+      <section className="bg-gradient-to-br from-primary/10 to-transparent p-10 rounded-[2.5rem] border border-primary/10 flex flex-col md:flex-row justify-between items-center gap-6">
         <div>
-          <h2 className="text-4xl font-headline font-extrabold tracking-tight text-primary flex items-center gap-3">
-             <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>dashboard</span> Painel de Bordo
+          <div className="flex items-center gap-2 mb-2 p-1 px-3 bg-primary/10 rounded-full w-fit">
+            <span className="material-symbols-outlined text-[14px] text-primary animate-pulse">new_releases</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-primary">Status Água Viva</span>
+          </div>
+          <h2 className="text-4xl md:text-5xl font-headline font-black tracking-tighter text-primary leading-none">
+            {saudacao}, <br className="md:hidden" />
+            <span className="text-on-surface">{currentUser?.user_metadata?.nome?.split(' ')[0] || 'Liderança'}!</span> ✨
           </h2>
-          <p className="text-on-surface-variant mt-2 font-body text-lg">Aqui está o resumo da sua comunidade hoje.</p>
+          <p className="text-on-surface-variant/70 mt-4 text-base font-bold flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px]">calendar_month</span>
+            Hoje é {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white/50 dark:bg-slate-900 shadow-xl shadow-primary/5 p-5 rounded-[1.5rem] border border-white dark:border-slate-800">
+             <p className="text-[10px] font-black uppercase text-on-surface-variant/40 mb-1">Membros Ativos</p>
+             <p className="text-3xl font-black text-primary">{demoStats.total}</p>
+          </div>
+          <div className="bg-white/50 dark:bg-slate-900 shadow-xl shadow-primary/5 p-5 rounded-[1.5rem] border border-white dark:border-slate-800">
+             <p className="text-[10px] font-black uppercase text-on-surface-variant/40 mb-1">Eventos Atuais</p>
+             <p className="text-3xl font-black text-tertiary-fixed-dim">{proximosEventos.length}</p>
+          </div>
         </div>
       </section>
 
-      <div className="grid grid-cols-12 gap-6">
-        {/* Aniversariantes */}
-        <div className="col-span-12 lg:col-span-4 bg-surface-container-lowest rounded-xl p-6 shadow-sm flex flex-col border border-outline-variant/10">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-base font-black text-on-surface tracking-tight uppercase flex items-center gap-2">
-              <span className="material-symbols-outlined text-tertiary-fixed-dim">cake</span> Aniversariantes
+      {/* NOVO: Gráfico de Crescimento */}
+      <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-outline-variant/10 p-8 shadow-sm">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+          <div>
+            <h3 className="text-base font-black text-on-surface uppercase tracking-tight flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>insights</span> 
+              Crescimento Ministerial
             </h3>
-            <span className="text-xs font-bold text-on-surface-variant/60 uppercase tracking-widest">Este mês</span>
+            <p className="text-[10px] font-bold text-on-surface-variant/50 uppercase tracking-widest mt-0.5">Evolução do número de membros ativos</p>
           </div>
-          <div className="space-y-4 max-h-[350px] overflow-y-auto custom-scrollbar pr-2">
-            {aniversariantes.length === 0 ? (
-               <p className="text-sm font-medium text-slate-400 italic py-4">Sem aniversariantes neste mês.</p>
-            ) : aniversariantes.map(membro => {
-               const day = parseInt(membro.data_nascimento.split('-')[2], 10)
-               const isToday = day === new Date().getDate()
-               const initials = membro.nome_completo.substring(0,2).toUpperCase()
-               const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-               const monthName = months[new Date().getMonth()];
+          <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-100 dark:border-emerald-500/20">
+             <span className="material-symbols-outlined text-[16px] text-emerald-600">trending_up</span>
+             <span className="text-[11px] font-bold text-emerald-600">+{graficoCrescimento[5]?.total - graficoCrescimento[4]?.total} este mês</span>
+          </div>
+        </div>
+        
+        <div className="h-[250px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={graficoCrescimento}>
+              <defs>
+                <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.1}/>
+                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <Tooltip 
+                contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }}
+              />
+              <Area type="monotone" dataKey="total" stroke="#3B82F6" strokeWidth={4} fillOpacity={1} fill="url(#colorTotal)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
 
-               return (
-                 <div key={membro.id} className="flex items-center gap-4 p-3 rounded-xl bg-surface-container-low/50 hover:bg-surface-container-low transition-colors border border-transparent hover:border-outline-variant/10">
-                   <div className="w-12 h-12 rounded-full bg-secondary-fixed/30 flex items-center justify-center text-on-surface font-black">{initials}</div>
-                   <div className="flex-1">
-                     <h4 className="text-sm font-bold text-on-surface leading-tight">{membro.nome_completo}</h4>
-                     <p className={`text-[11px] mt-1 uppercase tracking-wider ${isToday ? 'text-green-600 font-extrabold' : 'text-on-surface-variant font-bold'}`}>
-                        {day} de {monthName} {isToday && '✨ (Hoje!)'}
-                     </p>
+      <div className="grid grid-cols-12 gap-6">
+        <div className="col-span-12 lg:col-span-3 bg-surface-container-lowest rounded-3xl p-6 shadow-sm border border-outline-variant/10 overflow-hidden">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-sm font-black text-on-surface tracking-tight uppercase flex items-center gap-2">
+              <span className="material-symbols-outlined text-tertiary-fixed-dim">cake</span> Aniversários
+            </h3>
+          </div>
+          <div className="space-y-3">
+            {aniversariantes.length === 0 ? (
+               <p className="text-xs font-bold text-slate-400 italic py-4">Nenhum este mês.</p>
+            ) : (
+               aniversariantes.map(membro => {
+                 const day = parseInt(membro.data_nascimento.split('-')[2], 10)
+                 const isToday = day === new Date().getDate()
+                 const initials = membro.nome_completo.substring(0,2).toUpperCase()
+                 return (
+                   <div key={membro.id} className="flex items-center gap-3 p-2 rounded-2xl bg-surface transition-colors border border-outline-variant/5">
+                     <div className="w-10 h-10 rounded-full bg-secondary-fixed/20 flex items-center justify-center text-on-surface font-black text-xs">{initials}</div>
+                     <div className="min-w-0">
+                       <h4 className="text-xs font-bold text-on-surface truncate">{membro.nome_completo.split(' ')[0]}</h4>
+                       <p className={`text-[10px] uppercase tracking-wider ${isToday ? 'text-green-600 font-black' : 'text-on-surface-variant font-bold'}`}>
+                          Dia {day} {isToday && '✨'}
+                       </p>
+                     </div>
                    </div>
+                 )
+               })
+            )}
+          </div>
+        </div>
+
+        {/* Atividades Recentes */}
+        <div className="col-span-12 lg:col-span-4 bg-surface-container-lowest rounded-3xl p-6 shadow-sm border border-outline-variant/10">
+          <h3 className="text-sm font-black text-on-surface tracking-tight uppercase flex items-center gap-2 mb-6">
+            <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>history</span> Atividades
+          </h3>
+          <div className="space-y-4">
+            {atividadesRecentes.map(act => (
+               <div key={act.id} className="flex items-start gap-4 group">
+                 <div className={`w-8 h-8 rounded-xl bg-surface-container-low flex items-center justify-center shrink-0 border border-outline-variant/5`}>
+                   <span className={`material-symbols-outlined text-[18px] ${act.color}`}>{act.icon}</span>
                  </div>
-               )
-            })}
+                 <div className="min-w-0">
+                   <p className="text-xs font-bold text-on-surface leading-snug">{act.label}</p>
+                   <p className="text-[9px] font-black uppercase text-on-surface-variant/40 mt-1">
+                     {new Date(act.date).toLocaleDateString('pt-BR')} • {new Date(act.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                   </p>
+                 </div>
+               </div>
+            ))}
           </div>
         </div>
 
         {/* Próximos Eventos */}
-        <div className="col-span-12 lg:col-span-5 bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant/10">
+        <div className="col-span-12 lg:col-span-5 bg-surface-container-lowest rounded-3xl p-6 shadow-sm border border-outline-variant/10">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-base font-black text-on-surface tracking-tight uppercase flex items-center gap-2">
+            <h3 className="text-sm font-black text-on-surface tracking-tight uppercase flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">theater_comedy</span> Próximos Eventos
             </h3>
-            <Link to="/eventos" className="text-xs font-bold text-primary hover:underline uppercase">Ver todos</Link>
+            <Link to="/eventos" className="text-xs font-black text-primary hover:underline uppercase tracking-tighter">Ver todos</Link>
           </div>
           <div className="space-y-3">
              {proximosEventos.length === 0 ? (
-               <p className="text-sm font-medium text-slate-400 italic py-4">Nenhum evento futuro lançado ainda.</p>
-             ) : proximosEventos.map(ev => (
-                <div key={ev.id} className="p-4 rounded-xl border border-outline-variant/20 bg-surface shadow-sm relative overflow-hidden transition-all hover:shadow-md flex items-center justify-between group/card">
-                  <div className="absolute top-0 left-0 w-1.5 h-full bg-[#8B5CF6]"></div>
-                  <div className="flex-1 pl-2">
-                    <h4 className="font-bold text-on-surface leading-tight text-sm uppercase">{ev.nome}</h4>
-                    <div className="flex items-center gap-4 mt-2">
-                      <div className="flex items-center gap-1 text-[11px] text-on-surface-variant font-medium">
-                        <span className="material-symbols-outlined text-sm">calendar_today</span> 
-                        {ev.data_fim && ev.data_fim !== ev.data_evento 
-                          ? `${ev.data_evento.split('-').reverse().join('/')} a ${ev.data_fim.split('-').reverse().join('/')}`
-                          : ev.data_evento.split('-').reverse().join('/')
-                        }
-                      </div>
-                      {ev.hora_evento && (
-                        <div className="flex items-center gap-1 text-[11px] text-on-surface-variant font-medium">
-                          <span className="material-symbols-outlined text-sm">schedule</span> 
-                          {ev.hora_evento.substring(0,5)}
+               <p className="text-xs font-bold text-slate-400 italic py-4">Nenhum evento futuro lançado.</p>
+             ) : (
+               proximosEventos.map(ev => (
+                  <div key={ev.id} className="p-3 rounded-2xl border border-outline-variant/10 bg-surface shadow-sm relative overflow-hidden transition-all hover:bg-primary/5 flex items-center justify-between group/card">
+                     <div className="absolute top-0 left-0 w-1 h-full bg-primary/40"></div>
+                     <div className="flex-1 pl-2">
+                      <h4 className="font-extrabold text-on-surface leading-tight text-xs uppercase">{ev.nome}</h4>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <div className="flex items-center gap-1 text-[9px] text-on-surface-variant font-black uppercase">
+                          <span className="material-symbols-outlined text-xs">calendar_today</span> 
+                          {ev.data_evento.split('-').reverse().join('/')}
                         </div>
-                      )}
+                      </div>
                     </div>
+                    <div className="text-[8px] font-black uppercase text-on-surface-variant/30">{ev.status}</div>
                   </div>
-                  
-                  <div className="flex flex-col items-end gap-2 shrink-0">
-                    <div className="text-[9px] font-black uppercase tracking-wider text-slate-400">
-                      {ev.status}
-                    </div>
-                    {ev.pago && (
-                      <button 
-                        onClick={() => copyToClipboard(`${window.location.origin}/inscricao/${ev.id}`)}
-                        className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shadow-lg hover:scale-110 transition-all active:scale-95 translate-y-1"
-                        title="Copiar Link de Inscrição"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">content_copy</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-             ))}
+               ))
+             )}
+          </div>
+        </div>
+         {/* Mural de Avisos e Oração */}
+        <div className="col-span-12 lg:col-span-5 bg-surface-container-lowest rounded-3xl p-8 shadow-sm border border-outline-variant/10">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-sm font-black text-on-surface tracking-tight uppercase flex items-center gap-2">
+              <span className="material-symbols-outlined text-orange-500" style={{ fontVariationSettings: "'FILL' 1" }}>campaign</span> Mural de Avisos
+            </h3>
+          </div>
+          <div className="space-y-4">
+            <div className="p-4 rounded-2xl bg-orange-50 border border-orange-100 dark:bg-orange-900/10 dark:border-orange-800/20">
+               <h5 className="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-1">Destaque da Semana</h5>
+               <p className="text-sm font-extrabold text-on-surface">Reunião Geral de Liderança às 19:30 no Sábado.</p>
+               <p className="text-[10px] font-bold text-orange-500/60 mt-2">Clique para detalhes...</p>
+            </div>
+            <div className="p-4 rounded-2xl bg-primary-container/20 border border-primary-container/30">
+               <h5 className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Pedido de Oração</h5>
+               <p className="text-xs font-bold text-on-surface italic">"Oremos pela família do irmão Roberto e pela restauração de sua saúde."</p>
+            </div>
           </div>
         </div>
 
         {/* Gestão Ágil de Tarefas */}
-        <div className="col-span-12 lg:col-span-3 bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant/10 flex flex-col max-h-[440px]">
-          <div className="flex justify-between items-center mb-4 shrink-0">
-            <h3 className="text-base font-black text-on-surface tracking-tight uppercase flex items-center gap-2">
-              <span className="material-symbols-outlined text-on-tertiary-container">task_alt</span> 
-              TAREFAS
+        <div className="col-span-12 lg:col-span-7 bg-surface-container-lowest rounded-3xl p-8 shadow-sm border border-outline-variant/10 flex flex-col max-h-[440px]">
+          <div className="flex justify-between items-center mb-6 shrink-0">
+            <h3 className="text-sm font-black text-on-surface tracking-tight uppercase flex items-center gap-2">
+              <span className="material-symbols-outlined text-on-tertiary-container" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span> 
+              Minhas Pendências
             </h3>
           </div>
           
-          <div className="shrink-0 mb-5 relative group">
+          <div className="shrink-0 mb-6 relative group">
              <input 
                type="text" 
-               placeholder="Criar tarefa... (Enter)"
+               placeholder="Criar tarefa rápida... (Enter)"
                value={novaTarefaTexto}
                onChange={e => setNovaTarefaTexto(e.target.value)}
                onKeyDown={handleAddTarefa}
-               className="w-full bg-surface-container-low dark:bg-slate-800/50 border border-outline-variant/30 dark:border-slate-700 rounded-lg py-3 pl-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 dark:focus:bg-slate-800 transition-all font-medium text-on-surface dark:text-white shadow-inner"
+               className="w-full bg-surface-container-low border border-outline-variant/20 rounded-xl py-4 pl-4 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-on-surface shadow-inner"
              />
-             <span className="material-symbols-outlined absolute right-3 top-3.5 text-outline text-[18px] group-focus-within:text-primary transition-colors">add_task</span>
+             <span className="material-symbols-outlined absolute right-4 top-4 text-outline text-[18px] group-focus-within:text-primary transition-colors">add_task</span>
           </div>
 
-          <div className="space-y-2 overflow-y-auto custom-scrollbar flex-1 pr-1">
+          <div className="space-y-3 overflow-y-auto custom-scrollbar flex-1 pr-1">
              {tarefas.length === 0 ? (
-               <p className="text-xs text-on-surface-variant/50 text-center py-6 font-medium italic">Nenhuma pendência. Tabela limpa!</p>
+               <p className="text-[10px] font-black text-on-surface-variant/30 text-center py-6 uppercase tracking-widest">Lista vazia!</p>
              ) : (
                 tarefas.map(t => {
                    const taskDate = new Date(t.created_at);
@@ -334,42 +440,31 @@ export default function Dashboard() {
                    const formattedDate = `${day} ${month}`;
                    
                    return (
-                     <div key={t.id} className="group flex items-start gap-4 p-3 rounded-xl hover:bg-surface-container-low transition-all border border-transparent hover:border-outline-variant/5 bg-surface/30 mb-2">
+                     <div key={t.id} className="group flex items-start gap-4 p-3 rounded-2xl hover:bg-surface-container-low transition-all border border-outline-variant/5 bg-surface/30">
                        <div className="pt-0.5">
                          <input 
                            type="checkbox" 
                            checked={t.concluida}
                            onChange={() => handleToggleTarefa(t.id, t.concluida)}
-                           className="w-5 h-5 rounded border-2 border-outline-variant text-primary cursor-pointer accent-primary" 
+                           className="w-5 h-5 rounded-lg border-2 border-outline-variant text-primary cursor-pointer accent-primary" 
                          />
                        </div>
                        
                        <div className="flex-1 min-w-0">
-                         <h4 className={`text-sm font-bold transition-all ${t.concluida ? 'text-on-surface-variant/40 line-through font-medium' : 'text-on-surface'}`}>
+                         <h4 className={`text-sm font-bold transition-all ${t.concluida ? 'text-on-surface-variant/40 line-through' : 'text-on-surface'}`}>
                            {t.texto}
                          </h4>
-                         
-                         <div className="flex items-center gap-3 mt-1.5">
-                           {/* Data com Ícone */}
-                           <div className="flex items-center gap-1 text-[10px] font-bold text-on-surface-variant/60 uppercase">
+                         <div className="flex items-center gap-3 mt-1.5 opacity-60">
+                           <div className="flex items-center gap-1 text-[9px] font-black uppercase text-on-surface-variant">
                              <span className="material-symbols-outlined text-[14px]">calendar_today</span>
                              {formattedDate}
-                           </div>
-
-                           {/* Badge de Status */}
-                           <div className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
-                             t.concluida 
-                               ? 'bg-blue-100 text-blue-600' 
-                               : 'bg-amber-100 text-amber-600'
-                           }`}>
-                             {t.concluida ? 'CONCLUÍDO' : 'PENDENTE'}
                            </div>
                          </div>
                        </div>
 
                        <button 
                          onClick={() => handleDeleteTarefa(t.id)}
-                         className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-500 transition-all p-1 rounded hover:bg-red-50"
+                         className="opacity-0 group-hover:opacity-100 text-red-500 transition-all hover:bg-red-50 p-1.5 rounded-xl"
                          title="Excluir"
                        >
                          <span className="material-symbols-outlined text-[18px] block">delete</span>
@@ -380,7 +475,6 @@ export default function Dashboard() {
              )}
           </div>
         </div>
-
       </div>
 
       {/* Seção de Departamentos */}
