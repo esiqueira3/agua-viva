@@ -311,7 +311,7 @@ export default function Dashboard() {
               <span className="material-symbols-outlined text-tertiary-fixed-dim">cake</span> Aniversários
             </h3>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
             {aniversariantes.length === 0 ? (
                <p className="text-xs font-bold text-slate-400 italic py-4">Nenhum este mês.</p>
             ) : (
