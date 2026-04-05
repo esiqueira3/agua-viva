@@ -48,17 +48,31 @@ export default function Usuarios() {
     }
   }
 
+  const getPerfilBadge = (perfil) => {
+    const p = (perfil || '').toLowerCase()
+    if (p === 'administrador') return 'bg-violet-900 text-white border-violet-950 shadow-md shadow-violet-900/20'
+    if (p === 'liderança') return 'bg-pink-500 text-white border-pink-600 shadow-md shadow-pink-500/20'
+    if (p === 'secretaria') return 'bg-blue-50 text-blue-700 border-blue-200/60'
+    if (p === 'financeiro') return 'bg-emerald-50 text-emerald-700 border-emerald-200/60'
+    return 'bg-surface-container-high text-on-surface-variant border-outline-variant/30'
+  }
+
   const columns = [
     { label: 'Colaborador', key: 'nome', render: (row) => (
-       <div>
-         <p className="font-bold text-primary">{row.nome}</p>
-         <p className="text-[10px] text-tertiary-fixed-dim bg-tertiary-container/50 px-2 py-0.5 rounded inline-block mt-1 font-black uppercase tracking-widest">{row.perfil || 'Usuário'}</p>
+       <div className="py-1">
+         <p className="font-black text-primary text-sm tracking-tight leading-tight mb-1">{row.nome}</p>
+         <p className={`text-[9px] px-2.5 py-1 rounded-lg inline-block font-black uppercase tracking-[0.08em] border transition-all duration-300 ${getPerfilBadge(row.perfil)}`}>
+           {row.perfil || 'Usuário'}
+         </p>
        </div>
     )},
     { label: 'E-mail Integrado', key: 'email', render: (row) => (
-       <div>
-         <span className="text-on-surface-variant font-medium">{row.email}</span>
-         <p className="text-[9px] text-green-600/80 font-bold uppercase tracking-widest mt-1">✓ Autenticador Ativo</p>
+       <div className="py-1">
+         <span className="text-on-surface-variant font-semibold text-xs">{row.email}</span>
+         <div className="flex items-center gap-1.5 mt-1.5 text-green-600/80">
+            <span className="material-symbols-outlined text-[14px]">verified_user</span>
+            <p className="text-[9px] font-bold uppercase tracking-widest">Autenticador Ativo</p>
+         </div>
        </div>
     )},
     { label: 'Contato', key: 'telefone', render: (row) => <span className="font-mono text-xs text-on-surface">{row.telefone || 'Não Informado'}</span> },
