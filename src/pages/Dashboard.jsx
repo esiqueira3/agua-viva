@@ -17,6 +17,9 @@ export default function Dashboard() {
   const [graficoCrescimento, setGraficoCrescimento] = useState([])
   const [atividadesRecentes, setAtividadesRecentes] = useState([])
   const [saudacao, setSaudacao] = useState('')
+  const [avisos, setAvisos] = useState([])
+  const [novoAviso, setNovoAviso] = useState({ tipo: 'aviso', titulo: '', conteudo: '' })
+  const [showAddAviso, setShowAddAviso] = useState(false)
 
   useEffect(() => {
     async function loadDashboard() {
@@ -164,6 +167,15 @@ export default function Dashboard() {
       ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5)
       
       setAtividadesRecentes(acts)
+
+      // 4. Mural de Avisos Dinâmico
+      const { data: avData } = await supabase
+        .from('mural_avisos')
+        .select('*')
+        .order('prioridade', { ascending: false })
+        .order('created_at', { ascending: false })
+      
+      if (avData) setAvisos(avData)
     }
     loadDashboard()
   }, [])
@@ -229,6 +241,26 @@ export default function Dashboard() {
     setTarefas(prev => prev.filter(t => t.id !== id))
     await supabase.from('tarefas').delete().eq('id', id)
   }
+
+  // Ações Mural
+  const handleAddAviso = async () => {
+    if (!novoAviso.titulo || !novoAviso.conteudo) return
+    const { data, error } = await supabase.from('mural_avisos').insert([novoAviso]).select()
+    if (!error && data) {
+      setAvisos([data[0], ...avisos])
+      setNovoAviso({ tipo: 'aviso', titulo: '', conteudo: '' })
+      setShowAddAviso(false)
+    }
+  }
+
+  const handleDeleteAviso = async (id) => {
+    const { error } = await supabase.from('mural_avisos').delete().eq('id', id)
+    if (!error) {
+      setAvisos(prev => prev.filter(a => a.id !== id))
+    }
+  }
+
+  const isAdmin = currentUser?.user_metadata?.perfil === 'Administrador'
 
   return (
     <div className="max-w-7xl mx-auto space-y-10">
@@ -393,17 +425,83 @@ export default function Dashboard() {
             <h3 className="text-sm font-black text-on-surface tracking-tight uppercase flex items-center gap-2">
               <span className="material-symbols-outlined text-orange-500" style={{ fontVariationSettings: "'FILL' 1" }}>campaign</span> Mural de Avisos
             </h3>
+            {isAdmin && (
+              <button 
+                onClick={() => setShowAddAviso(!showAddAviso)}
+                className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all shadow-sm"
+              >
+                <span className="material-symbols-outlined text-[20px]">{showAddAviso ? 'close' : 'add'}</span>
+              </button>
+            )}
           </div>
-          <div className="space-y-4">
-            <div className="p-4 rounded-2xl bg-orange-50 border border-orange-100 dark:bg-orange-900/10 dark:border-orange-800/20">
-               <h5 className="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-1">Destaque da Semana</h5>
-               <p className="text-sm font-extrabold text-on-surface">Reunião Geral de Liderança às 19:30 no Sábado.</p>
-               <p className="text-[10px] font-bold text-orange-500/60 mt-2">Clique para detalhes...</p>
-            </div>
-            <div className="p-4 rounded-2xl bg-primary-container/20 border border-primary-container/30">
-               <h5 className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Pedido de Oração</h5>
-               <p className="text-xs font-bold text-on-surface italic">"Oremos pela família do irmão Roberto e pela restauração de sua saúde."</p>
-            </div>
+
+          <div className="space-y-4 max-h-[350px] overflow-y-auto custom-scrollbar pr-2">
+            {showAddAviso && isAdmin && (
+              <div className="p-4 rounded-2xl bg-surface-container-low border border-primary/20 mb-6 animate-in slide-in-from-top-4 duration-300">
+                <select 
+                  value={novoAviso.tipo}
+                  onChange={e => setNovoAviso({...novoAviso, tipo: e.target.value})}
+                  className="w-full bg-white dark:bg-slate-800 border border-outline-variant/30 rounded-xl px-3 py-2 text-xs font-bold mb-3"
+                >
+                  <option value="aviso">Aviso Geral</option>
+                  <option value="oracao">Pedido de Oração</option>
+                </select>
+                <input 
+                  type="text"
+                  placeholder="Título (ex: Destaque da Semana)"
+                  value={novoAviso.titulo}
+                  onChange={e => setNovoAviso({...novoAviso, titulo: e.target.value})}
+                  className="w-full bg-white dark:bg-slate-800 border border-outline-variant/30 rounded-xl px-3 py-3 text-xs font-bold mb-3"
+                />
+                <textarea 
+                  placeholder="Conteúdo do aviso..."
+                  value={novoAviso.conteudo}
+                  onChange={e => setNovoAviso({...novoAviso, conteudo: e.target.value})}
+                  className="w-full bg-white dark:bg-slate-800 border border-outline-variant/30 rounded-xl px-3 py-3 text-xs font-bold mb-4 min-h-[80px]"
+                />
+                <button 
+                  onClick={handleAddAviso}
+                  className="w-full py-3 bg-primary text-white text-xs font-black uppercase rounded-xl hover:shadow-lg transition-all active:scale-95"
+                >
+                  Publicar no Mural
+                </button>
+              </div>
+            )}
+
+            {avisos.length === 0 ? (
+               <div className="flex flex-col items-center justify-center py-10 opacity-30">
+                 <span className="material-symbols-outlined text-4xl mb-2">inbox</span>
+                 <p className="text-[10px] font-black uppercase tracking-widest">Nenhum aviso no momento</p>
+               </div>
+            ) : (
+              avisos.map(av => (
+                <div key={av.id} className={`p-4 rounded-2xl relative group ${
+                  av.tipo === 'oracao' 
+                    ? 'bg-primary-container/20 border border-primary-container/30' 
+                    : 'bg-orange-50 border border-orange-100 dark:bg-orange-900/10 dark:border-orange-800/20'
+                }`}>
+                  {isAdmin && (
+                    <button 
+                      onClick={() => handleDeleteAviso(av.id)}
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center transition-all hover:scale-110"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">delete</span>
+                    </button>
+                  )}
+                  <h5 className={`text-[10px] font-black uppercase tracking-widest mb-1 ${
+                    av.tipo === 'oracao' ? 'text-primary' : 'text-orange-600'
+                  }`}>
+                    {av.titulo || (av.tipo === 'oracao' ? 'Pedido de Oração' : 'Aviso')}
+                  </h5>
+                  <p className={`text-sm font-extrabold text-on-surface ${av.tipo === 'oracao' ? 'italic' : ''}`}>
+                    {av.conteudo}
+                  </p>
+                  <p className="text-[9px] font-black uppercase opacity-30 mt-2">
+                    {new Date(av.created_at).toLocaleDateString('pt-BR')}
+                  </p>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
