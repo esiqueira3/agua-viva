@@ -138,7 +138,7 @@ export default function CalendarioPublico() {
             <div className="h-8 w-[1px] bg-outline-variant/20 hidden md:block" />
             <div>
                <h1 className="text-lg font-black text-primary leading-none uppercase tracking-tighter">Agenda Água Viva</h1>
-               <p className="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest mt-0.5">Calendário da Igreja</p>
+               <p className="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest mt-0.5">Calendário da Comunidade</p>
             </div>
          </div>
          
