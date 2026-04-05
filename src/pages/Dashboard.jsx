@@ -260,7 +260,7 @@ export default function Dashboard() {
     }
   }
 
-  const isAdmin = currentUser?.user_metadata?.perfil === 'Administrador'
+  const isAdmin = currentUser?.user_metadata?.perfil?.toLowerCase() === 'administrador'
 
   return (
     <div className="max-w-7xl mx-auto space-y-10">
