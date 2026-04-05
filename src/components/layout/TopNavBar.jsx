@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { usePermissions } from '../../context/PermissionsContext'
 
 export default function TopNavBar({ toggleSidebar, isCollapsed }) {
-  const { userNome, userProfile, isAdmin, loading } = usePermissions()
+  const { userNome, userProfile, isAdmin, loading, user } = usePermissions()
   const [showMenu, setShowMenu] = useState(false)
   
   // Estados da Busca Global

@@ -190,7 +190,7 @@ export default function Dashboard() {
       if (avData) setAvisos(avData)
 
       // 5. Sensor Inteligente: Notificações Automáticas (Hoje)
-      if (allMembers && user) {
+      if (allMembers && currentUser) {
         const todayStr = new Date().toLocaleDateString('pt-BR')
         const keyAniv = `notif-aniv-${todayStr}`
         
@@ -205,7 +205,7 @@ export default function Dashboard() {
           if (bdayToday.length > 0) {
             const nomes = bdayToday.map(m => m.nome_completo.split(' ')[0]).join(', ')
             await supabase.from('notificacoes').insert([{
-              user_email: user.email,
+              user_email: currentUser.email,
               titulo: '🎈 Aniversariante(s) de Hoje!',
               mensagem: `Hoje comemoramos o dia de: ${nomes}. Que tal enviar uma mensagem?`,
               tipo: 'aniversario',
@@ -446,12 +446,14 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-100 dark:border-emerald-500/20">
              <span className="material-symbols-outlined text-[16px] text-emerald-600">trending_up</span>
-             <span className="text-[11px] font-bold text-emerald-600">+{graficoCrescimento[5]?.total - graficoCrescimento[4]?.total} este mês</span>
+             <span className="text-[11px] font-bold text-emerald-600">
+               +{((graficoCrescimento[5]?.total || 0) - (graficoCrescimento[4]?.total || 0))} este mês
+             </span>
           </div>
         </div>
         
-        <div className="h-[180px] min-h-[180px] w-full mt-4">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-[180px] min-h-[180px] w-full mt-4 bg-white dark:bg-slate-900">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
             <AreaChart data={graficoCrescimento}>
               <defs>
                 <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
