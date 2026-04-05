@@ -21,7 +21,7 @@ export default function Dashboard() {
   const [novoAviso, setNovoAviso] = useState({ tipo: 'aviso', titulo: '', conteudo: '' })
   const [showAddAviso, setShowAddAviso] = useState(false)
 
-  const { isAdmin, meusDepartamentos, loading: loadingPermissions, user: currentUser } = usePermissions()
+  const { isAdmin, meusDepartamentos, loading: loadingPermissions, user: currentUser, userNome } = usePermissions()
 
   useEffect(() => {
     async function loadDashboard() {
@@ -292,7 +292,7 @@ export default function Dashboard() {
           </div>
           <h2 className="text-4xl md:text-5xl font-headline font-black tracking-tighter text-primary leading-none">
             {saudacao}, <br className="md:hidden" />
-            <span className="text-on-surface">{currentUser?.user_metadata?.nome?.split(' ')[0] || 'Liderança'}!</span> ✨
+            <span className="text-on-surface">{userNome?.split(' ')[0] || 'Liderança'}!</span> ✨
           </h2>
           <p className="text-on-surface-variant/70 mt-4 text-base font-bold flex items-center gap-2">
             <span className="material-symbols-outlined text-[18px]">calendar_month</span>
