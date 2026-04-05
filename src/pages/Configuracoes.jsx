@@ -15,7 +15,7 @@ export default function Configuracoes() {
   })
   const [currentUser, setCurrentUser] = useState(null)
   const [loadingGlobal, setLoadingGlobal] = useState(false)
-  const { canAccess } = usePermissions()
+  const { canAccess, refetchPermissions } = usePermissions()
 
   useEffect(() => {
     setIsDark(document.documentElement.classList.contains('dark'))
@@ -52,7 +52,8 @@ export default function Configuracoes() {
      const { error } = await supabase.auth.updateUser({ data: { avatar_url: avatarUrl } })
      setLoading(false)
      if (!error) {
-        alert("🟢 Foto de perfil atualizada!\nAtualize a página do navegador para ver a mudança.")
+        await refetchPermissions()
+        alert("🟢 Foto de perfil atualizada!")
      } else {
         alert("❌ Erro ao salvar foto: " + error.message)
      }

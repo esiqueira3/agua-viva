@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase'
 import { usePermissions } from '../../context/PermissionsContext'
 
 export default function TopNavBar({ toggleSidebar, isCollapsed }) {
-  const { userNome, userProfile, isAdmin, loading, user } = usePermissions()
+  const { userNome, userProfile, isAdmin, loading, user, userAvatar } = usePermissions()
   const [showMenu, setShowMenu] = useState(false)
   
   // Estados da Busca Global
@@ -346,7 +346,11 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
               <p className="text-[10px] text-on-surface-variant uppercase font-semibold">{userProfile}</p>
             </div>
             <div className={`w-10 h-10 rounded-full border-2 bg-surface-variant flex items-center justify-center overflow-hidden transition-all ${showMenu ? 'border-primary ring-4 ring-primary/10' : 'border-tertiary-fixed'}`}>
-              <span className="material-symbols-outlined text-outline">person</span>
+              {userAvatar ? (
+                <img src={userAvatar} alt={userNome} className="w-full h-full object-cover" />
+              ) : (
+                <span className="material-symbols-outlined text-outline">person</span>
+              )}
             </div>
           </button>
 
