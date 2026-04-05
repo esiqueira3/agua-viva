@@ -56,6 +56,7 @@ export default function GestaoAcessos() {
       perms: [
         { key: 'menu_home', label: 'Painel Inicial (Dashboard)' },
         { key: 'menu_calendario', label: 'Calendário de Eventos' },
+        { key: 'menu_calendario_publico', label: 'Agenda Pública (Link Externo)' },
         { key: 'menu_calendario_edita_proprio', label: 'Editar Apenas Eventos Próprios no Calendário' },
       ]
     },

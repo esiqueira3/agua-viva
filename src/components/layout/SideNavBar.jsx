@@ -185,17 +185,19 @@ export default function SideNavBar({ isCollapsed }) {
                 {/* Submenu para Calendário */}
                 {item.name === 'Calendário' && !isCollapsed && (isCalendarioExpanded || location.pathname === '/agenda') && (
                    <div className="ml-9 mt-1 space-y-1">
-                      <Link 
-                        to="/agenda"
-                        className={`flex items-center gap-2 px-3 py-2 text-[11px] font-black uppercase tracking-wider rounded-lg transition-all ${
-                          location.pathname === '/agenda'
-                            ? 'text-primary bg-primary/10 dark:bg-primary/20'
-                            : 'text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5'
-                        }`}
-                      >
-                        <span className="material-symbols-outlined text-[16px]">public</span>
-                        AGENDA PÚBLICA
-                      </Link>
+                      {canAccess('menu_calendario_publico') && (
+                        <Link 
+                          to="/agenda"
+                          className={`flex items-center gap-2 px-3 py-2 text-[11px] font-black uppercase tracking-wider rounded-lg transition-all ${
+                            location.pathname === '/agenda'
+                              ? 'text-primary bg-primary/10 dark:bg-primary/20'
+                              : 'text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5'
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-[16px]">public</span>
+                          AGENDA PÚBLICA
+                        </Link>
+                      )}
                    </div>
                 )}
               </div>
