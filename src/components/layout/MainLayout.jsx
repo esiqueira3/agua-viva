@@ -31,7 +31,7 @@ export default function MainLayout() {
         </div>
         <footer className="p-8 border-t border-outline-variant/5 text-center mt-auto">
           <p className="text-[10px] font-black text-on-surface-variant/30 uppercase tracking-[0.2em] select-none">
-            Avadora Systema ® - 2026
+            Avadora System ® - 2026
           </p>
         </footer>
       </main>

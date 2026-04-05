@@ -368,7 +368,7 @@ export default function InscricaoEvento() {
       
       <footer className="mt-12 text-center">
          <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] select-none">
-            Avadora Systema ® - 2026
+            Avadora System ® - 2026
          </p>
       </footer>
 
