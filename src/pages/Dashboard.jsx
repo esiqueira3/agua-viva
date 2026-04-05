@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { Link } from 'react-router-dom'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts'
+import { usePermissions } from '../context/PermissionsContext'
 
 export default function Dashboard() {
   const [proximosEventos, setProximosEventos] = useState([])
@@ -13,8 +14,6 @@ export default function Dashboard() {
   // Controle Tarefas Inteligentes
   const [tarefas, setTarefas] = useState([])
   const [novaTarefaTexto, setNovaTarefaTexto] = useState('')
-  const [currentUser, setCurrentUser] = useState(null)
-  const [userProfile, setUserProfile] = useState(null)
   const [graficoCrescimento, setGraficoCrescimento] = useState([])
   const [atividadesRecentes, setAtividadesRecentes] = useState([])
   const [saudacao, setSaudacao] = useState('')
@@ -22,26 +21,15 @@ export default function Dashboard() {
   const [novoAviso, setNovoAviso] = useState({ tipo: 'aviso', titulo: '', conteudo: '' })
   const [showAddAviso, setShowAddAviso] = useState(false)
 
+  const { isAdmin, meusDepartamentos, loading: loadingPermissions, user: currentUser } = usePermissions()
+
   useEffect(() => {
     async function loadDashboard() {
+      if (loadingPermissions) return
+
       const todayDate = new Date()
       const todayISO = todayDate.toISOString().split('T')[0]
       const currentMonth = todayDate.getMonth() + 1
-
-      // Identidade Logada
-      const { data: { user } } = await supabase.auth.getUser()
-      setCurrentUser(user)
-
-      if (user) {
-        // Busca perfil atualizado no banco (mais confiável que metadata)
-        const { data: userData } = await supabase
-          .from('usuarios_sistema')
-          .select('perfil')
-          .eq('email', user.email)
-          .single()
-        
-        if (userData) setUserProfile(userData.perfil)
-      }
 
       // Fetch Eventos
       const { data: evData } = await supabase
@@ -81,7 +69,7 @@ export default function Dashboard() {
       // Fetch de todos os membros para contagem e nomes de líderes (Unificado)
       const { data: allMembers } = await supabase
          .from('membros')
-         .select('id, nome_completo, departamento_id, departamentos_ids, sexo, faixa_etaria, idade')
+         .select('id, nome_completo, departamento_id, departamentos_ids, sexo, faixa_etaria, idade, created_at')
          .eq('status', true)
 
       const { data: depts } = await supabase
@@ -137,11 +125,11 @@ export default function Dashboard() {
       }
 
       // Fetch Tarefas (Filtrado por Usuário Logado)
-      if (user) {
+      if (currentUser) {
         const { data: tarData } = await supabase
           .from('tarefas')
           .select('*')
-          .eq('user_email', user.email)
+          .eq('user_email', currentUser.email)
           .order('concluida', { ascending: true })
           .order('created_at', { ascending: false })
         
@@ -167,15 +155,27 @@ export default function Dashboard() {
         setGraficoCrescimento(meses)
       }
 
-      // 3. Atividades Recentes (Unificado de várias tabelas)
-      const [{data: recentMembros}, {data: recentSaques}] = await Promise.all([
-        supabase.from('membros').select('id, nome_completo, created_at').order('created_at', { ascending: false }).limit(3),
-        supabase.from('saques_eventos').select('id, responsavel, valor, created_at').order('created_at', { ascending: false }).limit(2)
+      // 3. Atividades Recentes (Unificado de várias tabelas com RBAC)
+      const fetchMembros = supabase.from('membros').select('id, nome_completo, created_at').order('created_at', { ascending: false }).limit(3)
+      
+      let querySaques = supabase.from('saques_eventos').select('*, eventos!inner(departamento_id)').order('created_at', { ascending: false }).limit(2)
+      
+      // APLICA FILTRO DE RBAC DE DEPARTAMENTO NOS SAQUES PARA LÍDERES
+      if (!isAdmin && meusDepartamentos.length > 0) {
+        querySaques = querySaques.in('eventos.departamento_id', meusDepartamentos)
+      } else if (!isAdmin && meusDepartamentos.length === 0) {
+        // Se é líder/vice mas não tem depto, não vê saques
+        querySaques = null
+      }
+
+      const [resMembros, resSaques] = await Promise.all([
+        fetchMembros,
+        querySaques ? querySaques : Promise.resolve({ data: [] })
       ])
 
       const acts = [
-        ...(recentMembros || []).map(m => ({ id: `m-${m.id}`, label: `${m.nome_completo} se cadastrou`, date: m.created_at, icon: 'person_add', color: 'text-emerald-500' })),
-        ...(recentSaques || []).map(s => ({ id: `s-${s.id}`, label: `Saque de R$ ${s.valor} by ${s.responsavel}`, date: s.created_at, icon: 'payments', color: 'text-orange-500' }))
+        ...(resMembros.data || []).map(m => ({ id: `m-${m.id}`, label: `${m.nome_completo} se cadastrou`, date: m.created_at, icon: 'person_add', color: 'text-emerald-500' })),
+        ...(resSaques.data || []).map(s => ({ id: `s-${s.id}`, label: `Saque de R$ ${s.valor} em ${s.responsavel}`, date: s.created_at, icon: 'payments', color: 'text-orange-500' }))
       ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5)
       
       setAtividadesRecentes(acts)
@@ -190,7 +190,7 @@ export default function Dashboard() {
       if (avData) setAvisos(avData)
     }
     loadDashboard()
-  }, [])
+  }, [loadingPermissions, isAdmin, meusDepartamentos])
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text)
@@ -271,8 +271,6 @@ export default function Dashboard() {
       setAvisos(prev => prev.filter(a => a.id !== id))
     }
   }
-
-  const isAdmin = userProfile?.toLowerCase().includes('admin') || currentUser?.user_metadata?.perfil?.toLowerCase().includes('admin')
 
   return (
     <div className="max-w-7xl mx-auto space-y-10">
