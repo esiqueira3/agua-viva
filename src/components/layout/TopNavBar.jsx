@@ -5,6 +5,13 @@ import { usePermissions } from '../../context/PermissionsContext'
 export default function TopNavBar({ toggleSidebar, isCollapsed }) {
   const { userNome, userProfile, isAdmin, loading } = usePermissions()
   const [showMenu, setShowMenu] = useState(false)
+  
+  // Estados da Busca Global
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState({ membros: [], eventos: [], departamentos: [] })
+  const [isSearching, setIsSearching] = useState(false)
+  const [showSearch, setShowSearch] = useState(false)
+
   const menuRef = useRef(null)
   const searchRef = useRef(null)
   
@@ -36,12 +43,6 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
       document.removeEventListener('keydown', handleEscape)
     }
   }, [showMenu, showSearch])
-  
-  // Estados da Busca Global
-  const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState({ membros: [], eventos: [], departamentos: [] })
-  const [isSearching, setIsSearching] = useState(false)
-  const [showSearch, setShowSearch] = useState(false)
 
   // Motor da Busca Global (Debounced)
   useEffect(() => {
