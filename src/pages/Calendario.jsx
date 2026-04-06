@@ -88,7 +88,7 @@ export default function Calendario() {
 
                results.push({
                   id: `${ev.id}_${i}`,
-                  title: horaLabel ? `${horaLabel} ${ev.nome}` : ev.nome,
+                  title: ev.nome,
                   start: dtStart,
                   end: dtEnd !== dtStart ? dtEnd : undefined,
                   backgroundColor: bgColor,
