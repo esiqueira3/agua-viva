@@ -719,9 +719,9 @@ export default function FinanceiroEventos() {
               <div>
                 <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Responsável pelo Saque *</label>
                 <input required type="text" value={novoSaque.responsavel}
-                  onChange={e => setNovoSaque({...novoSaque, responsavel: e.target.value})}
+                  onChange={e => setNovoSaque({...novoSaque, responsavel: e.target.value.toUpperCase()})}
                   placeholder="Nome de quem realizou o saque"
-                  className="w-full mt-1 bg-surface-container-low border border-outline-variant/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-orange-400 outline-none" />
+                  className="w-full mt-1 bg-surface-container-low border border-outline-variant/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-orange-400 outline-none uppercase" />
               </div>
 
               {/* Data + Observação */}
@@ -735,9 +735,9 @@ export default function FinanceiroEventos() {
                 <div>
                   <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Observação</label>
                   <input type="text" value={novoSaque.observacao}
-                    onChange={e => setNovoSaque({...novoSaque, observacao: e.target.value})}
+                    onChange={e => setNovoSaque({...novoSaque, observacao: e.target.value.toUpperCase()})}
                     placeholder="Ex: pagamento fornecedor"
-                    className="w-full mt-1 bg-surface-container-low border border-outline-variant/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-orange-400 outline-none" />
+                    className="w-full mt-1 bg-surface-container-low border border-outline-variant/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-orange-400 outline-none uppercase" />
                 </div>
               </div>
 
