@@ -101,7 +101,7 @@ export default function CadastroUsuario() {
 
             <div className="flex flex-col gap-1 mb-2 relative border-l-2 border-primary/20 pl-4">
               <label className="text-xs font-bold text-primary uppercase tracking-widest flex items-center gap-1">
-                 <span className="material-symbols-outlined text-[14px]">lock</span> Chave Eletrônica (E-mail)
+                 <span className="material-symbols-outlined text-[14px]">lock</span> Digite um email
               </label>
               <input required type="email" placeholder="lider@ibav.com.br" value={form.email} onChange={e => setForm({...form, email: e.target.value.toLowerCase().trim()})} className="p-3 bg-white dark:bg-slate-800 border-2 border-primary/40 rounded-lg focus:ring-2 focus:ring-primary outline-none font-mono text-sm shadow-md" />
               <p className="text-[10px] text-tertiary-fixed-dim font-bold mt-1 uppercase tracking-tighter">* A senha mágica de 8 dígitos (OTP) será disparada para este e-mail.</p>
