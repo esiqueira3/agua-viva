@@ -610,9 +610,16 @@ export default function FinanceiroEventos() {
               ].map(f => (
                 <div key={f.key}>
                   <label className="text-[10px] font-black uppercase text-slate-400 ml-1">{f.label}</label>
-                  <input required={f.required} type={f.type} value={novoLancamento[f.key]}
-                    onChange={e => setNovoLancamento({...novoLancamento, [f.key]: e.target.value})}
-                    className="w-full mt-1 bg-surface-container-low border border-outline-variant/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary outline-none" />
+                  <input 
+                    required={f.required} 
+                    type={f.type} 
+                    value={novoLancamento[f.key]}
+                    onChange={e => {
+                      const val = f.key === 'nome' ? e.target.value.toUpperCase() : e.target.value
+                      setNovoLancamento({...novoLancamento, [f.key]: val})
+                    }}
+                    className={`w-full mt-1 bg-surface-container-low border border-outline-variant/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary outline-none ${f.key === 'nome' ? 'uppercase' : ''}`} 
+                  />
                 </div>
               ))}
               <div>
