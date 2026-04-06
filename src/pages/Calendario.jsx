@@ -514,7 +514,7 @@ export default function Calendario() {
           border-radius: 6px !important;
           padding: 1px 6px !important;
           font-family: 'Manrope', sans-serif;
-          font-size: 10px !important;
+          font-size: 9px !important;
           font-weight: 800 !important;
           border: none !important;
           box-shadow: 0 1px 3px rgba(0,0,0,0.15);

@@ -368,6 +368,8 @@ export default function CalendarioPublico() {
           cursor: pointer;
           border-radius: 8px !important;
           padding: 2px 8px !important;
+          font-family: 'Manrope', sans-serif;
+          font-size: 9px !important;
           font-weight: 800 !important;
           border: none !important;
           box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
