@@ -11,6 +11,7 @@ export default function Membros() {
   const [filterTipo, setFilterTipo] = useState('')
   const [filterFaixaEtaria, setFilterFaixaEtaria] = useState('')
   const [filterEscolaridade, setFilterEscolaridade] = useState('')
+  const [filterCPF, setFilterCPF] = useState('')
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -19,7 +20,7 @@ export default function Membros() {
         .from('membros')
         .select(`
           id, nome_completo, telefone_principal, email, matricula, status, tipo_membro,
-          idade, faixa_etaria, escolaridade, departamentos ( nome )
+          idade, faixa_etaria, escolaridade, cpf, departamentos ( nome )
         `)
         .order('nome_completo', { ascending: true })
       
@@ -37,7 +38,8 @@ export default function Membros() {
     const matchesTipo = filterTipo === '' || m.tipo_membro === filterTipo
     const matchesFaixa = filterFaixaEtaria === '' || m.faixa_etaria === filterFaixaEtaria
     const matchesEscolaridade = filterEscolaridade === '' || m.escolaridade === filterEscolaridade
-    return matchesNome && matchesTipo && matchesFaixa && matchesEscolaridade
+    const matchesCPF = filterCPF === '' || (m.cpf && m.cpf.replace(/\D/g, '').includes(filterCPF.replace(/\D/g, '')))
+    return matchesNome && matchesTipo && matchesFaixa && matchesEscolaridade && matchesCPF
   })
 
   const handleDelete = async (row) => {
@@ -94,9 +96,10 @@ export default function Membros() {
     setFilterTipo('')
     setFilterFaixaEtaria('')
     setFilterEscolaridade('')
+    setFilterCPF('')
   }
 
-  const hasActiveFilters = searchTerm || filterTipo || filterFaixaEtaria || filterEscolaridade
+  const hasActiveFilters = searchTerm || filterTipo || filterFaixaEtaria || filterEscolaridade || filterCPF
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -165,7 +168,7 @@ export default function Membros() {
               <option value="Idoso(a)">Idoso(a) (60+)</option>
             </select>
           </div>
-          <div className="flex flex-col gap-1 flex-1 w-full">
+          <div className="flex flex-col gap-1 w-full md:w-64">
             <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">
               <span className="material-symbols-outlined text-[12px] align-middle mr-1">school</span>
               Escolaridade
@@ -175,7 +178,7 @@ export default function Membros() {
               onChange={(e) => setFilterEscolaridade(e.target.value)}
               className="w-full p-2.5 bg-white dark:bg-slate-800 dark:text-white dark:border-slate-600 border border-outline-variant/30 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm text-on-surface"
             >
-              <option value="">Todas as Escolaridades</option>
+              <option value="">Todas</option>
               <option value="Educação Infantil">Educação Infantil</option>
               <option value="Ensino Fundamental">Ensino Fundamental</option>
               <option value="Ensino Médio">Ensino Médio</option>
@@ -188,6 +191,19 @@ export default function Membros() {
               <option value="Ensino Superior - PhD">PhD</option>
               <option value="Nenhum">Nenhum</option>
             </select>
+          </div>
+          <div className="flex flex-col gap-1 flex-1 w-full">
+            <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">
+              <span className="material-symbols-outlined text-[12px] align-middle mr-1">fingerprint</span>
+              Buscar por CPF
+            </label>
+            <input 
+              type="text" 
+              placeholder="000.000.000-00" 
+              value={filterCPF}
+              onChange={(e) => setFilterCPF(e.target.value)}
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 dark:text-white dark:border-slate-600 border border-outline-variant/30 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm"
+            />
           </div>
           <div className="flex items-end gap-3 shrink-0">
             {hasActiveFilters && (
