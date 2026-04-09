@@ -41,22 +41,19 @@ CREATE TABLE public.eventos (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- Habilitando RLS para total disponibilidade interna
+-- Habilitando RLS
 ALTER TABLE public.igrejas ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.locais ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.eventos ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Igrejas select public" ON public.igrejas FOR SELECT USING (true);
-CREATE POLICY "Igrejas insert public" ON public.igrejas FOR INSERT WITH CHECK (true);
-CREATE POLICY "Igrejas update public" ON public.igrejas FOR UPDATE USING (true);
-CREATE POLICY "Igrejas delete public" ON public.igrejas FOR DELETE USING (true);
+-- POLÍTICAS SEGURAS: IGREJAS
+CREATE POLICY "Leitura geral igrejas" ON public.igrejas FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Admins gerem igrejas" ON public.igrejas FOR ALL TO authenticated USING (public.check_is_admin());
 
-CREATE POLICY "Locais select public" ON public.locais FOR SELECT USING (true);
-CREATE POLICY "Locais insert public" ON public.locais FOR INSERT WITH CHECK (true);
-CREATE POLICY "Locais update public" ON public.locais FOR UPDATE USING (true);
-CREATE POLICY "Locais delete public" ON public.locais FOR DELETE USING (true);
+-- POLÍTICAS SEGURAS: LOCAIS
+CREATE POLICY "Leitura geral locais" ON public.locais FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Admins gerem locais" ON public.locais FOR ALL TO authenticated USING (public.check_is_admin());
 
-CREATE POLICY "Eventos select public" ON public.eventos FOR SELECT USING (true);
-CREATE POLICY "Eventos insert public" ON public.eventos FOR INSERT WITH CHECK (true);
-CREATE POLICY "Eventos update public" ON public.eventos FOR UPDATE USING (true);
-CREATE POLICY "Eventos delete public" ON public.eventos FOR DELETE USING (true);
+-- POLÍTICAS SEGURAS: EVENTOS
+CREATE POLICY "Publico lê eventos" ON public.eventos FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Admins e Lideres gerem eventos" ON public.eventos FOR ALL TO authenticated USING (true);

@@ -65,18 +65,18 @@ CREATE TABLE public.membros (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- Habilitando politicas (RLS) abertas por enquanto.
--- Quando o modulo Auth ficar robusto com roles, alteramos
+-- Habilitando RLS
 ALTER TABLE public.departamentos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.membros ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Departamentos sao publicos para selects" ON public.departamentos FOR SELECT USING (true);
-CREATE POLICY "Departamentos aceitam inserts de qualquer um (temporario)" ON public.departamentos FOR INSERT WITH CHECK (true);
-CREATE POLICY "Departamentos alteracoes" ON public.departamentos FOR UPDATE USING (true);
+-- POLÍTICAS SEGURAS: DEPARTAMENTOS
+CREATE POLICY "Leitura geral para todos" ON public.departamentos FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Admins gerem dept" ON public.departamentos FOR ALL TO authenticated USING (public.check_is_admin());
 
-CREATE POLICY "Membros sao publicos para selects" ON public.membros FOR SELECT USING (true);
-CREATE POLICY "Membros aceitam inserts" ON public.membros FOR INSERT WITH CHECK (true);
-CREATE POLICY "Membros aceitam alteracoes" ON public.membros FOR UPDATE USING (true);
+-- POLÍTICAS SEGURAS: MEMBROS
+CREATE POLICY "Admins full access membros" ON public.membros FOR ALL TO authenticated USING (public.check_is_admin());
+CREATE POLICY "Publico insere membros (Pre-cadastro)" ON public.membros FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "Autenticados leem membros" ON public.membros FOR SELECT TO authenticated USING (true);
 
 -- Criar Storage Bucket para Fotos de Perfil
 INSERT INTO storage.buckets (id, name, public) VALUES ('profiles', 'profiles', true);
