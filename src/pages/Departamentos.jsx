@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Table } from '../components/ui/Table'
 import { ControlBar } from '../components/ui/ControlBar'
+import { Pagination } from '../components/ui/Pagination'
 import { supabase } from '../lib/supabase'
 import { useNavigate } from 'react-router-dom'
 
@@ -10,7 +11,13 @@ export default function Departamentos() {
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('departamentos_view_mode') || 'list')
   const [searchTerm, setSearchTerm] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 6
   const navigate = useNavigate()
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm])
 
   useEffect(() => {
     localStorage.setItem('departamentos_view_mode', viewMode)
@@ -96,8 +103,17 @@ export default function Departamentos() {
     d.tipo_departamento?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+  const paginatedDepartamentos = filteredDepartamentos.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
+
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6 px-1">
+      <PageHeader 
+        title="Departamentos" 
+        description="Gestão das áreas e congregações da sua igreja."
+        icon="account_tree"
         buttonLabel="Novo"
         buttonLink="/departamentos/novo"
       />
@@ -117,13 +133,13 @@ export default function Departamentos() {
       ) : viewMode === 'list' ? (
         <Table 
           columns={columns} 
-          data={filteredDepartamentos} 
+          data={paginatedDepartamentos} 
           onDelete={handleDelete}
           onEdit={(row) => navigate(`/departamentos/editar/${row.id}`)}
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-           {filteredDepartamentos.map(dept => (
+           {paginatedDepartamentos.map(dept => (
               <div 
                 key={dept.id}
                 className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
@@ -186,6 +202,15 @@ export default function Departamentos() {
               </div>
            ))}
         </div>
+      )}
+
+      {!loading && (
+        <Pagination 
+          totalItems={filteredDepartamentos.length}
+          itemsPerPage={itemsPerPage}
+          currentPage={currentPage}
+          onPageChange={setCurrentPage}
+        />
       )}
     </div>
   )

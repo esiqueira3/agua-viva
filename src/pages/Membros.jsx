@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Table } from '../components/ui/Table'
 import { ControlBar } from '../components/ui/ControlBar'
+import { Pagination } from '../components/ui/Pagination'
 import { supabase } from '../lib/supabase'
 import { useNavigate } from 'react-router-dom'
 
@@ -15,11 +16,17 @@ export default function Membros() {
   const [filterCPF, setFilterCPF] = useState('')
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('membros_view_mode') || 'list')
   const [showFiltersDrawer, setShowFiltersDrawer] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 12
   const navigate = useNavigate()
 
   useEffect(() => {
     localStorage.setItem('membros_view_mode', viewMode)
   }, [viewMode])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, filterTipo, filterFaixaEtaria, filterEscolaridade, filterCPF])
 
   useEffect(() => {
     async function fetchMembros() {
@@ -48,6 +55,11 @@ export default function Membros() {
     const matchesCPF = filterCPF === '' || (m.cpf && m.cpf.replace(/\D/g, '').includes(filterCPF.replace(/\D/g, '')))
     return matchesNome && matchesTipo && matchesFaixa && matchesEscolaridade && matchesCPF
   })
+
+  const paginatedMembros = membrosFiltrados.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
 
   const handleDelete = async (row) => {
     if(window.confirm(`Tem certeza que deseja excluir o membro: ${row.nome_completo}?`)) {
@@ -109,7 +121,11 @@ export default function Membros() {
   const hasActiveFilters = searchTerm || filterTipo || filterFaixaEtaria || filterEscolaridade || filterCPF
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6 px-1">
+      <PageHeader 
+        title="Membros" 
+        description="Cadastro dos membros da igreja."
+        icon="groups"
         buttonLabel="Novo"
         buttonLink="/membros/novo"
       />
@@ -223,13 +239,13 @@ export default function Membros() {
       ) : viewMode === 'list' ? (
         <Table 
           columns={columns} 
-          data={membrosFiltrados} 
+          data={paginatedMembros} 
           onDelete={handleDelete}
           onEdit={(row) => navigate(`/membros/editar/${row.id}`)}
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
-           {membrosFiltrados.map(membro => (
+           {paginatedMembros.map(membro => (
               <div 
                 key={membro.id}
                 className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-[2.5rem] shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 overflow-hidden"
@@ -289,6 +305,15 @@ export default function Membros() {
               </div>
            ))}
         </div>
+      )}
+
+      {!loading && (
+        <Pagination 
+          totalItems={membrosFiltrados.length}
+          itemsPerPage={itemsPerPage}
+          currentPage={currentPage}
+          onPageChange={setCurrentPage}
+        />
       )}
     </div>
   )

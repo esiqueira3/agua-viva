@@ -144,6 +144,10 @@ export default function Eventos() {
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6 px-1">
+      <PageHeader 
+        title="Gestão de Eventos" 
+        description="Cronograma das atividades oficiais da igreja."
+        icon="theater_comedy"
         buttonLabel="Novo"
         buttonLink="/eventos/novo"
       />
