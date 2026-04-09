@@ -11,24 +11,27 @@ export function PageHeader({ title, description, buttonLabel, buttonAction, butt
         {description && <p className="text-on-surface-variant mt-2 font-body text-base md:text-lg opacity-80">{description}</p>}
       </div>
       
-      {buttonLabel ? (
-        <div className="shrink-0 w-full md:w-auto">
-          {buttonLink ? (
-            <Link to={buttonLink} className="flex items-center justify-center gap-2 bg-gradient-to-br from-green-500 to-green-700 text-white px-8 py-3.5 rounded-2xl font-black shadow-xl shadow-green-600/20 hover:shadow-green-600/40 hover:-translate-y-0.5 transition-all active:scale-95 text-sm uppercase tracking-widest w-full md:w-auto">
-              <span className="material-symbols-outlined">add_circle</span> {buttonLabel}
-            </Link>
-          ) : (
-            <button onClick={buttonAction} className="flex items-center justify-center gap-2 bg-gradient-to-br from-green-500 to-green-700 text-white px-8 py-3.5 rounded-2xl font-black shadow-xl shadow-green-600/20 hover:shadow-green-600/40 hover:-translate-y-0.5 transition-all active:scale-95 text-sm uppercase tracking-widest w-full md:w-auto">
-              <span className="material-symbols-outlined">add_circle</span> {buttonLabel}
-            </button>
-          )
-        }
-        </div>
-      ) : children && (
-        <div className="shrink-0 w-full md:w-auto">
-          {children}
-        </div>
-      )}
+      <div className="flex flex-col md:flex-row items-start md:items-end gap-4 shrink-0 w-full md:w-auto">
+        {children && (
+          <div className="w-full md:w-auto">
+            {children}
+          </div>
+        )}
+
+        {buttonLabel && (
+          <div className="w-full md:w-auto">
+            {buttonLink ? (
+              <Link to={buttonLink} className="flex items-center justify-center gap-2 bg-gradient-to-br from-green-500 to-green-700 text-white px-8 py-3.5 rounded-2xl font-black shadow-xl shadow-green-600/20 hover:shadow-green-600/40 hover:-translate-y-0.5 transition-all active:scale-95 text-sm uppercase tracking-widest w-full md:w-auto">
+                <span className="material-symbols-outlined">add_circle</span> {buttonLabel}
+              </Link>
+            ) : (
+              <button onClick={buttonAction} className="flex items-center justify-center gap-2 bg-gradient-to-br from-green-500 to-green-700 text-white px-8 py-3.5 rounded-2xl font-black shadow-xl shadow-green-600/20 hover:shadow-green-600/40 hover:-translate-y-0.5 transition-all active:scale-95 text-sm uppercase tracking-widest w-full md:w-auto">
+                <span className="material-symbols-outlined">add_circle</span> {buttonLabel}
+              </button>
+            )}
+          </div>
+        )}
+      </div>
     </section>
   )
 }

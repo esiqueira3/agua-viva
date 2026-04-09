@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Table } from '../components/ui/Table'
+import { ControlBar } from '../components/ui/ControlBar'
 import { supabase } from '../lib/supabase'
 import { useNavigate } from 'react-router-dom'
 
@@ -8,6 +9,7 @@ export default function Igrejas() {
   const [igrejas, setIgrejas] = useState([])
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('igrejas_view_mode') || 'list')
+  const [searchTerm, setSearchTerm] = useState('')
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -75,6 +77,12 @@ export default function Igrejas() {
     )}
   ]
 
+  // Filtro de busca local
+  const filteredIgrejas = igrejas.filter(i => 
+    i.descricao?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    i.codigo?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <PageHeader 
@@ -83,35 +91,28 @@ export default function Igrejas() {
         icon="church"
         buttonLabel="Novo"
         buttonLink="/igrejas/novo"
-      >
-        <div className="flex items-center gap-1 bg-surface-variant/30 p-1 rounded-2xl border border-outline-variant/10">
-           <button 
-              onClick={() => setViewMode('list')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'list' ? 'bg-primary text-white shadow-lg' : 'text-on-surface-variant hover:bg-surface-variant/50'}`}
-           >
-              <span className="material-symbols-outlined text-[16px]">list</span> Lista
-           </button>
-           <button 
-              onClick={() => setViewMode('cards')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'cards' ? 'bg-primary text-white shadow-lg' : 'text-on-surface-variant hover:bg-surface-variant/50'}`}
-           >
-              <span className="material-symbols-outlined text-[16px]">grid_view</span> Cards
-           </button>
-        </div>
-      </PageHeader>
+      />
+
+      <ControlBar 
+        searchPlaceholder="Buscar por nome ou código..."
+        onSearch={setSearchTerm}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        onFiltersClick={() => alert("Em breve: Filtros avançados!")}
+      />
       
       {loading ? (
         <div className="flex justify-center p-12">
           <span className="material-symbols-outlined animate-spin text-tertiary-fixed-dim text-4xl">refresh</span>
         </div>
       ) : viewMode === 'list' ? (
-        <Table columns={columns} data={igrejas} onDelete={handleDelete} onEdit={(row) => navigate(`/igrejas/editar/${row.id}`)} />
+        <Table columns={columns} data={filteredIgrejas} onDelete={handleDelete} onEdit={(row) => navigate(`/igrejas/editar/${row.id}`)} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-           {igrejas.map(igreja => (
+           {filteredIgrejas.map(igreja => (
               <div 
                 key={igreja.id}
-                className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-[2rem] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+                className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
               >
                  {/* Luz Ambiente Interna */}
                  <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
