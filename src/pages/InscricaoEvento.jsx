@@ -170,11 +170,21 @@ export default function InscricaoEvento() {
                     ...formData,
                     deviceId: formData.deviceId || window.MP_DEVICE_SESSION_ID,
                     evento_id: id,
+                    nome_pagador: form.nome,
+                    email_pagador: form.email,
+                    whatsapp_pagador: form.whatsapp,
                     description: `Inscrição: ${evento.nome} - Titular: ${form.nome}`
                   }),
                 });
 
+                if (!response.ok) {
+                  const errorData = await response.json().catch(() => ({}));
+                  console.error("❌ Erro técnico no servidor:", errorData);
+                  throw new Error(errorData.error || 'Falha na comunicação com o servidor de pagamento');
+                }
+
                 const result = await response.json();
+                console.log("💎 Resposta do Mercado Pago:", result);
 
                 if (result.status === 'approved') {
                   const payload = {

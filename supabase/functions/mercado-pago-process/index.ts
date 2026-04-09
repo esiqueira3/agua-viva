@@ -13,7 +13,7 @@ serve(async (req) => {
 
   try {
     const body = await req.json()
-    const { 
+     const { 
       token, 
       issuer_id, 
       payment_method_id, 
@@ -22,10 +22,16 @@ serve(async (req) => {
       payer, 
       evento_id,
       deviceId,
+      nome_pagador,
+      email_pagador,
+      whatsapp_pagador,
       description 
     } = body
 
-    console.log("Recebendo pagamento para Evento:", evento_id, "Titular:", payer?.email, "Device ID:", deviceId)
+    // Capturar o IP do cliente para o antifraude
+    const clientIP = req.headers.get('x-real-ip') || req.headers.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1'
+
+    console.log("🚀 Processando Pagamento:", { evento_id, email_pagador, clientIP, deviceId })
 
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -50,6 +56,11 @@ serve(async (req) => {
       mpHeaders['X-Meli-Session-Id'] = deviceId
     }
 
+    // Dividir nome do pagador para primeiro e último nome
+    const nomePartes = (nome_pagador || 'Pagador').trim().split(' ')
+    const firstName = nomePartes[0]
+    const lastName = nomePartes.slice(1).join(' ') || 'Fiel'
+
     const mpResponse = await fetch('https://api.mercadopago.com/v1/payments', {
       method: 'POST',
       headers: mpHeaders,
@@ -60,16 +71,34 @@ serve(async (req) => {
         transaction_amount: Number(transaction_amount),
         installments: Number(installments),
         description: description || `Agua Viva - Inscrição Evento ID: ${evento_id}`,
+        binary_mode: true, // Aprovação ou negação imediata para evitar pendências infinitas
         payer: {
-          email: payer?.email,
+          email: email_pagador || payer?.email,
           identification: payer?.identification,
-          first_name: payer?.first_name,
-          last_name: payer?.last_name
+          first_name: firstName,
+          last_name: lastName
+        },
+        additional_info: {
+          ip_address: clientIP,
+          items: [
+            {
+              id: String(evento_id),
+              title: description || 'Inscrição em Evento',
+              quantity: 1,
+              unit_price: Number(transaction_amount)
+            }
+          ],
+          payer: {
+            first_name: firstName,
+            last_name: lastName,
+            registration_date: new Date().toISOString()
+          }
         },
         notification_url: "https://kfalhtebjoilpnncpkbd.supabase.co/functions/v1/mercado-pago-webhook",
         metadata: {
           evento_id: evento_id,
-          projeto: "Água Viva Church"
+          projeto: "Água Viva Church",
+          ip: clientIP
         }
       })
     })
