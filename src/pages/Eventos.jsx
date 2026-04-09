@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Table } from '../components/ui/Table'
+import { ControlBar } from '../components/ui/ControlBar'
 import { supabase } from '../lib/supabase'
 import { useNavigate } from 'react-router-dom'
 import { usePermissions } from '../context/PermissionsContext'
@@ -8,6 +9,8 @@ import { usePermissions } from '../context/PermissionsContext'
 export default function Eventos() {
   const [eventos, setEventos] = useState([])
   const [loading, setLoading] = useState(true)
+  const [viewMode, setViewMode] = useState(() => localStorage.getItem('eventos_view_mode') || 'list')
+  const [searchTerm, setSearchTerm] = useState('')
   const navigate = useNavigate()
   const { canAccess, membroId, meusDepartamentos, isAdmin, loading: loadingPermissions } = usePermissions()
 
@@ -56,6 +59,16 @@ export default function Eventos() {
        fetchEventos()
     }
   }, [membroId, isAdmin, meusDepartamentos, loadingPermissions])
+
+  useEffect(() => {
+    localStorage.setItem('eventos_view_mode', viewMode)
+  }, [viewMode])
+
+  const filteredEventos = (eventos || []).filter(e => 
+    e.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    e.locais?.descricao?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    e.departamentos?.nome?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   const handleDelete = async (row) => {
     if(window.confirm(`Cancelar e Excluir o evento: ${row.nome}?`)) {
@@ -131,18 +144,106 @@ export default function Eventos() {
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6 px-1">
-      <PageHeader 
-        title="Gestão de Eventos" 
-        description="Cronograma das atividades oficiais da igreja."
-        icon="theater_comedy"
         buttonLabel="Novo"
         buttonLink="/eventos/novo"
+      />
+
+      <ControlBar 
+        searchPlaceholder="Buscar eventos, locais ou setores..."
+        onSearch={setSearchTerm}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        onFiltersClick={() => alert("Filtros em breve!")}
       />
       
       {loading ? (
         <div className="flex justify-center p-12"><span className="material-symbols-outlined animate-spin text-tertiary-fixed-dim text-4xl">refresh</span></div>
+      ) : viewMode === 'list' ? (
+        <Table columns={columns} data={filteredEventos} onDelete={handleDelete} onEdit={(row) => navigate(`/eventos/editar/${row.id}`)} />
       ) : (
-        <Table columns={columns} data={eventos} onDelete={handleDelete} onEdit={(row) => navigate(`/eventos/editar/${row.id}`)} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+           {filteredEventos.map(evento => {
+              const dstart = new Date(evento.data_evento + 'T00:00:00')
+              const statusInfo = {
+                'Agendado': { color: 'text-blue-600', bg: 'bg-blue-50', icon: 'calendar_today' },
+                'Confirmado': { color: 'text-green-600', bg: 'bg-green-50', icon: 'check_circle' },
+                'Cancelado': { color: 'text-red-600', bg: 'bg-red-50', icon: 'cancel' },
+                'Concluído': { color: 'text-slate-600', bg: 'bg-slate-100', icon: 'task_alt' },
+              }[evento.status] || { color: 'text-blue-600', bg: 'bg-blue-50', icon: 'calendar_today' }
+
+              return (
+                <div 
+                  key={evento.id}
+                  className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-6 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 overflow-hidden relative"
+                >
+                   <div className={`absolute top-0 right-0 w-32 h-32 ${statusInfo.bg} opacity-20 blur-3xl rounded-full -mr-16 -mt-16`} />
+                   
+                   <div className="relative z-10 space-y-4">
+                      <div className="flex items-start justify-between">
+                         <div className="flex flex-col items-center justify-center w-14 h-14 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shrink-0">
+                            <span className="text-[10px] font-black uppercase text-primary/60">{dstart.toLocaleDateString('pt-BR', { month: 'short' }).replace('.','')}</span>
+                            <span className="text-xl font-black text-slate-900 dark:text-white leading-none">{dstart.getDate()}</span>
+                         </div>
+
+                         <div className="flex items-center gap-1">
+                            {evento.pago && (
+                              <button onClick={() => copyInscricaoLink(evento.id)} title="Copiar Link" className="p-2.5 text-primary hover:bg-primary/10 rounded-xl transition-all">
+                                 <span className="material-symbols-outlined text-[18px]">link</span>
+                              </button>
+                            )}
+                            <button onClick={() => navigate(`/eventos/editar/${evento.id}`)} className="p-2.5 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded-xl transition-all">
+                               <span className="material-symbols-outlined text-[18px]">edit</span>
+                            </button>
+                            <button onClick={() => handleDelete(evento)} className="p-2.5 text-on-surface-variant hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all">
+                               <span className="material-symbols-outlined text-[18px]">delete</span>
+                            </button>
+                         </div>
+                      </div>
+
+                      <div>
+                         <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${statusInfo.bg} ${statusInfo.color} text-[9px] font-black uppercase tracking-widest mb-2`}>
+                            <span className="material-symbols-outlined text-xs">{statusInfo.icon}</span>
+                            {evento.status}
+                         </div>
+                         <h3 className="text-xl font-extrabold text-slate-900 dark:text-white leading-tight group-hover:text-primary transition-colors">
+                            {evento.nome}
+                         </h3>
+                      </div>
+
+                      <div className="pt-4 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-3">
+                         <div className="space-y-1">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Onde</p>
+                            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+                               <span className="material-symbols-outlined text-sm">location_on</span>
+                               <span className="text-[11px] font-bold truncate">{evento.locais?.descricao || '-'}</span>
+                            </div>
+                         </div>
+                         <div className="space-y-1">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Setor</p>
+                            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+                               <span className="material-symbols-outlined text-sm">hub</span>
+                               <span className="text-[11px] font-bold truncate">{evento.departamentos?.nome || '-'}</span>
+                            </div>
+                         </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-[11px] font-bold text-slate-400">
+                         <div className="flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-sm">schedule</span>
+                            {evento.hora_evento.substring(0,5)}h
+                         </div>
+                         {evento.pago && (
+                           <div className="flex items-center gap-1 text-green-600 bg-green-50 px-2 py-0.5 rounded-md text-[9px] font-black">
+                              <span className="material-symbols-outlined text-xs">payments</span>
+                              PAGO
+                           </div>
+                         )}
+                      </div>
+                   </div>
+                </div>
+              )
+           })}
+        </div>
       )}
     </div>
   )

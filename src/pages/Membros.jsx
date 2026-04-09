@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Table } from '../components/ui/Table'
+import { ControlBar } from '../components/ui/ControlBar'
 import { supabase } from '../lib/supabase'
 import { useNavigate } from 'react-router-dom'
 
@@ -12,7 +13,13 @@ export default function Membros() {
   const [filterFaixaEtaria, setFilterFaixaEtaria] = useState('')
   const [filterEscolaridade, setFilterEscolaridade] = useState('')
   const [filterCPF, setFilterCPF] = useState('')
+  const [viewMode, setViewMode] = useState(() => localStorage.getItem('membros_view_mode') || 'list')
+  const [showFiltersDrawer, setShowFiltersDrawer] = useState(false)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    localStorage.setItem('membros_view_mode', viewMode)
+  }, [viewMode])
 
   useEffect(() => {
     async function fetchMembros() {
@@ -103,136 +110,185 @@ export default function Membros() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <PageHeader 
-        title="Membros" 
-        description="Cadastro dos membros da igreja."
-        icon="groups"
         buttonLabel="Novo"
         buttonLink="/membros/novo"
       />
 
-      {/* BARRA DE FILTROS */}
-      <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant/20 flex flex-col gap-4 shadow-sm">
-        {/* Linha 1: busca + tipo */}
-        <div className="flex flex-col md:flex-row gap-4 items-end">
-          <div className="flex flex-col gap-1 flex-1 w-full">
-            <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Buscar por Nome</label>
-            <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-xl">search</span>
-              <input 
-                type="text" 
-                placeholder="Ex: João Silva..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 dark:text-white dark:border-slate-600 dark:placeholder-slate-400 border border-outline-variant/30 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm"
-              />
-            </div>
-          </div>
-          <div className="flex flex-col gap-1 w-full md:w-52">
-            <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">Tipo de Membro</label>
-            <select 
-              value={filterTipo}
-              onChange={(e) => setFilterTipo(e.target.value)}
-              className="w-full p-2.5 bg-white dark:bg-slate-800 dark:text-white dark:border-slate-600 border border-outline-variant/30 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm text-on-surface"
-            >
-              <option value="">Todos os Tipos</option>
-              <option value="Membro">Membro</option>
-              <option value="Congregado">Congregado</option>
-              <option value="Afastado">Afastado</option>
-              <option value="Visitante">Visitante</option>
-              <option value="Pastor">Pastor</option>
-              <option value="Pastor Presidente">Pastor Presidente</option>
-              <option value="Vice Presidente">Vice Presidente</option>
-              <option value="Diretoria">Diretoria</option>
-            </select>
-          </div>
+      <ControlBar 
+        searchPlaceholder="Buscar membros por nome..."
+        onSearch={setSearchTerm}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        showFilters={true}
+        onFiltersClick={() => setShowFiltersDrawer(!showFiltersDrawer)}
+      >
+        <div className="text-[10px] font-black text-primary bg-primary/10 px-3 py-1.5 rounded-xl border border-primary/20 whitespace-nowrap">
+           {membrosFiltrados.length} MEMBROS
         </div>
+      </ControlBar>
 
-        {/* Linha 2: Faixa Etária + Escolaridade + Totalizador */}
-        <div className="flex flex-col md:flex-row gap-4 items-end">
-          <div className="flex flex-col gap-1 w-full md:w-52">
-            <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">
-              <span className="material-symbols-outlined text-[12px] align-middle mr-1">person</span>
-              Faixa Etária
-            </label>
-            <select 
-              value={filterFaixaEtaria}
-              onChange={(e) => setFilterFaixaEtaria(e.target.value)}
-              className="w-full p-2.5 bg-white dark:bg-slate-800 dark:text-white dark:border-slate-600 border border-outline-variant/30 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm text-on-surface"
-            >
-              <option value="">Todas as Faixas</option>
-              <option value="Criança">Criança (0-11 anos)</option>
-              <option value="Adolescente">Adolescente (12-17 anos)</option>
-              <option value="Jovem">Jovem (18-29 anos)</option>
-              <option value="Adulto">Adulto (30-59 anos)</option>
-              <option value="Idoso(a)">Idoso(a) (60+)</option>
-            </select>
-          </div>
-          <div className="flex flex-col gap-1 w-full md:w-64">
-            <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">
-              <span className="material-symbols-outlined text-[12px] align-middle mr-1">school</span>
-              Escolaridade
-            </label>
-            <select 
-              value={filterEscolaridade}
-              onChange={(e) => setFilterEscolaridade(e.target.value)}
-              className="w-full p-2.5 bg-white dark:bg-slate-800 dark:text-white dark:border-slate-600 border border-outline-variant/30 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm text-on-surface"
-            >
-              <option value="">Todas</option>
-              <option value="Educação Infantil">Educação Infantil</option>
-              <option value="Ensino Fundamental">Ensino Fundamental</option>
-              <option value="Ensino Médio">Ensino Médio</option>
-              <option value="Ensino Superior - Tecnólogo">Superior - Tecnólogo</option>
-              <option value="Ensino Superior - Licenciatura">Superior - Licenciatura</option>
-              <option value="Ensino Superior - Bacharelado">Superior - Bacharelado</option>
-              <option value="Ensino Superior - Especialização (Pós-graduação / MBA)">Especialização (Pós-Grad / MBA)</option>
-              <option value="Ensino Superior - Mestrado">Mestrado</option>
-              <option value="Ensino Superior - Doutorado">Doutorado</option>
-              <option value="Ensino Superior - PhD">PhD</option>
-              <option value="Nenhum">Nenhum</option>
-            </select>
-          </div>
-          <div className="flex flex-col gap-1 flex-1 w-full">
-            <label className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest ml-1">
-              <span className="material-symbols-outlined text-[12px] align-middle mr-1">fingerprint</span>
-              Buscar por CPF
-            </label>
-            <input 
-              type="text" 
-              placeholder="000.000.000-00" 
-              value={filterCPF}
-              onChange={(e) => setFilterCPF(e.target.value)}
-              className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 dark:text-white dark:border-slate-600 border border-outline-variant/30 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm"
-            />
-          </div>
-          <div className="flex items-end gap-3 shrink-0">
+      {/* GAVETA DE FILTROS AVANÇADOS */}
+      {showFiltersDrawer && (
+        <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 animate-in slide-in-from-top-4 duration-500 mb-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <h4 className="font-black text-slate-900 dark:text-white text-xs uppercase tracking-widest flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">filter_alt</span>
+              Filtros Avançados
+            </h4>
             {hasActiveFilters && (
               <button
                 onClick={handleClearFilters}
-                className="flex items-center gap-1 text-[10px] font-black uppercase text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-2.5 rounded-lg transition-colors border border-red-200"
+                className="text-[10px] font-black uppercase text-red-500 hover:text-red-700 transition-colors"
               >
-                <span className="material-symbols-outlined text-[14px]">filter_alt_off</span>
-                Limpar
+                Limpar Tudo
               </button>
             )}
-            <div className="text-[10px] font-black text-on-surface-variant/40 uppercase bg-surface-container-lowest px-3 py-3 rounded-lg border border-outline-variant/10 whitespace-nowrap">
-              {membrosFiltrados.length} resultado{membrosFiltrados.length !== 1 ? 's' : ''}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipo de Membro</label>
+              <select 
+                value={filterTipo}
+                onChange={(e) => setFilterTipo(e.target.value)}
+                className="w-full p-3 bg-white dark:bg-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-xs"
+              >
+                <option value="">Todos</option>
+                <option value="Membro">Membro</option>
+                <option value="Congregado">Congregado</option>
+                <option value="Afastado">Afastado</option>
+                <option value="Visitante">Visitante</option>
+                <option value="Pastor">Pastor</option>
+                <option value="Pastor Presidente">Pastor Presidente</option>
+                <option value="Vice Presidente">Vice Presidente</option>
+                <option value="Diretoria">Diretoria</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Faixa Etária</label>
+              <select 
+                value={filterFaixaEtaria}
+                onChange={(e) => setFilterFaixaEtaria(e.target.value)}
+                className="w-full p-3 bg-white dark:bg-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-xs"
+              >
+                <option value="">Todas</option>
+                <option value="Criança">Criança (0-11 anos)</option>
+                <option value="Adolescente">Adolescente (12-17 anos)</option>
+                <option value="Jovem">Jovem (18-29 anos)</option>
+                <option value="Adulto">Adulto (30-59 anos)</option>
+                <option value="Idoso(a)">Idoso(a) (60+)</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Escolaridade</label>
+              <select 
+                value={filterEscolaridade}
+                onChange={(e) => setFilterEscolaridade(e.target.value)}
+                className="w-full p-3 bg-white dark:bg-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-xs"
+              >
+                <option value="">Todas</option>
+                <option value="Educação Infantil">Educação Infantil</option>
+                <option value="Ensino Fundamental">Ensino Fundamental</option>
+                <option value="Ensino Médio">Ensino Médio</option>
+                <option value="Ensino Superior - Tecnólogo">Superior - Tecnólogo</option>
+                <option value="Ensino Superior - Licenciatura">Superior - Licenciatura</option>
+                <option value="Ensino Superior - Bacharelado">Superior - Bacharelado</option>
+                <option value="Ensino Superior - Especialização (Pós-graduação / MBA)">Especialização</option>
+                <option value="Ensino Superior - Mestrado">Mestrado</option>
+                <option value="Ensino Superior - Doutorado">Doutorado</option>
+                <option value="Ensino Superior - PhD">PhD</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">CPF</label>
+              <input 
+                type="text" 
+                placeholder="000.000.000-00" 
+                value={filterCPF}
+                onChange={(e) => setFilterCPF(e.target.value)}
+                className="w-full p-3 bg-white dark:bg-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-xs"
+              />
             </div>
           </div>
         </div>
-      </div>
+      )}
       
       {loading ? (
         <div className="flex justify-center p-12">
            <span className="material-symbols-outlined animate-spin text-tertiary-fixed-dim text-4xl">refresh</span>
         </div>
-      ) : (
+      ) : viewMode === 'list' ? (
         <Table 
           columns={columns} 
           data={membrosFiltrados} 
           onDelete={handleDelete}
           onEdit={(row) => navigate(`/membros/editar/${row.id}`)}
         />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+           {membrosFiltrados.map(membro => (
+              <div 
+                key={membro.id}
+                className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-[2.5rem] shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 overflow-hidden"
+              >
+                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-primary/10 transition-colors" />
+                 
+                 <div className="relative z-10 space-y-4">
+                    <div className="flex items-start justify-between">
+                       <div className="relative">
+                          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-lg bg-gradient-to-br transition-all duration-500 ${membro.status ? 'from-primary to-primary-fixed-dim' : 'from-slate-300 to-slate-400'}`}>
+                             <span className="material-symbols-outlined text-3xl">person</span>
+                          </div>
+                          {membro.status && (
+                             <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full flex items-center justify-center">
+                                <span className="material-symbols-outlined text-[10px] text-white font-black">check</span>
+                             </div>
+                          )}
+                       </div>
+                       <div className="flex items-center gap-1">
+                          <button onClick={() => navigate(`/membros/editar/${membro.id}`)} className="p-2.5 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded-xl transition-all">
+                             <span className="material-symbols-outlined text-[18px]">edit</span>
+                          </button>
+                          <button onClick={() => handleDelete(membro)} className="p-2.5 text-on-surface-variant hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all">
+                             <span className="material-symbols-outlined text-[18px]">delete</span>
+                          </button>
+                       </div>
+                    </div>
+
+                    <div>
+                       <div className="flex items-center gap-2 mb-1">
+                          <span className="bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-tighter">
+                             {membro.matricula || 'SEM MATRIC.'}
+                          </span>
+                          <span className="bg-primary/10 text-primary text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-tighter">
+                             {membro.tipo_membro || 'Membro'}
+                          </span>
+                       </div>
+                       <h3 className="text-lg font-black text-slate-900 dark:text-white leading-tight truncate group-hover:text-primary transition-colors">
+                          {membro.nome_completo}
+                       </h3>
+                       <p className="text-[11px] font-bold text-slate-400 leading-none mt-1">
+                          {membro.faixa_etaria} • {membro.idade ? `${membro.idade} anos` : 'Idade não inf.'}
+                       </p>
+                    </div>
+
+                    <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                       <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                          <span className="material-symbols-outlined text-sm opacity-50">hub</span>
+                          <span className="text-[11px] font-bold truncate">{membro.departamentos?.nome || 'Sem Departamento'}</span>
+                       </div>
+                       <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                          <span className="material-symbols-outlined text-sm opacity-50">call</span>
+                          <span className="text-[11px] font-bold tracking-wider">{membro.telefone_principal || 'Sem Telefone'}</span>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+           ))}
+        </div>
       )}
     </div>
   )
