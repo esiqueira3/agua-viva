@@ -12,9 +12,19 @@ serve(async (req) => {
   }
 
   try {
-    const { token, issuer_id, payment_method_id, transaction_amount, installments, payer_email, evento_id } = await req.json()
+    const body = await req.json()
+    const { 
+      token, 
+      issuer_id, 
+      payment_method_id, 
+      transaction_amount, 
+      installments, 
+      payer, 
+      evento_id,
+      description 
+    } = body
 
-    console.log("Recebendo pagamento para Evento:", evento_id)
+    console.log("Recebendo pagamento para Evento:", evento_id, "Titular:", payer?.email)
 
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -42,9 +52,16 @@ serve(async (req) => {
         payment_method_id,
         transaction_amount: Number(transaction_amount),
         installments: Number(installments),
-        description: `Agua Viva - Inscrição Evento ID: ${evento_id}`,
+        description: description || `Agua Viva - Inscrição Evento ID: ${evento_id}`,
         payer: {
-          email: payer_email
+          email: payer?.email,
+          identification: payer?.identification,
+          first_name: payer?.first_name,
+          last_name: payer?.last_name
+        },
+        metadata: {
+          evento_id: evento_id,
+          projeto: "Água Viva Church"
         }
       })
     })

@@ -166,8 +166,8 @@ export default function InscricaoEvento() {
                   method: 'POST',
                   body: JSON.stringify({
                     ...formData,
-                    payer_email: form.email,
-                    evento_id: id
+                    evento_id: id,
+                    description: `Inscrição: ${evento.nome} - Titular: ${form.nome}`
                   }),
                 });
 
