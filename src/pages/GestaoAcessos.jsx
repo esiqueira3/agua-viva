@@ -51,7 +51,7 @@ export default function GestaoAcessos() {
 
   const groups = [
     {
-      title: 'Acesso Geral & Início',
+      title: 'Acesso Geral & Home',
       icon: 'dashboard',
       perms: [
         { key: 'menu_home', label: 'Painel Inicial (Dashboard)' },
