@@ -46,8 +46,9 @@ export default function MainLayout() {
           <div className="text-center md:text-right">
             <button 
               onClick={() => setShowReadOnlyTermo(true)}
-              className="text-[10px] font-black text-primary/40 hover:text-primary uppercase tracking-[0.1em] transition-colors"
+              className="inline-flex items-center gap-1.5 text-[10px] font-black text-primary/40 hover:text-primary uppercase tracking-[0.1em] transition-colors"
             >
+              <span className="material-symbols-outlined text-[14px]">policy</span>
               Termo de Uso
             </button>
           </div>
