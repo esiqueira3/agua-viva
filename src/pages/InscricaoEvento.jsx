@@ -182,6 +182,7 @@ export default function InscricaoEvento() {
                     email_participante: form.email,
                     whatsapp: form.whatsapp,
                     valor_pago: result.transaction_amount,
+                    pagamento_id: String(result.id),
                     status: 'confirmada'
                   }
                   await supabase.from('inscricoes').insert([payload])
@@ -194,6 +195,7 @@ export default function InscricaoEvento() {
                     email_participante: form.email,
                     whatsapp: form.whatsapp,
                     valor_pago: result.transaction_amount,
+                    pagamento_id: String(result.id),
                     status: 'pendente'
                   }
                   await supabase.from('inscricoes').insert([payload])
