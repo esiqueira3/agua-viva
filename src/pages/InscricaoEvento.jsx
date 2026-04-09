@@ -168,6 +168,7 @@ export default function InscricaoEvento() {
                   method: 'POST',
                   body: JSON.stringify({
                     ...formData,
+                    deviceId: formData.deviceId || window.MP_DEVICE_SESSION_ID,
                     evento_id: id,
                     description: `Inscrição: ${evento.nome} - Titular: ${form.nome}`
                   }),

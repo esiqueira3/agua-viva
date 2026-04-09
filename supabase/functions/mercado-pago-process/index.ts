@@ -21,10 +21,11 @@ serve(async (req) => {
       installments, 
       payer, 
       evento_id,
+      deviceId,
       description 
     } = body
 
-    console.log("Recebendo pagamento para Evento:", evento_id, "Titular:", payer?.email)
+    console.log("Recebendo pagamento para Evento:", evento_id, "Titular:", payer?.email, "Device ID:", deviceId)
 
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -39,13 +40,19 @@ serve(async (req) => {
 
     if (!config?.valor) throw new Error("Access Token não encontrado no banco!")
 
+    const mpHeaders: Record<string, string> = {
+      'Authorization': `Bearer ${config.valor}`,
+      'Content-Type': 'application/json',
+      'X-Idempotency-Key': crypto.randomUUID()
+    }
+
+    if (deviceId) {
+      mpHeaders['X-Meli-Session-Id'] = deviceId
+    }
+
     const mpResponse = await fetch('https://api.mercadopago.com/v1/payments', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${config.valor}`,
-        'Content-Type': 'application/json',
-        'X-Idempotency-Key': crypto.randomUUID()
-      },
+      headers: mpHeaders,
       body: JSON.stringify({
         token,
         issuer_id,
