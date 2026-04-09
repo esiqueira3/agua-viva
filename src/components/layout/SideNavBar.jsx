@@ -272,6 +272,8 @@ export default function SideNavBar({ isCollapsed }) {
                         {canAccess('menu_calendario_publico') && (
                           <Link 
                             to="/agenda"
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className={`flex items-center gap-2 px-3 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${
                               location.pathname === '/agenda'
                                 ? 'text-fuchsia-600 bg-fuchsia-500/10 shadow-sm'
