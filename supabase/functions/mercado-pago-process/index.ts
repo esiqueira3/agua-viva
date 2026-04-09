@@ -59,6 +59,7 @@ serve(async (req) => {
           first_name: payer?.first_name,
           last_name: payer?.last_name
         },
+        notification_url: "https://kfalhtebjoilpnncpkbd.supabase.co/functions/v1/mercado-pago-webhook",
         metadata: {
           evento_id: evento_id,
           projeto: "Água Viva Church"
