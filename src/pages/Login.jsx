@@ -50,14 +50,23 @@ export default function Login() {
     setErrorMsg(null)
 
     // PASSO 1: CHECAGEM DA WHITELIST
+    const cleanEmail = email.toLowerCase().trim()
+    
     const { data: autorizacao, error: dbError } = await supabase
       .from('usuarios_sistema')
       .select('*')
-      .eq('email', email.toLowerCase().trim())
-      .single()
+      .ilike('email', cleanEmail)
+      .maybeSingle()
 
-    if (dbError || !autorizacao) {
-       setErrorMsg("Acesso bloqueado! Sua conta não está autorizada.")
+    if (dbError) {
+       console.error("Erro na consulta de whitelist:", dbError)
+       setErrorMsg("Erro de conexão! Tente novamente em instantes.")
+       setLoading(false)
+       return
+    }
+
+    if (!autorizacao) {
+       setErrorMsg("Acesso bloqueado! O e-mail '" + cleanEmail + "' não está na Whitelist.")
        setLoading(false)
        return
     }
