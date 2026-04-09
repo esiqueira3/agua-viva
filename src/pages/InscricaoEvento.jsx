@@ -9,6 +9,8 @@ export default function InscricaoEvento() {
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [brickLoading, setBrickLoading] = useState(true)
+  const [showHelpModal, setShowHelpModal] = useState(false)
+  const [lastError, setLastError] = useState(null)
   
   const [form, setForm] = useState({
     nome: '',
@@ -199,10 +201,12 @@ export default function InscricaoEvento() {
                   setSuccess(true);
                   notifyRegistration(form.nome, result.transaction_amount);
                 } else {
-                  alert(`❌ Pagamento ${result.status}: ${result.status_detail || 'Operação recusada'}`);
+                  setLastError(result.status_detail || result.status || 'Operação recusada')
+                  setShowHelpModal(true)
                 }
               } catch (e) {
-                alert("⚠️ Erro no processamento: " + e.message);
+                setLastError(e.message)
+                setShowHelpModal(true)
               } finally {
                 setSubmitting(false);
               }
@@ -379,6 +383,92 @@ export default function InscricaoEvento() {
             Ambiente Seguro <span className="text-primary">Mercado Pago</span>
          </p>
       </div>
+
+      {/* Modal de Ajuda para Erros de Pagamento */}
+      {showHelpModal && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
+          onClick={() => setShowHelpModal(false)}
+        >
+          <div 
+            className="bg-white rounded-[2rem] max-w-lg w-full shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="bg-red-500 p-6 text-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-3xl animate-pulse">info</span>
+                <h3 className="font-black text-xl uppercase tracking-tight">Ajuda com o Pagamento</h3>
+              </div>
+              <button 
+                onClick={() => setShowHelpModal(false)}
+                className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+              >
+                <span className="material-symbols-outlined text-sm">close</span>
+              </button>
+            </div>
+
+            <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+              <div className="bg-red-50 border border-red-100 p-4 rounded-2xl">
+                <p className="text-red-700 text-sm font-bold flex items-center gap-2">
+                   <span className="material-symbols-outlined text-lg">error</span>
+                   Erro: {lastError === 'cc_rejected_high_risk' ? 'Pagamento Recusado por Segurança' : lastError}
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-black text-slate-900 text-sm uppercase tracking-widest flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary text-xl">help</span>
+                  Motivos Comuns de Recusa:
+                </h4>
+                
+                <div className="space-y-4 text-sm text-slate-600 leading-relaxed">
+                  <div className="flex gap-3">
+                     <span className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5">1</span>
+                     <p><strong className="text-slate-900">Mesmo Usuário:</strong> Você está tentando pagar com um cartão que está no mesmo nome ou CPF da conta que recebe o dinheiro (a conta da igreja no Mercado Pago). O Mercado Pago bloqueia isso automaticamente para evitar "auto-empréstimo" ou fraude.</p>
+                  </div>
+                  
+                  <div className="flex gap-3">
+                     <span className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5">2</span>
+                     <p><strong className="text-slate-900">Padrão de Compra:</strong> O valor ou o comportamento da compra saiu do padrão comum do cartão.</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                     <span className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5">3</span>
+                     <p><strong className="text-slate-900">Histórico do Cartão:</strong> O cartão pode ter sido usado em muitas tentativas seguidas recentemente.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 space-y-4">
+                <h4 className="font-black text-slate-900 text-sm uppercase tracking-widest flex items-center gap-2">
+                  <span className="material-symbols-outlined text-green-600 text-xl">task_alt</span>
+                  O que você pode fazer:
+                </h4>
+                
+                <div className="space-y-3 text-sm text-slate-600">
+                  <p className="flex items-start gap-3">
+                    <span className="material-symbols-outlined text-green-600 text-[18px] shrink-0">check_circle</span>
+                    <span><strong className="text-slate-900">Tente com outro cartão:</strong> De preferência de uma pessoa diferente (amigo ou familiar) que não tenha vínculo com a conta do Mercado Pago da igreja.</span>
+                  </p>
+                  <p className="flex items-start gap-3">
+                    <span className="material-symbols-outlined text-green-600 text-[18px] shrink-0">check_circle</span>
+                    <span><strong className="text-slate-900">Verifique o CPF:</strong> O Mercado Pago usa o CPF para validar se o titular do cartão é o mesmo que está fazendo a compra.</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 bg-slate-50 border-t border-slate-100">
+              <button 
+                onClick={() => setShowHelpModal(false)}
+                className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10 active:scale-95"
+              >
+                Entendi, vou tentar novamente
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
