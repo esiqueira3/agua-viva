@@ -36,6 +36,7 @@ export default function FinanceiroEventos() {
   // Modais
   const [showModalManual, setShowModalManual] = useState(false)
   const [showModalSaque, setShowModalSaque] = useState(false)
+  const [qrModalData, setQrModalData] = useState(null)
   const [savingSaque, setSavingSaque] = useState(false)
   
   // Filtros
@@ -374,11 +375,18 @@ export default function FinanceiroEventos() {
                 </div>
 
                 {/* QR Code Lateral */}
-                <div className={`shrink-0 p-1.5 rounded-2xl border ${
-                  eventoSelecionado?.id === ev.id 
-                    ? 'bg-white/10 border-white/20 shadow-inner' 
-                    : 'bg-white border-outline-variant/5 shadow-sm'
-                }`}>
+                <div 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setQrModalData({ id: ev.id, nome: ev.nome });
+                  }}
+                  className={`shrink-0 p-1.5 rounded-2xl border cursor-zoom-in transition-transform hover:scale-105 active:scale-95 ${
+                    eventoSelecionado?.id === ev.id 
+                      ? 'bg-white/10 border-white/20 shadow-inner' 
+                      : 'bg-white border-outline-variant/5 shadow-sm'
+                  }`}
+                  title="Clique para ampliar"
+                >
                    <img 
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(window.location.origin + '/inscricao/' + ev.id)}`}
                       alt="QR Link"
@@ -781,6 +789,67 @@ export default function FinanceiroEventos() {
           </div>
         </div>
       )}
+
+       {/* Modal do QR Code Ampliado */}
+       {qrModalData && (
+         <div 
+           className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
+           onClick={() => setQrModalData(null)}
+         >
+           <div 
+             className="bg-white dark:bg-slate-900 rounded-[2.5rem] max-w-sm w-full shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-white/20"
+             onClick={e => e.stopPropagation()}
+           >
+             <div className="bg-primary p-6 text-white flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                   <span className="material-symbols-outlined text-2xl font-bold">qr_code_2</span>
+                   <h3 className="font-extrabold text-lg uppercase tracking-tight">QR Code de Inscrição</h3>
+                </div>
+                <button 
+                  onClick={() => setQrModalData(null)}
+                  className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">close</span>
+                </button>
+             </div>
+
+             <div className="p-10 flex flex-col items-center space-y-6">
+                <div className="text-center space-y-1">
+                   <h4 className="text-slate-900 dark:text-white font-black text-xl leading-tight">{qrModalData.nome}</h4>
+                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Escaneie para se inscrever</p>
+                </div>
+
+                <div className="bg-white p-6 rounded-[2rem] border-4 border-slate-100 dark:border-slate-800 shadow-inner">
+                   <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(window.location.origin + '/inscricao/' + qrModalData.id)}`} 
+                      alt="QR Code Ampliado"
+                      className="w-56 h-56 rounded-xl"
+                   />
+                </div>
+
+                <div className="w-full pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-3">
+                   <button 
+                     onClick={() => {
+                        const url = `${window.location.origin}/inscricao/${qrModalData.id}`;
+                        navigator.clipboard.writeText(url);
+                        alert("✅ Link de Inscrição copiado!");
+                     }}
+                     className="w-full py-4 bg-slate-100 dark:bg-white/10 hover:bg-primary/10 text-slate-600 dark:text-slate-300 hover:text-primary rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                   >
+                      <span className="material-symbols-outlined text-sm">link</span>
+                      Copiar Link Direto
+                   </button>
+                   <button 
+                     onClick={() => setQrModalData(null)}
+                     className="w-full py-4 bg-slate-900 dark:bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-slate-900/20"
+                   >
+                      Fechar
+                   </button>
+                </div>
+             </div>
+           </div>
+         </div>
+       )}
     </div>
   )
 }
