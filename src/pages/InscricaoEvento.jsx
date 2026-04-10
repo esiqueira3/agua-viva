@@ -8,6 +8,7 @@ export default function InscricaoEvento() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [pixData, setPixData] = useState(null)
   const [brickLoading, setBrickLoading] = useState(true)
   const [showHelpModal, setShowHelpModal] = useState(false)
   const [lastError, setLastError] = useState(null)
@@ -129,19 +130,24 @@ export default function InscricaoEvento() {
       const mp = new window.MercadoPago(publicKey, { locale: 'pt-BR' });
       const bricksBuilder = mp.bricks();
 
-      const renderCardPaymentBrick = async (builder) => {
+      const renderPaymentBrick = async (builder) => {
         const amountValue = Number(evento.valor_total) || 0;
         const maxInstallmentsValue = Number(evento.max_parcelas) || 1;
 
-        console.log("Configurando Brick - Valor:", amountValue, "Max Parcelas:", maxInstallmentsValue);
+        console.log("Configurando Payment Brick - Valor:", amountValue);
 
         const settings = {
           initialization: {
             amount: Number(amountValue.toFixed(2)),
             payer: { email: form.email },
-            installments: 1
           },
           customization: {
+            paymentMethods: {
+              pix: 'all',
+              creditCard: 'all',
+              debitCard: 'all',
+              maxInstallments: maxInstallmentsValue,
+            },
             visual: {
               style: {
                 theme: 'default',
@@ -149,26 +155,22 @@ export default function InscricaoEvento() {
                   baseColor: '#8B5CF6',
                 }
               }
-            },
-            paymentMethods: {
-              maxInstallments: maxInstallmentsValue,
-              minInstallments: 1
             }
           },
           callbacks: {
             onReady: () => {
-              console.log("Card Brick Pronto com", maxInstallmentsValue, "parcelas! ✨");
+              console.log("Payment Brick Pronto! ✨");
               setBrickLoading(false);
             },
-            onSubmit: async (formData) => {
+            onSubmit: async (paymentFormData) => {
               setSubmitting(true);
-              console.log("Enviando pagamento: ", formData.installments, "parcelas");
+              console.log("Enviado para processamento:", paymentFormData.payment_method_id);
               try {
                 const response = await fetch('https://kfalhtebjoilpnncpkbd.supabase.co/functions/v1/mercado-pago-process', {
                   method: 'POST',
                   body: JSON.stringify({
-                    ...formData,
-                    deviceId: formData.deviceId || window.MP_DEVICE_SESSION_ID,
+                    ...paymentFormData,
+                    deviceId: paymentFormData.deviceId || window.MP_DEVICE_SESSION_ID,
                     evento_id: id,
                     nome_pagador: form.nome,
                     email_pagador: form.email,
@@ -199,6 +201,24 @@ export default function InscricaoEvento() {
                   await supabase.from('inscricoes').insert([payload])
                   setSuccess(true);
                   notifyRegistration(form.nome, result.transaction_amount);
+                } else if (result.status === 'pending' && result.payment_method_id === 'pix') {
+                  // Tratar dados do Pix para exibir o QR Code
+                  const payload = {
+                    evento_id: id,
+                    nome_participante: form.nome,
+                    email_participante: form.email,
+                    whatsapp: form.whatsapp,
+                    valor_pago: result.transaction_amount,
+                    pagamento_id: String(result.id),
+                    status: 'pendente'
+                  }
+                  await supabase.from('inscricoes').insert([payload])
+                  
+                  setPixData({
+                    qrCode: result.point_of_interaction.transaction_data.qr_code,
+                    qrCodeBase64: result.point_of_interaction.transaction_data.qr_code_base64,
+                    id: result.id
+                  });
                 } else if (result.status === 'in_process') {
                   const payload = {
                     evento_id: id,
@@ -229,10 +249,10 @@ export default function InscricaoEvento() {
             },
           },
         };
-        await builder.create('cardPayment', 'paymentCardBrick_container', settings);
+        window.paymentBrickController = await builder.create('payment', 'paymentCardBrick_container', settings);
       };
 
-      renderCardPaymentBrick(bricksBuilder);
+      renderPaymentBrick(bricksBuilder);
     }
   }, [step, publicKey, id, evento?.valor_total, evento?.max_parcelas]);
 
@@ -245,6 +265,53 @@ export default function InscricaoEvento() {
   if (!evento) return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center font-headline text-red-500 font-bold">
        Evento não encontrado ou link expirado.
+    </div>
+  )
+
+  if (pixData) return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+       <div className="max-w-md w-full bg-white border border-slate-200 p-8 rounded-[2.5rem] text-center shadow-2xl space-y-6">
+          <div className="flex flex-col items-center">
+             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                <span className="material-symbols-outlined text-3xl text-primary font-bold">pix</span>
+             </div>
+             <h2 className="text-2xl font-black text-slate-900 uppercase">Quase lá!</h2>
+             <p className="text-sm text-slate-500 font-bold uppercase tracking-widest mt-1">Pague via Pix agora</p>
+          </div>
+
+          <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col items-center gap-4">
+             <img 
+               src={`data:image/png;base64,${pixData.qrCodeBase64}`} 
+               alt="QR Code Pix"
+               className="w-48 h-48 rounded-xl shadow-sm border border-white"
+             />
+             <div className="w-full space-y-2">
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(pixData.qrCode);
+                    alert("✅ Código copiado!");
+                  }}
+                  className="w-full py-3 bg-white border border-slate-200 rounded-xl text-xs font-black text-primary uppercase flex items-center justify-center gap-2 hover:bg-slate-50 transition-all shadow-sm"
+                >
+                  <span className="material-symbols-outlined text-sm">content_copy</span>
+                  Copiar Pix Copia e Cola
+                </button>
+             </div>
+          </div>
+
+          <div className="space-y-4 text-left p-4 bg-orange-50 rounded-2xl border border-orange-100">
+             <div className="flex gap-3 text-orange-800">
+                <span className="material-symbols-outlined text-xl shrink-0">info</span>
+                <p className="text-xs font-medium leading-relaxed">
+                   A sua inscrição será confirmada <strong className="font-black italic">automaticamente</strong> assim que você finalizar o pagamento no seu banco.
+                </p>
+             </div>
+          </div>
+
+          <Link to="/" className="inline-block w-full py-4 text-slate-400 font-bold hover:text-primary transition-all text-sm uppercase tracking-widest">
+             Voltar para o site
+          </Link>
+       </div>
     </div>
   )
 
