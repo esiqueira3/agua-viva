@@ -56,51 +56,57 @@ serve(async (req) => {
       mpHeaders['X-Meli-Session-Id'] = deviceId
     }
 
-    // Dividir nome do pagador para primeiro e último nome
     const nomePartes = (nome_pagador || 'Pagador').trim().split(' ')
     const firstName = nomePartes[0]
     const lastName = nomePartes.slice(1).join(' ') || 'Fiel'
 
+    // Construção robusta do payload do Mercado Pago
+    const mpPayload: any = {
+      transaction_amount: Number(transaction_amount),
+      description: description || `Agua Viva - Inscrição Evento ID: ${evento_id}`,
+      payment_method_id: payment_method_id,
+      binary_mode: true,
+      payer: {
+        email: email_pagador || payer?.email,
+        identification: payer?.identification,
+        first_name: firstName,
+        last_name: lastName
+      },
+      additional_info: {
+        ip_address: clientIP,
+        items: [
+          {
+            id: String(evento_id),
+            title: description || 'Inscrição em Evento',
+            quantity: 1,
+            unit_price: Number(transaction_amount)
+          }
+        ],
+        payer: {
+          first_name: firstName,
+          last_name: lastName,
+          registration_date: new Date().toISOString()
+        }
+      },
+      notification_url: "https://kfalhtebjoilpnncpkbd.supabase.co/functions/v1/mercado-pago-webhook",
+      metadata: {
+        evento_id: evento_id,
+        projeto: "Água Viva Church",
+        ip: clientIP
+      }
+    }
+
+    // Apenas adicionar token e parcelas se NÃO for Pix
+    if (payment_method_id !== 'pix') {
+      mpPayload.token = token
+      mpPayload.installments = installments ? Number(installments) : 1
+      mpPayload.issuer_id = issuer_id
+    }
+
     const mpResponse = await fetch('https://api.mercadopago.com/v1/payments', {
       method: 'POST',
       headers: mpHeaders,
-      body: JSON.stringify({
-        token,
-        issuer_id,
-        payment_method_id,
-        transaction_amount: Number(transaction_amount),
-        installments: Number(installments),
-        description: description || `Agua Viva - Inscrição Evento ID: ${evento_id}`,
-        binary_mode: true, // Aprovação ou negação imediata para evitar pendências infinitas
-        payer: {
-          email: email_pagador || payer?.email,
-          identification: payer?.identification,
-          first_name: firstName,
-          last_name: lastName
-        },
-        additional_info: {
-          ip_address: clientIP,
-          items: [
-            {
-              id: String(evento_id),
-              title: description || 'Inscrição em Evento',
-              quantity: 1,
-              unit_price: Number(transaction_amount)
-            }
-          ],
-          payer: {
-            first_name: firstName,
-            last_name: lastName,
-            registration_date: new Date().toISOString()
-          }
-        },
-        notification_url: "https://kfalhtebjoilpnncpkbd.supabase.co/functions/v1/mercado-pago-webhook",
-        metadata: {
-          evento_id: evento_id,
-          projeto: "Água Viva Church",
-          ip: clientIP
-        }
-      })
+      body: JSON.stringify(mpPayload)
     })
 
     const paymentResult = await mpResponse.json()

@@ -144,6 +144,8 @@ export default function InscricaoEvento() {
           customization: {
             paymentMethods: {
               pix: 'all',
+              bankTransfer: ['pix'], // Forçar Pix em algumas versões do SDK
+              ticket: 'all', // Garante suporte a meios offline
               creditCard: 'all',
               debitCard: 'all',
               maxInstallments: maxInstallmentsValue,
