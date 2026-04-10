@@ -144,10 +144,8 @@ export default function InscricaoEvento() {
           },
           customization: {
             paymentMethods: {
-              bankTransfer: ['pix'], // Pix fica aqui dentro
-              ticket: 'all', 
+              bankTransfer: ['pix'], 
               creditCard: 'all',
-              debitCard: 'all',
               maxInstallments: maxInstallmentsValue,
             },
             visual: {
