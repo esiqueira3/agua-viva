@@ -156,6 +156,12 @@ export default function InscricaoEvento() {
                 customVariables: {
                   baseColor: '#8B5CF6',
                 }
+              },
+              texts: {
+                cardholderName: {
+                  placeholder: 'Nome (como no cartão)',
+                  label: 'Nome impresso no cartão'
+                }
               }
             }
           },
