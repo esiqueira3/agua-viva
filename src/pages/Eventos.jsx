@@ -11,6 +11,7 @@ export default function Eventos() {
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('eventos_view_mode') || 'list')
   const [searchTerm, setSearchTerm] = useState('')
+  const [qrModalData, setQrModalData] = useState(null) // Novo estado para o QR Code
   const navigate = useNavigate()
   const { canAccess, membroId, meusDepartamentos, isAdmin, loading: loadingPermissions } = usePermissions()
 
@@ -133,6 +134,13 @@ export default function Eventos() {
               <button onClick={() => copyInscricaoLink(row.id)} title="Copiar Link de Inscrição" className="p-2 rounded-lg bg-surface-container-high text-primary hover:bg-primary hover:text-white transition-all">
                  <span className="material-symbols-outlined text-[18px]">link</span>
               </button>
+              <button 
+                onClick={() => setQrModalData({ id: row.id, nome: row.nome })} 
+                title="Ver QR Code de Inscrição" 
+                className="p-2 rounded-lg bg-surface-container-high text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all"
+              >
+                 <span className="material-symbols-outlined text-[18px]">qr_code_2</span>
+              </button>
               <button onClick={() => navigate('/financeiro-eventos')} title="Ver Financeiro" className="p-2 rounded-lg bg-surface-container-high text-tertiary-fixed-dim hover:bg-tertiary-fixed-dim hover:text-white transition-all">
                  <span className="material-symbols-outlined text-[18px]">monetization_on</span>
               </button>
@@ -190,11 +198,20 @@ export default function Eventos() {
                          </div>
 
                          <div className="flex items-center gap-1">
-                            {evento.pago && (
-                              <button onClick={() => copyInscricaoLink(evento.id)} title="Copiar Link" className="p-2.5 text-primary hover:bg-primary/10 rounded-xl transition-all">
-                                 <span className="material-symbols-outlined text-[18px]">link</span>
-                              </button>
-                            )}
+                             {evento.pago && (
+                               <>
+                                 <button onClick={() => copyInscricaoLink(evento.id)} title="Copiar Link" className="p-2.5 text-primary hover:bg-primary/10 rounded-xl transition-all">
+                                    <span className="material-symbols-outlined text-[18px]">link</span>
+                                 </button>
+                                 <button 
+                                   onClick={() => setQrModalData({ id: evento.id, nome: evento.nome })} 
+                                   title="Ver QR Code" 
+                                   className="p-2.5 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                                 >
+                                    <span className="material-symbols-outlined text-[18px]">qr_code_2</span>
+                                 </button>
+                               </>
+                             )}
                             <button onClick={() => navigate(`/eventos/editar/${evento.id}`)} className="p-2.5 text-on-surface-variant hover:text-primary hover:bg-primary/10 rounded-xl transition-all">
                                <span className="material-symbols-outlined text-[18px]">edit</span>
                             </button>
@@ -249,6 +266,67 @@ export default function Eventos() {
            })}
         </div>
       )}
+
+       {/* Modal do QR Code */}
+       {qrModalData && (
+         <div 
+           className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
+           onClick={() => setQrModalData(null)}
+         >
+           <div 
+             className="bg-white rounded-[2.5rem] max-w-sm w-full shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300"
+             onClick={e => e.stopPropagation()}
+           >
+             <div className="bg-primary p-6 text-white flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                   <span className="material-symbols-outlined text-2xl font-bold">qr_code_2</span>
+                   <h3 className="font-extrabold text-lg uppercase tracking-tight">QR Code de Inscrição</h3>
+                </div>
+                <button 
+                  onClick={() => setQrModalData(null)}
+                  className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">close</span>
+                </button>
+             </div>
+
+             <div className="p-10 flex flex-col items-center space-y-6">
+                <div className="text-center space-y-1">
+                   <h4 className="text-slate-900 font-black text-xl leading-tight">{qrModalData.nome}</h4>
+                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Aponte a câmera para se inscrever</p>
+                </div>
+
+                <div className="bg-slate-50 p-6 rounded-[2rem] border-4 border-slate-100 shadow-inner">
+                   <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(window.location.origin + '/inscricao/' + qrModalData.id)}`} 
+                      alt="QR Code"
+                      className="w-48 h-48 rounded-xl"
+                   />
+                </div>
+
+                <div className="w-full pt-4 border-t border-slate-100 flex flex-col gap-3">
+                   <button 
+                     onClick={() => {
+                        const url = `${window.location.origin}/inscricao/${qrModalData.id}`;
+                        navigator.clipboard.writeText(url);
+                        alert("✅ Link de Inscrição copiado!");
+                     }}
+                     className="w-full py-4 bg-slate-100 hover:bg-primary/10 text-slate-600 hover:text-primary rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                   >
+                      <span className="material-symbols-outlined text-sm">link</span>
+                      Copiar Link Direto
+                   </button>
+                   <button 
+                     onClick={() => setQrModalData(null)}
+                     className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-slate-900/20"
+                   >
+                      Fechar
+                   </button>
+                </div>
+             </div>
+           </div>
+         </div>
+       )}
     </div>
   )
 }
