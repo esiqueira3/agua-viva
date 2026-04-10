@@ -353,19 +353,37 @@ export default function FinanceiroEventos() {
                   ev.status === 'Concluído' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
                 }`}>{ev.status}</div>
               </div>
-              <p className={`text-[10px] font-black uppercase tracking-wider mb-0.5 ${eventoSelecionado?.id === ev.id ? 'text-white/60' : 'text-primary/50'}`}>
-                {ev.departamentos?.nome || 'Geral'}
-              </p>
-              <h3 className={`text-base font-black leading-tight mb-4 ${eventoSelecionado?.id === ev.id ? 'text-white' : 'text-on-surface'}`}>{ev.nome}</h3>
               
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className={`text-[9px] font-black uppercase tracking-widest mb-0.5 ${eventoSelecionado?.id === ev.id ? 'text-white/50' : 'text-slate-400'}`}>Arrecadado</p>
-                  <p className={`text-xl font-black ${eventoSelecionado?.id === ev.id ? 'text-white' : 'text-green-600'}`}>R$ {ev.totalArrecadado?.toFixed(2)}</p>
+              <div className="flex items-end gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className={`text-[10px] font-black uppercase tracking-wider mb-0.5 ${eventoSelecionado?.id === ev.id ? 'text-white/60' : 'text-primary/50'}`}>
+                    {ev.departamentos?.nome || 'Geral'}
+                  </p>
+                  <h3 className={`text-base font-black leading-tight mb-4 ${eventoSelecionado?.id === ev.id ? 'text-white' : 'text-on-surface'}`}>{ev.nome}</h3>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className={`text-[9px] font-black uppercase tracking-widest mb-0.5 ${eventoSelecionado?.id === ev.id ? 'text-white/50' : 'text-slate-400'}`}>Arrecadado</p>
+                      <p className={`text-xl font-black ${eventoSelecionado?.id === ev.id ? 'text-white' : 'text-green-600'}`}>R$ {ev.totalArrecadado?.toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <p className={`text-[9px] font-black uppercase tracking-widest mb-0.5 ${eventoSelecionado?.id === ev.id ? 'text-white/50' : 'text-slate-400'}`}>Confirmados</p>
+                      <p className={`text-xl font-black ${eventoSelecionado?.id === ev.id ? 'text-white' : 'text-on-surface'}`}>{ev.qtdeConfirmados}<span className="text-sm opacity-50">/{ev.qtdeInscritos}</span></p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className={`text-[9px] font-black uppercase tracking-widest mb-0.5 ${eventoSelecionado?.id === ev.id ? 'text-white/50' : 'text-slate-400'}`}>Confirmados</p>
-                  <p className={`text-xl font-black ${eventoSelecionado?.id === ev.id ? 'text-white' : 'text-on-surface'}`}>{ev.qtdeConfirmados}<span className="text-sm opacity-50">/{ev.qtdeInscritos}</span></p>
+
+                {/* QR Code Lateral */}
+                <div className={`shrink-0 p-1.5 rounded-2xl border ${
+                  eventoSelecionado?.id === ev.id 
+                    ? 'bg-white/10 border-white/20 shadow-inner' 
+                    : 'bg-white border-outline-variant/5 shadow-sm'
+                }`}>
+                   <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(window.location.origin + '/inscricao/' + ev.id)}`}
+                      alt="QR Link"
+                      className="w-14 h-14 rounded-lg"
+                   />
                 </div>
               </div>
             </div>
