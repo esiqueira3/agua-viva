@@ -140,7 +140,11 @@ export default function InscricaoEvento() {
         const settings = {
           initialization: {
             amount: Number(amountValue.toFixed(2)),
-            payer: { email: form.email },
+            payer: {
+              email: form.email,
+              firstName: form.nome.split(' ')[0],
+              lastName: form.nome.split(' ').slice(1).join(' ') || ' ',
+            }
           },
           customization: {
             paymentMethods: {
