@@ -12,6 +12,7 @@ export default function InscricaoEvento() {
   const [brickLoading, setBrickLoading] = useState(true)
   const [showHelpModal, setShowHelpModal] = useState(false)
   const [lastError, setLastError] = useState(null)
+  const [paymentStatus, setPaymentStatus] = useState(null)
   
   const [form, setForm] = useState({
     nome: '',
