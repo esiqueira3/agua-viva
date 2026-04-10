@@ -164,15 +164,15 @@ export default function InscricaoEvento() {
               console.log("Payment Brick Pronto! ✨");
               setBrickLoading(false);
             },
-            onSubmit: async (paymentFormData) => {
+            onSubmit: async ({ formData }) => {
               setSubmitting(true);
-              console.log("Enviado para processamento:", paymentFormData.payment_method_id);
+              console.log("Enviado para processamento:", formData.payment_method_id);
               try {
                 const response = await fetch('https://kfalhtebjoilpnncpkbd.supabase.co/functions/v1/mercado-pago-process', {
                   method: 'POST',
                   body: JSON.stringify({
-                    ...paymentFormData,
-                    deviceId: paymentFormData.deviceId || window.MP_DEVICE_SESSION_ID,
+                    ...formData,
+                    deviceId: formData.deviceId || window.MP_DEVICE_SESSION_ID,
                     evento_id: id,
                     nome_pagador: form.nome,
                     email_pagador: form.email,
