@@ -62,20 +62,41 @@ serve(async (req) => {
     if (status === 'approved') sistemaStatus = 'confirmada'
     if (['rejected', 'cancelled', 'refunded', 'charged_back'].includes(status)) sistemaStatus = 'recusada'
 
-    // Atualizar no Supabase
-    const { data: updated, error: updateError } = await supabaseAdmin
-      .from('inscricoes')
-      .update({ 
-        status: sistemaStatus, 
-        valor_pago: amount,
-        updated_at: new Date().toISOString()
-      })
-      .eq('pagamento_id', String(paymentId))
-      .select()
+    // Atualizar no Supabase com lógica de re-tentativa (para evitar Race Condition)
+    let updated = null
+    const MAX_RETRIES = 3
+    
+    for (let i = 0; i < MAX_RETRIES; i++) {
+      console.log(`🔍 Tentativa ${i + 1} de localizar inscrição para pagamento: ${paymentId}`)
+      
+      const { data: updateResult, error: updateError } = await supabaseAdmin
+        .from('inscricoes')
+        .update({ 
+          status: sistemaStatus, 
+          valor_pago: amount,
+          updated_at: new Date().toISOString()
+        })
+        .eq('pagamento_id', String(paymentId))
+        .select()
 
-    if (updateError) {
-      console.error("❌ Erro ao atualizar banco:", updateError)
-    } else if (updated && updated.length > 0) {
+      if (updateError) {
+        console.error("❌ Erro ao atualizar banco:", updateError)
+        break // Erro de banco não adianta tentar de novo
+      }
+
+      if (updateResult && updateResult.length > 0) {
+        updated = updateResult
+        break // Sucesso!
+      }
+
+      // Se não encontrou, espera 3 segundos antes da próxima tentativa
+      if (i < MAX_RETRIES - 1) {
+        console.log(`⏳ Inscrição não encontrada. Possível lentidão na gravação. Aguardando 3s...`)
+        await new Promise(resolve => setTimeout(resolve, 3000))
+      }
+    }
+
+    if (updated && updated.length > 0) {
       const inscricao = updated[0]
       console.log(`✅ Inscrição de ${inscricao.nome_participante} atualizada para: ${sistemaStatus}`)
       
@@ -89,7 +110,7 @@ serve(async (req) => {
         }])
       }
     } else {
-      console.warn(`⚠️ Nenhuma inscrição encontrada com pagamento_id: ${paymentId}`)
+      console.warn(`⚠️ Nenhuma inscrição encontrada com pagamento_id: ${paymentId} após ${MAX_RETRIES} tentativas.`)
     }
 
     return new Response(JSON.stringify({ received: true }), {
