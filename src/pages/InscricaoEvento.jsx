@@ -167,9 +167,8 @@ export default function InscricaoEvento() {
               setSubmitting(true);
               console.log("Enviado para processamento:", formData.payment_method_id);
               try {
-                const response = await fetch('https://kfalhtebjoilpnncpkbd.supabase.co/functions/v1/mercado-pago-process', {
-                  method: 'POST',
-                  body: JSON.stringify({
+                const { data: result, error: invokeError } = await supabase.functions.invoke('mercado-pago-process', {
+                  body: {
                     ...formData,
                     deviceId: formData.deviceId || window.MP_DEVICE_SESSION_ID,
                     evento_id: id,
@@ -177,16 +176,14 @@ export default function InscricaoEvento() {
                     email_pagador: form.email,
                     whatsapp_pagador: form.whatsapp,
                     description: `Inscrição: ${evento.nome} - Titular: ${form.nome}`
-                  }),
+                  }
                 });
 
-                if (!response.ok) {
-                  const errorData = await response.json().catch(() => ({}));
-                  console.error("❌ Erro técnico no servidor:", errorData);
-                  throw new Error(errorData.error || 'Falha na comunicação com o servidor de pagamento');
+                if (invokeError) {
+                  console.error("❌ Erro ao invocar função:", invokeError);
+                  throw new Error(invokeError.message || 'Falha na comunicação com o servidor de pagamento');
                 }
 
-                const result = await response.json();
                 console.log("💎 Resposta do Mercado Pago:", result);
 
                 if (result.status === 'approved') {
@@ -221,6 +218,7 @@ export default function InscricaoEvento() {
                     id: result.id
                   });
                 } else if (result.status === 'in_process') {
+                  // Pagamento em análise pelo Mercado Pago
                   const payload = {
                     evento_id: id,
                     nome_participante: form.nome,
@@ -231,8 +229,8 @@ export default function InscricaoEvento() {
                     status: 'pendente'
                   }
                   await supabase.from('inscricoes').insert([payload])
-                  alert("⏳ Seu pagamento está em análise. Fique tranquilo!");
-                  setSuccess(true);
+                  setPaymentStatus('in_process');
+                  setSuccess(true); 
                   notifyRegistration(form.nome, result.transaction_amount);
                 } else {
                   setLastError(result.status_detail || result.status || 'Operação recusada')
@@ -318,17 +316,50 @@ export default function InscricaoEvento() {
 
   if (success) return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-       <div className="max-w-md w-full bg-white border border-slate-200 p-10 rounded-3xl text-center shadow-2xl">
-          <span className="material-symbols-outlined text-6xl text-green-600 mb-4 animate-bounce" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-          <h2 className="text-3xl font-black text-slate-900 mb-2">Inscrição Recebida!</h2>
-          <p className="text-slate-600 mb-8 font-medium">
-            {evento.pago 
-               ? "Pagamento confirmado! Sua inscrição está garantida. Te esperamos no evento! 🎉" 
-               : "Sua vaga está garantida! Te esperamos no evento."}
-          </p>
-          <Link to="/" className="inline-block bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-primary/80 transition-all">
-             Voltar ao Início
-          </Link>
+       <div className="max-w-md w-full bg-white border border-slate-200 p-8 rounded-[2.5rem] text-center shadow-2xl space-y-6">
+          {paymentStatus === 'in_process' ? (
+            <div className="space-y-6 animate-in fade-in zoom-in duration-700">
+               <div className="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner border-4 border-amber-50">
+                  <span className="material-symbols-outlined text-5xl text-amber-600 animate-pulse">hourglass_top</span>
+               </div>
+               <div className="space-y-2">
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">Pagamento em Análise</h2>
+                  <p className="text-slate-500 font-medium text-sm">Sua operadora ou o Mercado Pago estão validando os dados por segurança.</p>
+               </div>
+               <div className="bg-amber-50 p-6 rounded-3xl border border-amber-100 text-left space-y-3 mt-4">
+                  <p className="text-xs font-bold text-amber-800 flex items-center gap-2">
+                     <span className="material-symbols-outlined text-sm">info</span>
+                     O que acontece agora?
+                  </p>
+                  <ul className="text-[11px] text-amber-700/80 space-y-2 font-medium">
+                     <li>• Não tente pagar novamente para evitar duplicidade.</li>
+                     <li>• Assim que aprovado, sua inscrição será confirmada automaticamente.</li>
+                     <li>• Você poderá acompanhar o status no dashboard da igreja.</li>
+                  </ul>
+               </div>
+            </div>
+          ) : (
+            <div className="space-y-6 animate-in fade-in zoom-in duration-700">
+               <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner border-4 border-green-50">
+                  <span className="material-symbols-outlined text-5xl text-green-600">check_circle</span>
+               </div>
+               <div className="space-y-2">
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Inscrição Confirmada!</h2>
+                  <p className="text-slate-500 font-medium text-lg">Tudo pronto, <strong>{form.nome}</strong>.</p>
+               </div>
+               <p className="text-slate-400 text-sm font-medium">
+                 {evento.pago 
+                    ? "Pagamento aprovado! Sua inscrição está garantida. Te esperamos no evento! 🎉" 
+                    : "Sua vaga está garantida! Te esperamos no evento."}
+               </p>
+            </div>
+          )}
+          
+          <div className="pt-6 border-t border-slate-100">
+             <Link to="/" className="inline-block w-full bg-primary text-white px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/80 transition-all active:scale-95">
+                Voltar ao Início
+             </Link>
+          </div>
        </div>
     </div>
   )
