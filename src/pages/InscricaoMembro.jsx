@@ -33,6 +33,14 @@ export default function InscricaoMembro() {
       if (data) setConfig(data)
     }
     loadBranding()
+
+    // Forçar modo claro nesta página pública (acessibilidade e consistência visual)
+    const root = document.documentElement
+    const wasDark = root.classList.contains('dark')
+    root.classList.remove('dark')
+    return () => {
+      if (wasDark) root.classList.add('dark')
+    }
   }, [])
 
   const handleCepChange = async (cep) => {
@@ -237,25 +245,25 @@ export default function InscricaoMembro() {
               <section>
                  <div className="flex items-center gap-3 mb-6">
                     <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-sm">1</div>
-                    <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Dados Pessoais</h2>
+                    <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Dados Pessoais</h2>
                  </div>
 
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1">
                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nome Completo *</label>
-                       <input required name="nome_completo" value={form.nome_completo} onChange={handleFormChange} className="w-full p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all font-bold" placeholder="EX: JOÃO DA SILVA" />
+                       <input required name="nome_completo" value={form.nome_completo} onChange={handleFormChange} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all font-bold text-slate-900" placeholder="EX: JOÃO DA SILVA" />
                     </div>
                     <div className="space-y-1">
                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Data de Nascimento *</label>
-                       <input required type="date" name="data_nascimento" value={form.data_nascimento} onChange={handleFormChange} className="w-full p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all" />
+                       <input required type="date" name="data_nascimento" value={form.data_nascimento} onChange={handleFormChange} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all text-slate-900" />
                     </div>
                     <div className="space-y-1">
                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">CPF (Verificação) *</label>
-                       <input required name="cpf" value={form.cpf} onChange={handleFormChange} className="w-full p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all font-mono font-bold" placeholder="000.000.000-00" />
+                       <input required name="cpf" value={form.cpf} onChange={handleFormChange} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all font-mono font-bold text-slate-900" placeholder="000.000.000-00" />
                     </div>
                     <div className="space-y-1">
                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Sexo *</label>
-                       <select name="sexo" value={form.sexo} onChange={handleFormChange} className="w-full p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all font-bold">
+                       <select name="sexo" value={form.sexo} onChange={handleFormChange} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all font-bold text-slate-900">
                           <option value="Masculino">Masculino</option>
                           <option value="Feminino">Feminino</option>
                        </select>
@@ -267,17 +275,17 @@ export default function InscricaoMembro() {
               <section>
                  <div className="flex items-center gap-3 mb-6">
                     <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-sm">2</div>
-                    <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Como falamos com você?</h2>
+                    <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Como falamos com você?</h2>
                  </div>
 
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1">
                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">WhatsApp / Telefone *</label>
-                       <input required type="tel" name="telefone_principal" value={form.telefone_principal} onChange={handleFormChange} className="w-full p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all font-bold" placeholder="(00) 00000-0000" />
+                       <input required type="tel" name="telefone_principal" value={form.telefone_principal} onChange={handleFormChange} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all font-bold text-slate-900" placeholder="(00) 00000-0000" />
                     </div>
                     <div className="space-y-1">
                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email</label>
-                       <input type="email" name="email" value={form.email} onChange={handleFormChange} className="w-full p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all font-bold" placeholder="seu@email.com" />
+                       <input type="email" name="email" value={form.email} onChange={handleFormChange} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all font-bold text-slate-900" placeholder="seu@email.com" />
                     </div>
                  </div>
               </section>
@@ -286,29 +294,29 @@ export default function InscricaoMembro() {
               <section>
                  <div className="flex items-center gap-3 mb-6">
                     <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-sm">3</div>
-                    <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Onde você mora?</h2>
+                    <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Onde você mora?</h2>
                  </div>
 
                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-1">
                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">CEP</label>
-                       <input name="endereco_cep" value={form.endereco_cep} onChange={(e) => handleCepChange(e.target.value)} maxLength={9} className="w-full p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl outline-none focus:ring-2 focus:ring-amber-500 transition-all font-bold" placeholder="00000-000" />
+                       <input name="endereco_cep" value={form.endereco_cep} onChange={(e) => handleCepChange(e.target.value)} maxLength={9} className="w-full p-4 bg-amber-50 border border-amber-200 rounded-2xl outline-none focus:ring-2 focus:ring-amber-500 transition-all font-bold text-slate-900" placeholder="00000-000" />
                     </div>
                     <div className="col-span-1 md:col-span-2 space-y-1">
                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Rua / Logradouro</label>
-                       <input name="endereco_rua" value={form.endereco_rua} onChange={handleFormChange} className="w-full p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all font-bold" />
+                       <input name="endereco_rua" value={form.endereco_rua} onChange={handleFormChange} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all font-bold text-slate-900" />
                     </div>
                     <div className="space-y-1">
                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Número</label>
-                       <input name="endereco_numero" value={form.endereco_numero} onChange={handleFormChange} className="w-full p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all font-bold" />
+                       <input name="endereco_numero" value={form.endereco_numero} onChange={handleFormChange} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all font-bold text-slate-900" />
                     </div>
                     <div className="space-y-1">
                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Bairro</label>
-                       <input name="endereco_bairro" value={form.endereco_bairro} onChange={handleFormChange} className="w-full p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all font-bold" />
+                       <input name="endereco_bairro" value={form.endereco_bairro} onChange={handleFormChange} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-primary transition-all font-bold text-slate-900" />
                     </div>
                     <div className="space-y-1">
                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Cidade (UF)</label>
-                       <input name="endereco_cidade" value={`${form.endereco_cidade} ${form.endereco_estado}`} readOnly className="w-full p-4 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none font-bold text-slate-500" />
+                       <input name="endereco_cidade" value={`${form.endereco_cidade} ${form.endereco_estado}`} readOnly className="w-full p-4 bg-slate-100 border border-slate-200 rounded-2xl outline-none font-bold text-slate-500" />
                     </div>
                  </div>
               </section>
