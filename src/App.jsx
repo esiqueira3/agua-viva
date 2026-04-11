@@ -27,6 +27,7 @@ import CertificadoApresentacao from './pages/CertificadoApresentacao'
 import CertificadoBatismo from './pages/CertificadoBatismo'
 import GestaoAcessos from './pages/GestaoAcessos'
 import CalendarioPublico from './pages/CalendarioPublico'
+import Obrigado from './pages/Obrigado'
 import { useEffect } from 'react'
 
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
@@ -89,6 +90,7 @@ function App() {
         <Route path="/inscricao/:id" element={<InscricaoEvento />} />
         <Route path="/inscrever" element={<InscricaoMembro />} />
         <Route path="/agenda" element={<CalendarioPublico />} />
+        <Route path="/obrigado" element={<Obrigado />} />
         
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

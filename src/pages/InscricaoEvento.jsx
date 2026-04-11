@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
 export default function InscricaoEvento() {
   const { id } = useParams()
+  const navigate = useNavigate()
+  const pollingRef = useRef(null)
   const [evento, setEvento] = useState(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -13,6 +15,7 @@ export default function InscricaoEvento() {
   const [showHelpModal, setShowHelpModal] = useState(false)
   const [lastError, setLastError] = useState(null)
   const [paymentStatus, setPaymentStatus] = useState(null)
+  const [pixConfirmed, setPixConfirmed] = useState(false)
   
   const [form, setForm] = useState({
     nome: '',
@@ -215,16 +218,30 @@ export default function InscricaoEvento() {
                     status: 'confirmada'
                   }
                   await supabase.from('inscricoes').insert([payload])
-                  setSuccess(true);
                   notifyRegistration(form.nome, result.transaction_amount);
+                  navigate('/obrigado');
                 } else if (result.status === 'pending' && result.payment_method_id === 'pix') {
                   // PIX: Não registrar agora! O webhook fará o INSERT quando o pagamento for confirmado.
                   // Apenas exibir o QR Code para o usuário.
+                  const pixPaymentId = String(result.id)
                   setPixData({
                     qrCode: result.point_of_interaction.transaction_data.qr_code,
                     qrCodeBase64: result.point_of_interaction.transaction_data.qr_code_base64,
-                    id: result.id
+                    id: pixPaymentId
                   });
+                  // Iniciar polling para detectar confirmação automática
+                  pollingRef.current = setInterval(async () => {
+                    const { data } = await supabase
+                      .from('inscricoes')
+                      .select('status')
+                      .eq('pagamento_id', pixPaymentId)
+                      .single()
+                    if (data?.status === 'confirmada') {
+                      clearInterval(pollingRef.current)
+                      setPixConfirmed(true)
+                      setTimeout(() => navigate('/obrigado'), 2500)
+                    }
+                  }, 5000)
                 } else if (result.status === 'in_process') {
                   // Pagamento em análise pelo Mercado Pago
                   const payload = {
@@ -276,48 +293,79 @@ export default function InscricaoEvento() {
   )
 
   if (pixData) return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
        <div className="max-w-md w-full bg-white border border-slate-200 p-8 rounded-[2.5rem] text-center shadow-2xl space-y-6">
-          <div className="flex flex-col items-center">
-             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <span className="material-symbols-outlined text-3xl text-primary font-bold">pix</span>
-             </div>
-             <h2 className="text-2xl font-black text-slate-900 uppercase">Quase lá!</h2>
-             <p className="text-sm text-slate-500 font-bold uppercase tracking-widest mt-1">Pague via Pix agora</p>
-          </div>
+          
+          {pixConfirmed ? (
+            // Tela de confirmação animada antes de redirecionar
+            <div className="space-y-6 animate-in fade-in zoom-in duration-500">
+               <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto shadow-inner border-4 border-green-50">
+                  <span className="material-symbols-outlined text-5xl text-green-600" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+               </div>
+               <h2 className="text-2xl font-black text-slate-900">Pix Confirmado! 🎉</h2>
+               <p className="text-slate-500 text-sm font-medium">Redirecionando você em instantes...</p>
+               <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                  <div className="bg-green-500 h-1.5 rounded-full animate-pulse" style={{ width: '100%' }} />
+               </div>
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-col items-center">
+                 <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                    <span className="material-symbols-outlined text-3xl text-primary font-bold">pix</span>
+                 </div>
+                 <h2 className="text-2xl font-black text-slate-900">Quase lá!</h2>
+                 <p className="text-sm text-slate-500 font-bold uppercase tracking-widest mt-1">Pague via Pix agora</p>
+              </div>
 
-          <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col items-center gap-4">
-             <img 
-               src={`data:image/png;base64,${pixData.qrCodeBase64}`} 
-               alt="QR Code Pix"
-               className="w-48 h-48 rounded-xl shadow-sm border border-white"
-             />
-             <div className="w-full space-y-2">
-                <button 
-                  onClick={() => {
-                    navigator.clipboard.writeText(pixData.qrCode);
-                    alert("✅ Código copiado!");
-                  }}
-                  className="w-full py-3 bg-white border border-slate-200 rounded-xl text-xs font-black text-primary uppercase flex items-center justify-center gap-2 hover:bg-slate-50 transition-all shadow-sm"
-                >
-                  <span className="material-symbols-outlined text-sm">content_copy</span>
-                  Copiar Pix Copia e Cola
-                </button>
-             </div>
-          </div>
+              <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col items-center gap-4">
+                 <img 
+                   src={`data:image/png;base64,${pixData.qrCodeBase64}`} 
+                   alt="QR Code Pix"
+                   className="w-48 h-48 rounded-xl shadow-sm border border-white"
+                 />
+                 <button 
+                   onClick={() => {
+                     navigator.clipboard.writeText(pixData.qrCode);
+                     alert("✅ Código copiado!");
+                   }}
+                   className="w-full py-3 bg-white border border-slate-200 rounded-xl text-xs font-black text-primary uppercase flex items-center justify-center gap-2 hover:bg-slate-50 transition-all shadow-sm"
+                 >
+                   <span className="material-symbols-outlined text-sm">content_copy</span>
+                   Copiar Pix Copia e Cola
+                 </button>
+              </div>
 
-          <div className="space-y-4 text-left p-4 bg-orange-50 rounded-2xl border border-orange-100">
-             <div className="flex gap-3 text-orange-800">
-                <span className="material-symbols-outlined text-xl shrink-0">info</span>
-                <p className="text-xs font-medium leading-relaxed">
-                   A sua inscrição será confirmada <strong className="font-black italic">automaticamente</strong> assim que você finalizar o pagamento no seu banco.
-                </p>
-             </div>
-          </div>
+              {/* Instruções claras */}
+              <div className="space-y-3 text-left p-5 bg-blue-50 rounded-2xl border border-blue-100">
+                 <p className="text-xs font-black text-blue-800 uppercase tracking-widest flex items-center gap-2">
+                    <span className="material-symbols-outlined text-sm">smartphone</span>
+                    Como pagar:
+                 </p>
+                 <ol className="text-xs text-blue-700/80 space-y-2 font-medium list-none">
+                    <li className="flex gap-2"><span className="font-black">1.</span> Abra o app do seu banco</li>
+                    <li className="flex gap-2"><span className="font-black">2.</span> Escaneie o QR Code ou cole o código Pix</li>
+                    <li className="flex gap-2"><span className="font-black">3.</span> Confirme o pagamento no seu banco</li>
+                    <li className="flex gap-2"><span className="font-black">4.</span> Esta tela será atualizada automaticamente ✅</li>
+                 </ol>
+              </div>
 
-          <Link to="/" className="inline-block w-full py-4 text-slate-400 font-bold hover:text-primary transition-all text-sm uppercase tracking-widest">
-             Voltar para o site
-          </Link>
+              {/* Indicador de espera */}
+              <div className="flex items-center justify-center gap-2 text-slate-400">
+                 <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                 <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                 <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                 <p className="text-xs font-bold ml-1">Aguardando confirmação do pagamento...</p>
+              </div>
+
+              <button 
+                onClick={() => { clearInterval(pollingRef.current); navigate('/obrigado'); }}
+                className="text-slate-400 text-xs font-bold hover:text-slate-600 transition-all"
+              >
+                Já paguei, mas a tela não atualizou →
+              </button>
+            </>
+          )}
        </div>
     </div>
   )
@@ -346,27 +394,12 @@ export default function InscricaoEvento() {
                   </ul>
                </div>
             </div>
-          ) : (
-            <div className="space-y-6 animate-in fade-in zoom-in duration-700">
-               <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner border-4 border-green-50">
-                  <span className="material-symbols-outlined text-5xl text-green-600">check_circle</span>
-               </div>
-               <div className="space-y-2">
-                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Inscrição Confirmada!</h2>
-                  <p className="text-slate-500 font-medium text-lg">Tudo pronto, <strong>{form.nome}</strong>.</p>
-               </div>
-               <p className="text-slate-400 text-sm font-medium">
-                 {evento.pago 
-                    ? "Pagamento aprovado! Sua inscrição está garantida. Te esperamos no evento! 🎉" 
-                    : "Sua vaga está garantida! Te esperamos no evento."}
-               </p>
-            </div>
-          )}
+          ) : null}
           
           <div className="pt-6 border-t border-slate-100">
-             <Link to="/" className="inline-block w-full bg-primary text-white px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/80 transition-all active:scale-95">
-                Voltar ao Início
-             </Link>
+             <button onClick={() => navigate('/obrigado')} className="inline-block w-full bg-primary text-white px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 hover:bg-primary/80 transition-all active:scale-95">
+                Continuar
+             </button>
           </div>
        </div>
     </div>
