@@ -18,11 +18,21 @@ serve(async (req) => {
 
     // ID do pagamento pode vir em diferentes locais dependendo da versão/tipo
     const paymentId = body.data?.id || body.resource?.split('/').pop() || body.id
-    const type = body.type || (body.action?.includes('payment') ? 'payment' : body.action)
+    const type = body.type || (body.action?.includes('payment') ? 'payment' : body.action) || ''
 
-    if (!paymentId || (type !== 'payment' && !type.includes('payment'))) {
-      console.log(`⏩ Ignorado: Tipo ${type} ou ID ${paymentId} não relevante.`)
-      return new Response(JSON.stringify({ message: 'Ignorado' }), {
+    // Se tiver paymentId, sempre processamos (independente do tipo)
+    // Isso cobre schemas diferentes do Mercado Pago para PIX e cartão
+    if (!paymentId) {
+      console.log(`⏩ Ignorado: Sem paymentId. Body: ${JSON.stringify(body)}`)
+      return new Response(JSON.stringify({ message: 'Ignorado - sem paymentId' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
+      })
+    }
+
+    if (type && type !== 'payment' && !type.includes('payment')) {
+      console.log(`⏩ Ignorado: Tipo ${type} não é pagamento.`)
+      return new Response(JSON.stringify({ message: 'Ignorado - tipo irrelevante' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200
       })
