@@ -44,15 +44,21 @@ export default function InscricaoMembro() {
   }, [])
 
   const handleCepChange = async (cep) => {
-    const cleanCep = cep.replace(/\D/g, '')
-    setForm(f => ({ ...f, endereco_cep: cep }))
-    if (cleanCep.length === 8) {
+    // Aceita apenas números e formata como 00000-000
+    const onlyNumbers = cep.replace(/\D/g, '').slice(0, 8)
+    const formatted = onlyNumbers.length > 5
+      ? `${onlyNumbers.slice(0, 5)}-${onlyNumbers.slice(5)}`
+      : onlyNumbers
+    setForm(f => ({ ...f, endereco_cep: formatted }))
+
+    if (onlyNumbers.length === 8) {
       try {
-        const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
+        const res = await fetch(`https://viacep.com.br/ws/${onlyNumbers}/json/`)
         const data = await res.json()
         if (!data.erro) {
           setForm(f => ({
             ...f,
+            endereco_cep: formatted,
             endereco_rua: data.logradouro,
             endereco_bairro: data.bairro,
             endereco_cidade: data.localidade,
