@@ -185,7 +185,15 @@ export default function InscricaoEvento() {
                     nome_pagador: form.nome,
                     email_pagador: form.email,
                     whatsapp_pagador: form.whatsapp,
-                    description: `Inscrição: ${evento.nome} - Titular: ${form.nome}`
+                    description: `Inscrição: ${evento.nome} - Titular: ${form.nome}`,
+                    // Dados completos para o webhook poder registrar a inscrição do Pix
+                    participante: {
+                      nome: form.nome,
+                      email: form.email,
+                      whatsapp: form.whatsapp,
+                      evento_id: id,
+                      evento_nome: evento.nome
+                    }
                   }
                 });
 
@@ -210,18 +218,8 @@ export default function InscricaoEvento() {
                   setSuccess(true);
                   notifyRegistration(form.nome, result.transaction_amount);
                 } else if (result.status === 'pending' && result.payment_method_id === 'pix') {
-                  // Tratar dados do Pix para exibir o QR Code
-                  const payload = {
-                    evento_id: id,
-                    nome_participante: form.nome,
-                    email_participante: form.email,
-                    whatsapp: form.whatsapp,
-                    valor_pago: result.transaction_amount,
-                    pagamento_id: String(result.id),
-                    status: 'pendente'
-                  }
-                  await supabase.from('inscricoes').insert([payload])
-                  
+                  // PIX: Não registrar agora! O webhook fará o INSERT quando o pagamento for confirmado.
+                  // Apenas exibir o QR Code para o usuário.
                   setPixData({
                     qrCode: result.point_of_interaction.transaction_data.qr_code,
                     qrCodeBase64: result.point_of_interaction.transaction_data.qr_code_base64,

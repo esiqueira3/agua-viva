@@ -25,7 +25,8 @@ serve(async (req) => {
       nome_pagador,
       email_pagador,
       whatsapp_pagador,
-      description 
+      description,
+      participante
     } = body
 
     // Capturar o IP do cliente para o antifraude
@@ -89,6 +90,7 @@ serve(async (req) => {
         }
       },
       notification_url: "https://kfalhtebjoilpnncpkbd.supabase.co/functions/v1/mercado-pago-webhook",
+      external_reference: JSON.stringify(participante || { evento_id, nome: nome_pagador, email: email_pagador, whatsapp: whatsapp_pagador }),
       metadata: {
         evento_id: evento_id,
         projeto: "Água Viva Church",

@@ -81,17 +81,49 @@ serve(async (req) => {
 
       if (updateError) {
         console.error("❌ Erro ao atualizar banco:", updateError)
-        break // Erro de banco não adianta tentar de novo
+        break
       }
 
       if (updateResult && updateResult.length > 0) {
         updated = updateResult
-        break // Sucesso!
+        break
       }
 
-      // Se não encontrou, espera 3 segundos antes da próxima tentativa
+      // Se não encontrou registro existente e o pagamento foi aprovado,
+      // pode ser um PIX cujo INSERT ainda não foi feito (fluxo novo).
+      // Tentamos criar a inscrição usando o external_reference.
+      if (sistemaStatus === 'confirmada' && payment.external_reference) {
+        console.log(`📝 Inscrição não encontrada. Tentando criar via external_reference (fluxo PIX)...`)
+        try {
+          const participante = JSON.parse(payment.external_reference)
+          const { data: insertResult, error: insertError } = await supabaseAdmin
+            .from('inscricoes')
+            .insert([{
+              evento_id: participante.evento_id,
+              nome_participante: participante.nome,
+              email_participante: participante.email,
+              whatsapp: participante.whatsapp,
+              valor_pago: amount,
+              pagamento_id: String(paymentId),
+              status: 'confirmada'
+            }])
+            .select()
+
+          if (insertError) {
+            console.error("❌ Erro ao criar inscrição via external_reference:", insertError)
+          } else if (insertResult && insertResult.length > 0) {
+            updated = insertResult
+            console.log(`✅ Inscrição PIX criada com sucesso para: ${participante.nome}`)
+            break
+          }
+        } catch (parseError) {
+          console.error("❌ Erro ao parsear external_reference:", parseError)
+        }
+      }
+
+      // Aguardar antes da próxima tentativa
       if (i < MAX_RETRIES - 1) {
-        console.log(`⏳ Inscrição não encontrada. Possível lentidão na gravação. Aguardando 3s...`)
+        console.log(`⏳ Inscrição não encontrada. Aguardando 3s...`)
         await new Promise(resolve => setTimeout(resolve, 3000))
       }
     }
