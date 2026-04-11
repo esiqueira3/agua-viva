@@ -20,6 +20,16 @@ export default function CalendarioPublico() {
   const [filterStatus, setFilterStatus] = useState('')
   const navigate = useNavigate()
 
+  // Forçar modo claro nesta página pública
+  useEffect(() => {
+    const root = document.documentElement
+    const wasDark = root.classList.contains('dark')
+    root.classList.remove('dark')
+    return () => {
+      if (wasDark) root.classList.add('dark')
+    }
+  }, [])
+
   useEffect(() => {
     async function fetchEventos() {
       const { data, error } = await supabase
