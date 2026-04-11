@@ -218,21 +218,25 @@ export default function InscricaoMembro() {
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/4 pointer-events-none"></div>
 
-      <div className="max-w-4xl mx-auto px-6 py-16 relative z-10">
-        
-        {/* Header da Landing Page */}
-        <div className="text-center mb-12">
-           <img 
-              src="/logo.png" 
-              alt="Logo" 
-              className="h-16 mx-auto mb-6"
-           />
-           <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-4 uppercase">
-             {config?.slogan_principal || "Faça parte da nossa família"}
-           </h1>
-           <p className="text-slate-500 text-lg max-w-2xl mx-auto font-medium">
-             {config?.subtexto_slogan || "Complete seus dados abaixo para iniciar sua jornada conosco na Água Viva."}
-           </p>
+      <div className="max-w-4xl mx-auto px-6 py-10 relative z-10">
+
+        {/* BANNER CAPA */}
+        <div className="w-full h-44 md:h-60 rounded-[2rem] overflow-hidden shadow-2xl border border-slate-200 relative group mb-10">
+          <img
+            src="/capa_home.jpg"
+            alt="Comunidade Água Viva"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/10 to-transparent" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
+            <img src="/logo_branco.png" alt="Logo" className="h-14 mb-3 drop-shadow-xl" />
+            <h1 className="text-white font-black text-2xl md:text-3xl uppercase tracking-tight drop-shadow-lg">
+              {config?.slogan_principal || "Faça parte da nossa família"}
+            </h1>
+            <p className="text-white/75 text-xs md:text-sm font-bold mt-2 max-w-md">
+              {config?.subtexto_slogan || "Complete seus dados abaixo para iniciar sua jornada conosco na Água Viva."}
+            </p>
+          </div>
         </div>
 
         {/* Formulário Principal (Fixo Light Mode para Acessibilidade) */}

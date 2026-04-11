@@ -159,7 +159,21 @@ export default function CalendarioPublico() {
       </header>
 
       <main className="max-w-6xl mx-auto p-4 md:p-8 space-y-6">
-        
+
+        {/* BANNER CAPA */}
+        <div className="w-full h-40 md:h-56 rounded-[2rem] overflow-hidden shadow-xl border border-slate-200 relative group">
+          <img
+            src="/capa_home.jpg"
+            alt="Comunidade Água Viva"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent" />
+          <div className="absolute bottom-4 left-6">
+            <p className="text-white font-black text-xl md:text-2xl uppercase tracking-tight drop-shadow-lg">Agenda Água Viva</p>
+            <p className="text-white/70 text-xs font-bold uppercase tracking-widest">Calendário Público da Comunidade</p>
+          </div>
+        </div>
+
         {/* BARRA DE FILTROS */}
         {!loading && (
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-outline-variant/10 shadow-sm p-4 animate-in fade-in slide-in-from-top-2 duration-700">
