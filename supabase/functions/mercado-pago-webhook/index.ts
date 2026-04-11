@@ -72,86 +72,90 @@ serve(async (req) => {
     if (status === 'approved') sistemaStatus = 'confirmada'
     if (['rejected', 'cancelled', 'refunded', 'charged_back'].includes(status)) sistemaStatus = 'recusada'
 
-    // Atualizar no Supabase com lógica de re-tentativa (para evitar Race Condition)
-    let updated = null
-    const MAX_RETRIES = 3
-    
-    for (let i = 0; i < MAX_RETRIES; i++) {
-      console.log(`🔍 Tentativa ${i + 1} de localizar inscrição para pagamento: ${paymentId}`)
-      
-      const { data: updateResult, error: updateError } = await supabaseAdmin
-        .from('inscricoes')
-        .update({ 
-          status: sistemaStatus, 
-          valor_pago: amount
-        })
-        .eq('pagamento_id', String(paymentId))
-        .select()
+    // ── ESTRATÉGIA ANTI-DUPLICATA ──────────────────────────────────────────
+    // O Mercado Pago envia múltiplas notificações por pagamento (formatos novo+legado).
+    // Solução: SEMPRE fazer upsert pelo pagamento_id:
+    //   - Se o registro já existe → atualiza o status
+    //   - Se não existe (fluxo PIX) → cria usando os dados do external_reference
+    // Com a constraint UNIQUE em pagamento_id no banco, isso é 100% seguro.
+    // ──────────────────────────────────────────────────────────────────────
 
-      if (updateError) {
-        console.error("❌ Erro ao atualizar banco:", updateError)
-        break
-      }
+    let inscricaoFinal = null
 
-      if (updateResult && updateResult.length > 0) {
-        updated = updateResult
-        break
-      }
+    // 1. Tentar UPDATE primeiro (registro já existe — cartão ou PIX antigo)
+    const { data: updateResult, error: updateError } = await supabaseAdmin
+      .from('inscricoes')
+      .update({ status: sistemaStatus, valor_pago: amount })
+      .eq('pagamento_id', String(paymentId))
+      .select()
 
-      // Se não encontrou registro existente e o pagamento foi aprovado,
-      // pode ser um PIX cujo INSERT ainda não foi feito (fluxo novo).
-      // Tentamos criar a inscrição usando o external_reference.
-      if (sistemaStatus === 'confirmada' && payment.external_reference) {
-        console.log(`📝 Inscrição não encontrada. Tentando criar via external_reference (fluxo PIX)...`)
-        try {
-          const participante = JSON.parse(payment.external_reference)
-          const { data: insertResult, error: insertError } = await supabaseAdmin
-            .from('inscricoes')
-            .insert([{
-              evento_id: participante.evento_id,
-              nome_participante: participante.nome,
-              email_participante: participante.email,
-              whatsapp: participante.whatsapp,
-              valor_pago: amount,
-              pagamento_id: String(paymentId),
-              status: 'confirmada'
-            }])
-            .select()
+    if (updateError) {
+      console.error("❌ Erro ao atualizar banco:", updateError)
+    } else if (updateResult && updateResult.length > 0) {
+      inscricaoFinal = updateResult[0]
+      console.log(`✅ Registro atualizado para: ${sistemaStatus}`)
+    }
 
-          if (insertError) {
-            console.error("❌ Erro ao criar inscrição via external_reference:", insertError)
-          } else if (insertResult && insertResult.length > 0) {
-            updated = insertResult
-            console.log(`✅ Inscrição PIX criada com sucesso para: ${participante.nome}`)
-            break
-          }
-        } catch (parseError) {
-          console.error("❌ Erro ao parsear external_reference:", parseError)
+    // 2. Se não encontrou registro (fluxo PIX) E pagamento aprovado → criar via external_reference
+    if (!inscricaoFinal && sistemaStatus === 'confirmada' && payment.external_reference) {
+      console.log(`📝 Registro não encontrado. Criando via external_reference (fluxo PIX)...`)
+      try {
+        const participante = JSON.parse(payment.external_reference)
+
+        // Upsert: cria ou atualiza — nunca duplica
+        const { data: upsertResult, error: upsertError } = await supabaseAdmin
+          .from('inscricoes')
+          .upsert([{
+            evento_id: participante.evento_id,
+            nome_participante: participante.nome,
+            email_participante: participante.email,
+            whatsapp: participante.whatsapp,
+            valor_pago: amount,
+            pagamento_id: String(paymentId),
+            status: 'confirmada'
+          }], { onConflict: 'pagamento_id', ignoreDuplicates: false })
+          .select()
+
+        if (upsertError) {
+          console.error("❌ Erro ao criar/atualizar inscrição via external_reference:", upsertError)
+        } else if (upsertResult && upsertResult.length > 0) {
+          inscricaoFinal = upsertResult[0]
+          console.log(`✅ Inscrição PIX criada/atualizada para: ${participante.nome}`)
         }
-      }
-
-      // Aguardar antes da próxima tentativa
-      if (i < MAX_RETRIES - 1) {
-        console.log(`⏳ Inscrição não encontrada. Aguardando 3s...`)
-        await new Promise(resolve => setTimeout(resolve, 3000))
+      } catch (parseError) {
+        console.error("❌ Erro ao parsear external_reference:", parseError)
       }
     }
 
-    if (updated && updated.length > 0) {
-      const inscricao = updated[0]
-      console.log(`✅ Inscrição de ${inscricao.nome_participante} atualizada para: ${sistemaStatus}`)
-      
-      if (sistemaStatus === 'confirmada') {
-        const { data: evento } = await supabaseAdmin.from('eventos').select('nome').eq('id', inscricao.evento_id).single()
-        
-        await supabaseAdmin.from('notificacoes').insert([{
-           titulo: '✅ Pagamento Confirmado!',
-           mensagem: `O pagamento de ${inscricao.nome_participante} para "${evento?.nome || 'Evento'}" foi aprovado.`,
-           tipo: 'financeiro'
-        }])
+    // 3. Se ainda não encontrou, aguardar e tentar uma última vez (race condition com frontend)
+    if (!inscricaoFinal) {
+      console.log(`⏳ Registro não encontrado. Aguardando 4s e tentando novamente...`)
+      await new Promise(resolve => setTimeout(resolve, 4000))
+
+      const { data: retryResult } = await supabaseAdmin
+        .from('inscricoes')
+        .update({ status: sistemaStatus, valor_pago: amount })
+        .eq('pagamento_id', String(paymentId))
+        .select()
+
+      if (retryResult && retryResult.length > 0) {
+        inscricaoFinal = retryResult[0]
+        console.log(`✅ Registro encontrado na re-tentativa: ${sistemaStatus}`)
+      } else {
+        console.warn(`⚠️ Nenhuma inscrição encontrada com pagamento_id: ${paymentId}`)
       }
-    } else {
-      console.warn(`⚠️ Nenhuma inscrição encontrada com pagamento_id: ${paymentId} após ${MAX_RETRIES} tentativas.`)
+    }
+
+    // 4. Disparar notificação interna se confirmado
+    if (inscricaoFinal && sistemaStatus === 'confirmada') {
+      const { data: evento } = await supabaseAdmin
+        .from('eventos').select('nome').eq('id', inscricaoFinal.evento_id).single()
+
+      await supabaseAdmin.from('notificacoes').insert([{
+        titulo: '✅ Pagamento Confirmado!',
+        mensagem: `O pagamento de ${inscricaoFinal.nome_participante} para "${evento?.nome || 'Evento'}" foi aprovado.`,
+        tipo: 'financeiro'
+      }])
     }
 
     return new Response(JSON.stringify({ received: true }), {
