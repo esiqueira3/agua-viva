@@ -103,7 +103,8 @@ export default function InscricaoMembro() {
     setCpfDuplicado(false)
 
     try {
-      // 1. Verificar se CPF já existe
+      // 1. Verificar se CPF já existe — membros ativos E pré-cadastros pendentes
+      // estão todos na tabela 'membros' (status=true=ativo, status=false=pendente)
       const { data: existing } = await supabase
         .from('membros')
         .select('id')
@@ -113,7 +114,6 @@ export default function InscricaoMembro() {
       if (existing) {
         setCpfDuplicado(true)
         setLoading(false)
-        // Rolar suavemente até o aviso
         setTimeout(() => document.getElementById('aviso-cpf')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100)
         return
       }
