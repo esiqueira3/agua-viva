@@ -83,8 +83,7 @@ serve(async (req) => {
         .from('inscricoes')
         .update({ 
           status: sistemaStatus, 
-          valor_pago: amount,
-          updated_at: new Date().toISOString()
+          valor_pago: amount
         })
         .eq('pagamento_id', String(paymentId))
         .select()
