@@ -35,7 +35,16 @@ import { PermissionsProvider } from './context/PermissionsContext'
 
 function App() {
   // Restaura o Dark Mode global na inicialização garantindo persistência sem piscar
+  // Exceção: páginas públicas sempre ficam em modo claro
   useEffect(() => {
+    const publicPaths = ['/agenda', '/inscrever', '/obrigado', '/inscricao/']
+    const isPublicPage = publicPaths.some(p => window.location.pathname.startsWith(p))
+    
+    if (isPublicPage) {
+      document.documentElement.classList.remove('dark')
+      return
+    }
+
     const savedTheme = localStorage.getItem('theme')
     if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
        document.documentElement.classList.add('dark')
