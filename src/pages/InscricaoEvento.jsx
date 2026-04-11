@@ -160,6 +160,7 @@ export default function InscricaoEvento() {
                 }
               },
               texts: {
+                emailSectionTitle: 'Confirme seu e-mail abaixo para gerar o Pix e receber o comprovante',
                 cardholderName: {
                   placeholder: 'Nome (como no cartão)',
                   label: 'Nome impresso no cartão'
