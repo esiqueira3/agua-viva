@@ -231,29 +231,45 @@ export default function FinanceiroEventos() {
     try {
       const { data: config } = await supabase.from('config_global').select('valor').eq('chave', 'MP_ACCESS_TOKEN').single()
       if (!config?.valor) throw new Error('Token do Mercado Pago não configurado!')
-      const resp = await fetch(`https://api.mercadopago.com/v1/payments/search?external_reference=${eventoSelecionado.id}&status=approved`, {
-        headers: { 'Authorization': `Bearer ${config.valor}` }
-      })
-      const result = await resp.json()
-      if (result.results?.length > 0) {
-        let count = 0
-        for (const payment of result.results) {
-          const email = payment.payer?.email
-          const { data: inscrita } = await supabase.from('inscricoes').select('*').eq('evento_id', eventoSelecionado.id).eq('email_participante', email).single()
-          if (inscrita) {
-            if (inscrita.status !== 'confirmada') {
-              await supabase.from('inscricoes').update({ status: 'confirmada', valor_pago: payment.transaction_amount }).eq('id', inscrita.id)
-              count++
-            }
-          } else {
-            await supabase.from('inscricoes').insert([{ evento_id: eventoSelecionado.id, nome_participante: payment.payer?.first_name || 'Pagador MP', email_participante: email, valor_pago: payment.transaction_amount, status: 'confirmada' }])
+
+      // Busca inscrições pendentes do evento que têm pagamento_id registrado
+      const { data: pendentes } = await supabase
+        .from('inscricoes')
+        .select('*')
+        .eq('evento_id', eventoSelecionado.id)
+        .eq('status', 'pendente')
+        .not('pagamento_id', 'is', null)
+
+      if (!pendentes || pendentes.length === 0) {
+        alert('✅ Não há inscrições pendentes com pagamento para sincronizar!')
+        return
+      }
+
+      let count = 0
+      for (const inscricao of pendentes) {
+        try {
+          const resp = await fetch(`https://api.mercadopago.com/v1/payments/${inscricao.pagamento_id}`, {
+            headers: { 'Authorization': `Bearer ${config.valor}` }
+          })
+          const payment = await resp.json()
+
+          if (payment.status === 'approved') {
+            await supabase.from('inscricoes')
+              .update({ status: 'confirmada', valor_pago: payment.transaction_amount })
+              .eq('id', inscricao.id)
+            count++
+          } else if (['rejected', 'cancelled', 'refunded', 'charged_back'].includes(payment.status)) {
+            await supabase.from('inscricoes')
+              .update({ status: 'recusada' })
+              .eq('id', inscricao.id)
             count++
           }
+        } catch (payErr) {
+          console.warn(`⚠️ Erro ao consultar pagamento ${inscricao.pagamento_id}:`, payErr)
         }
-        alert(`🎉 ${count} novos pagamentos sincronizados!`)
-      } else {
-        alert('🔍 Nenhuma nova transação aprovada encontrada.')
       }
+
+      alert(`🎉 ${count} inscrição(ões) atualizada(s) com sucesso!`)
     } catch (err) {
       alert('❌ Erro na consulta: ' + err.message)
     } finally {
