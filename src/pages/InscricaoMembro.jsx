@@ -5,6 +5,7 @@ export default function InscricaoMembro() {
   const [loading, setLoading] = useState(false)
   const [sucesso, setSucesso] = useState(false)
   const [erro, setErro] = useState('')
+  const [cpfDuplicado, setCpfDuplicado] = useState(false)
   const [config, setConfig] = useState(null)
   
   const [form, setForm] = useState({
@@ -66,6 +67,7 @@ export default function InscricaoMembro() {
       val = val.replace(/(\d{3})(\d)/, '$1.$2')
       val = val.replace(/(\d{3})(\d)/, '$1.$2')
       val = val.replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+      setCpfDuplicado(false) // Limpa aviso ao redigitar o CPF
     }
 
     setForm(f => ({ ...f, [name]: val }))
@@ -98,10 +100,10 @@ export default function InscricaoMembro() {
     e.preventDefault()
     setLoading(true)
     setErro('')
+    setCpfDuplicado(false)
 
     try {
       // 1. Verificar se CPF já existe
-      const cleanCpf = form.cpf.replace(/\D/g, '')
       const { data: existing } = await supabase
         .from('membros')
         .select('id')
@@ -109,7 +111,11 @@ export default function InscricaoMembro() {
         .maybeSingle()
 
       if (existing) {
-        throw new Error('Este CPF já está cadastrado em nossa plataforma. Por favor, entre em contato com a secretaria.')
+        setCpfDuplicado(true)
+        setLoading(false)
+        // Rolar suavemente até o aviso
+        setTimeout(() => document.getElementById('aviso-cpf')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100)
+        return
       }
 
       // 2. Gerar matrícula sequencial (obrigatória no banco)
@@ -133,7 +139,15 @@ export default function InscricaoMembro() {
         faixa_etaria: getFaixaEtaria(calculateAge(form.data_nascimento))
       }])
 
-      if (error) throw error
+      if (error) {
+        // Tratar erro de chave duplicada do banco de forma amigável
+        if (error.code === '23505' || error.message?.toLowerCase().includes('duplicate key')) {
+          setCpfDuplicado(true)
+          setTimeout(() => document.getElementById('aviso-cpf')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100)
+          return
+        }
+        throw new Error('Ocorreu um erro ao salvar seu cadastro. Por favor, tente novamente ou entre em contato com a secretaria.')
+      }
       
       await notifyAdmin(form.nome_completo)
 
@@ -317,6 +331,23 @@ export default function InscricaoMembro() {
                      </>
                    )}
                  </button>
+
+                 {/* Aviso de CPF duplicado — aparece logo abaixo do botão */}
+                 {cpfDuplicado && (
+                   <div id="aviso-cpf" className="mt-5 p-5 bg-amber-50 border-2 border-amber-200 rounded-3xl flex items-start gap-4 animate-in fade-in slide-in-from-bottom-3 duration-400">
+                     <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center shrink-0">
+                       <span className="material-symbols-outlined text-2xl text-amber-600" style={{ fontVariationSettings: "'FILL' 1" }}>person_alert</span>
+                     </div>
+                     <div>
+                       <p className="font-black text-amber-800 text-sm uppercase tracking-wide">CPF já cadastrado</p>
+                       <p className="text-amber-700 text-sm font-medium mt-1 leading-relaxed">
+                         Este CPF já consta em nosso sistema. Caso precise atualizar seus dados ou tenha alguma dúvida, entre em contato com a secretaria da Comunidade Evangélica Água Viva.
+                       </p>
+                       <p className="text-amber-500 text-xs font-bold mt-2">💡 Verifique se digitou o CPF corretamente antes de entrar em contato.</p>
+                     </div>
+                   </div>
+                 )}
+
                  <p className="text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-6">
                     Sua privacidade é importante. Seus dados estão protegidos.
                  </p>
