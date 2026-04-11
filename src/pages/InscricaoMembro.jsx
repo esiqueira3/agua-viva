@@ -227,16 +227,7 @@ export default function InscricaoMembro() {
             alt="Comunidade Água Viva"
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-slate-900/10 to-transparent" />
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
-            <img src="/logo_branco.png" alt="Logo" className="h-14 mb-3 drop-shadow-xl" />
-            <h1 className="text-white font-black text-2xl md:text-3xl uppercase tracking-tight drop-shadow-lg">
-              {config?.slogan_principal || "Faça parte da nossa família"}
-            </h1>
-            <p className="text-white/75 text-xs md:text-sm font-bold mt-2 max-w-md">
-              {config?.subtexto_slogan || "Complete seus dados abaixo para iniciar sua jornada conosco na Água Viva."}
-            </p>
-          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/30 to-transparent" />
         </div>
 
         {/* Formulário Principal (Fixo Light Mode para Acessibilidade) */}
