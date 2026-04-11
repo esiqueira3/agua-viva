@@ -54,7 +54,7 @@ export default function Obrigado() {
 
         {/* Rodapé */}
         <p className="text-slate-500 text-xs font-medium">
-          Igreja Água Viva · Com amor e gratidão 🕊️
+          Comunidade Evangélica Água Viva · Com amor e gratidão 🕊️
         </p>
       </div>
     </div>

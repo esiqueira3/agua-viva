@@ -66,7 +66,6 @@ serve(async (req) => {
       transaction_amount: Number(transaction_amount),
       description: description || `Agua Viva - Inscrição Evento ID: ${evento_id}`,
       payment_method_id: payment_method_id,
-      binary_mode: true,
       payer: {
         email: email_pagador || payer?.email,
         identification: payer?.identification,
