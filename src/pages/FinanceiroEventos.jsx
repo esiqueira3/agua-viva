@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import { PageHeader } from '../components/ui/PageHeader'
 import { usePermissions } from '../context/PermissionsContext'
 import jsPDF from 'jspdf'
-import 'jspdf-autotable'
+import autoTable from 'jspdf-autotable'
 import * as XLSX from 'xlsx'
 
 const FORMAS_PAGAMENTO = [
@@ -314,7 +314,7 @@ export default function FinanceiroEventos() {
     doc.text(`Evento: ${eventoSelecionado.nome}`, 14, 30)
     doc.text(`Data do Relatório: ${new Date().toLocaleDateString('pt-BR')}`, 14, 37)
 
-    doc.autoTable({
+    autoTable(doc, {
       head: [tableColumn],
       body: tableRows,
       startY: 45,
