@@ -24,7 +24,14 @@ export default function InscricaoEvento() {
     saude_info: '',
     alergia_info: '',
     quer_camiseta: false,
-    camiseta_tamanho: ''
+    camiseta_tamanho: '',
+    membro_agua_viva: '',
+    nome_conjuge: '',
+    whatsapp_conjuge: '',
+    nome_pai: '',
+    whatsapp_pai: '',
+    nome_mae: '',
+    whatsapp_mae: ''
   })
   const [publicKey, setPublicKey] = useState(null)
   const [step, setStep] = useState(1) // 1: Dados, 2: Pagamento
@@ -128,6 +135,13 @@ export default function InscricaoEvento() {
         alergia_info: form.alergia_info,
         camiseta_tamanho: form.quer_camiseta ? form.camiseta_tamanho : null,
         quer_camiseta: form.quer_camiseta,
+        membro_agua_viva: form.membro_agua_viva,
+        nome_conjuge: form.nome_conjuge,
+        whatsapp_conjuge: form.whatsapp_conjuge,
+        nome_pai: form.nome_pai,
+        whatsapp_pai: form.whatsapp_pai,
+        nome_mae: form.nome_mae,
+        whatsapp_mae: form.whatsapp_mae,
         valor_pago: 0,
         status: 'confirmada'
       }
@@ -213,6 +227,13 @@ export default function InscricaoEvento() {
                       alergia_info: form.alergia_info,
                       camiseta_tamanho: form.quer_camiseta ? form.camiseta_tamanho : null,
                       quer_camiseta: form.quer_camiseta,
+                      membro_agua_viva: form.membro_agua_viva,
+                      nome_conjuge: form.nome_conjuge,
+                      whatsapp_conjuge: form.whatsapp_conjuge,
+                      nome_pai: form.nome_pai,
+                      whatsapp_pai: form.whatsapp_pai,
+                      nome_mae: form.nome_mae,
+                      whatsapp_mae: form.whatsapp_mae,
                       evento_id: id,
                       evento_nome: evento.nome
                     }
@@ -236,6 +257,13 @@ export default function InscricaoEvento() {
                     alergia_info: form.alergia_info,
                     camiseta_tamanho: form.quer_camiseta ? form.camiseta_tamanho : null,
                     quer_camiseta: form.quer_camiseta,
+                    membro_agua_viva: form.membro_agua_viva,
+                    nome_conjuge: form.nome_conjuge,
+                    whatsapp_conjuge: form.whatsapp_conjuge,
+                    nome_pai: form.nome_pai,
+                    whatsapp_pai: form.whatsapp_pai,
+                    nome_mae: form.nome_mae,
+                    whatsapp_mae: form.whatsapp_mae,
                     valor_pago: result.transaction_amount,
                     pagamento_id: String(result.id),
                     status: 'confirmada'
@@ -276,6 +304,13 @@ export default function InscricaoEvento() {
                     alergia_info: form.alergia_info,
                     camiseta_tamanho: form.quer_camiseta ? form.camiseta_tamanho : null,
                     quer_camiseta: form.quer_camiseta,
+                    membro_agua_viva: form.membro_agua_viva,
+                    nome_conjuge: form.nome_conjuge,
+                    whatsapp_conjuge: form.whatsapp_conjuge,
+                    nome_pai: form.nome_pai,
+                    whatsapp_pai: form.whatsapp_pai,
+                    nome_mae: form.nome_mae,
+                    whatsapp_mae: form.whatsapp_mae,
                     valor_pago: result.transaction_amount,
                     pagamento_id: String(result.id),
                     status: 'pendente'
@@ -514,32 +549,13 @@ export default function InscricaoEvento() {
                  </div>
 
                  {/* Campos Adicionais Condicionais */}
-                 {(evento.pedir_saude || evento.pedir_alergia || evento.pedir_camiseta) && (
+                 {(evento.pedir_saude || evento.pedir_alergia || evento.pedir_camiseta || 
+                   evento.pedir_membro_agua_viva || evento.pedir_conjuge || 
+                   evento.pedir_pai || evento.pedir_mae) && (
                    <div className="pt-6 border-t border-slate-100 space-y-6">
                       <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 mb-2">Informações Adicionais</h4>
                       
-                      {evento.pedir_saude && (
-                        <div className="flex flex-col gap-1">
-                           <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Algum problema de saúde?</label>
-                           <textarea 
-                              placeholder="Descreva se houver algum problema de saúde..."
-                              value={form.saude_info} onChange={e => setForm({...form, saude_info: e.target.value})}
-                              className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary transition-all font-medium min-h-[80px] resize-none"
-                           />
-                        </div>
-                      )}
-
-                      {evento.pedir_alergia && (
-                        <div className="flex flex-col gap-1">
-                           <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Possui alguma Alergia?</label>
-                           <textarea 
-                              placeholder="Medicamento, alimento, etc..."
-                              value={form.alergia_info} onChange={e => setForm({...form, alergia_info: e.target.value})}
-                              className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary transition-all font-medium min-h-[80px] resize-none"
-                           />
-                        </div>
-                      )}
-
+                      {/* 1. Camiseta */}
                       {evento.pedir_camiseta && (
                         <div className="space-y-4">
                            <div className="flex flex-col gap-2">
@@ -582,6 +598,116 @@ export default function InscricaoEvento() {
                                      + R$ {evento.valor_camiseta} adicionados ao total
                                   </p>
                                 )}
+                             </div>
+                           )}
+                        </div>
+                      )}
+
+                      {/* 2. Membro Água Viva */}
+                      {evento.pedir_membro_agua_viva && (
+                         <div className="flex flex-col gap-1">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Você é membro da Água Viva?</label>
+                            <input 
+                               type="text" placeholder="Sim / Não (ou departamento)"
+                               value={form.membro_agua_viva} onChange={e => setForm({...form, membro_agua_viva: e.target.value})}
+                               className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary transition-all font-medium"
+                            />
+                         </div>
+                      )}
+
+                      {/* 3. Cônjuge */}
+                      {evento.pedir_conjuge && (
+                         <div className="p-4 bg-primary/5 rounded-[2rem] border border-primary/10 space-y-4">
+                            <h5 className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                               <span className="material-symbols-outlined text-sm">favorite</span>
+                               Dados do Cônjuge
+                            </h5>
+                            <div className="space-y-3">
+                               <input 
+                                  type="text" placeholder="Nome do Cônjuge"
+                                  value={form.nome_conjuge} onChange={e => setForm({...form, nome_conjuge: e.target.value})}
+                                  className="w-full bg-white border border-slate-100 rounded-xl p-3 text-sm font-medium"
+                               />
+                               <input 
+                                  type="tel" placeholder="WhatsApp (cônjuge)"
+                                  value={form.whatsapp_conjuge} onChange={e => setForm({...form, whatsapp_conjuge: e.target.value})}
+                                  className="w-full bg-white border border-slate-100 rounded-xl p-3 text-sm font-medium"
+                               />
+                            </div>
+                         </div>
+                      )}
+
+                      {/* 4. Pai */}
+                      {evento.pedir_pai && (
+                         <div className="p-4 bg-blue-50/50 rounded-[2rem] border border-blue-100 space-y-4">
+                            <h5 className="text-[10px] font-black uppercase tracking-widest text-blue-600 flex items-center gap-2">
+                               <span className="material-symbols-outlined text-sm">person</span>
+                               Dados do Pai
+                            </h5>
+                            <div className="space-y-3">
+                               <input 
+                                  type="text" placeholder="Nome do Pai"
+                                  value={form.nome_pai} onChange={e => setForm({...form, nome_pai: e.target.value})}
+                                  className="w-full bg-white border border-slate-100 rounded-xl p-3 text-sm font-medium"
+                               />
+                               <input 
+                                  type="tel" placeholder="WhatsApp (pai)"
+                                  value={form.whatsapp_pai} onChange={e => setForm({...form, whatsapp_pai: e.target.value})}
+                                  className="w-full bg-white border border-slate-100 rounded-xl p-3 text-sm font-medium"
+                               />
+                            </div>
+                         </div>
+                      )}
+
+                      {/* 5. Mãe */}
+                      {evento.pedir_mae && (
+                         <div className="p-4 bg-pink-50/50 rounded-[2rem] border border-pink-100 space-y-4">
+                            <h5 className="text-[10px] font-black uppercase tracking-widest text-pink-600 flex items-center gap-2">
+                               <span className="material-symbols-outlined text-sm">person_2</span>
+                               Dados da Mãe
+                            </h5>
+                            <div className="space-y-3">
+                               <input 
+                                  type="text" placeholder="Nome da Mãe"
+                                  value={form.nome_mae} onChange={e => setForm({...form, nome_mae: e.target.value})}
+                                  className="w-full bg-white border border-slate-100 rounded-xl p-3 text-sm font-medium"
+                               />
+                               <input 
+                                  type="tel" placeholder="WhatsApp (mãe)"
+                                  value={form.whatsapp_mae} onChange={e => setForm({...form, whatsapp_mae: e.target.value})}
+                                  className="w-full bg-white border border-slate-100 rounded-xl p-3 text-sm font-medium"
+                               />
+                            </div>
+                         </div>
+                      )}
+
+                      {/* 6. Saúde e Alergia (Movido para o final da seção conforme solicitado) */}
+                      {(evento.pedir_saude || evento.pedir_alergia) && (
+                        <div className="pt-4 border-t border-slate-100 space-y-4">
+                           <h5 className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                              <span className="material-symbols-outlined text-sm">medical_information</span>
+                              Saúde e Atenção Especial
+                           </h5>
+
+                           {evento.pedir_saude && (
+                             <div className="flex flex-col gap-1">
+                                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Algum problema de saúde?</label>
+                                <textarea 
+                                   placeholder="Descreva se houver algum problema de saúde..."
+                                   value={form.saude_info} onChange={e => setForm({...form, saude_info: e.target.value})}
+                                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary transition-all font-medium min-h-[80px] resize-none"
+                                />
+                             </div>
+                           )}
+
+                           {evento.pedir_alergia && (
+                             <div className="flex flex-col gap-1">
+                                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Possui alguma Alergia?</label>
+                                <textarea 
+                                   placeholder="Medicamento, alimento, etc..."
+                                   value={form.alergia_info} onChange={e => setForm({...form, alergia_info: e.target.value})}
+                                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary transition-all font-medium min-h-[80px] resize-none"
+                                />
                              </div>
                            )}
                         </div>

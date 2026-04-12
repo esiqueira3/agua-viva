@@ -288,7 +288,7 @@ export default function FinanceiroEventos() {
     if (!eventoSelecionado || inscritos.length === 0) return
 
     const doc = jsPDF()
-    const tableColumn = ["Nome", "WhatsApp", "Status", "Valor", "Saúde", "Alergias", "Camiseta"]
+    const tableColumn = ["Nome", "WhatsApp", "Status", "Valor", "Membro", "Cônjuge", "Pais", "Camiseta"]
     const tableRows = []
 
     inscritos.forEach(ins => {
@@ -297,8 +297,9 @@ export default function FinanceiroEventos() {
         ins.whatsapp || "-",
         ins.status === 'confirmada' ? 'CONFIRMADO' : 'PENDENTE',
         `R$ ${parseFloat(ins.valor_pago || 0).toFixed(2)}`,
-        ins.saude_info || "-",
-        ins.alergia_info || "-",
+        ins.membro_agua_viva || "-",
+        ins.nome_conjuge ? `${ins.nome_conjuge} (${ins.whatsapp_conjuge || 'N/I'})` : "-",
+        `${ins.nome_pai || 'P: -'} / ${ins.nome_mae || 'M: -'}`,
         ins.quer_camiseta ? `SIM (${ins.camiseta_tamanho})` : "NÃO"
       ]
       tableRows.push(rowData)
@@ -320,11 +321,12 @@ export default function FinanceiroEventos() {
       startY: 45,
       theme: 'grid',
       headStyles: { fillColor: [40, 93, 169], textColor: 255, fontStyle: 'bold' },
-      styles: { fontSize: 8, cellPadding: 2 },
+      styles: { fontSize: 7, cellPadding: 2 },
       columnStyles: {
-        0: { cellWidth: 35 }, // Nome
-        4: { cellWidth: 35 }, // Saúde
-        5: { cellWidth: 35 }, // Alergias
+        0: { cellWidth: 30 }, // Nome
+        4: { cellWidth: 20 }, // Membro
+        5: { cellWidth: 30 }, // Cônjuge
+        6: { cellWidth: 40 }, // Pais
       }
     })
 
@@ -340,6 +342,13 @@ export default function FinanceiroEventos() {
       "WhatsApp": ins.whatsapp || "-",
       "Status": ins.status === 'confirmada' ? 'CONFIRMADO' : 'PENDENTE',
       "Valor Pago": parseFloat(ins.valor_pago || 0),
+      "Membro Água Viva": ins.membro_agua_viva || "-",
+      "Cônjuge": ins.nome_conjuge || "-",
+      "WhatsApp Cônjuge": ins.whatsapp_conjuge || "-",
+      "Pai": ins.nome_pai || "-",
+      "WhatsApp Pai": ins.whatsapp_pai || "-",
+      "Mãe": ins.nome_mae || "-",
+      "WhatsApp Mãe": ins.whatsapp_mae || "-",
       "Saúde": ins.saude_info || "-",
       "Alergias": ins.alergia_info || "-",
       "Quer Camiseta": ins.quer_camiseta ? "SIM" : "NÃO",
@@ -357,6 +366,13 @@ export default function FinanceiroEventos() {
       {wch: 15}, // WhatsApp
       {wch: 12}, // Status
       {wch: 10}, // Valor
+      {wch: 20}, // Membro
+      {wch: 25}, // Cônjuge
+      {wch: 15}, // Zap Cônjuge
+      {wch: 25}, // Pai
+      {wch: 15}, // Zap Pai
+      {wch: 25}, // Mãe
+      {wch: 15}, // Zap Mãe
       {wch: 30}, // Saúde
       {wch: 30}, // Alergias
       {wch: 12}, // Camiseta
@@ -1000,6 +1016,36 @@ export default function FinanceiroEventos() {
                            </div>
                         </div>
                       )}
+                   </div>
+
+                   {/* Associação e Família */}
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Membro */}
+                      <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Membro Água Viva?</p>
+                         <p className="text-sm font-bold text-slate-700">{infoInscritoData.membro_agua_viva || "Não informado"}</p>
+                      </div>
+
+                      {/* Cônjuge */}
+                      <div className={`p-4 border rounded-2xl ${infoInscritoData.nome_conjuge ? 'bg-primary/5 border-primary/10' : 'bg-slate-50 border-slate-100'}`}>
+                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Cônjuge</p>
+                         <p className="text-sm font-bold text-slate-700">{infoInscritoData.nome_conjuge || "Não informado"}</p>
+                         {infoInscritoData.whatsapp_conjuge && <p className="text-xs text-primary font-bold mt-1">{infoInscritoData.whatsapp_conjuge}</p>}
+                      </div>
+
+                      {/* Pai */}
+                      <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Pai</p>
+                         <p className="text-sm font-bold text-slate-700">{infoInscritoData.nome_pai || "Não informado"}</p>
+                         {infoInscritoData.whatsapp_pai && <p className="text-xs text-blue-600 font-bold mt-1">{infoInscritoData.whatsapp_pai}</p>}
+                      </div>
+
+                      {/* Mãe */}
+                      <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Mãe</p>
+                         <p className="text-sm font-bold text-slate-700">{infoInscritoData.nome_mae || "Não informado"}</p>
+                         {infoInscritoData.whatsapp_mae && <p className="text-xs text-pink-600 font-bold mt-1">{infoInscritoData.whatsapp_mae}</p>}
+                      </div>
                    </div>
 
                 </div>

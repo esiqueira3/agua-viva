@@ -344,6 +344,36 @@ export default function CadastroEvento() {
                  <Toggle label="Oferecer Camiseta?" name="pedir_camiseta" form={form} onChange={handleFormChange} />
                  <p className="text-[10px] text-on-surface-variant italic">Exibe seleção de tamanhos e escolha de camiseta na inscrição.</p>
               </div>
+
+              <div className="p-5 rounded-2xl bg-surface-container border border-outline-variant/10 space-y-4">
+                 <div className="flex items-center gap-3 mb-2 text-primary">
+                    <span className="material-symbols-outlined">group</span>
+                    <h4 className="font-black text-xs uppercase tracking-widest">Associação</h4>
+                 </div>
+                 <Toggle label="Pedir Membro da Água Viva?" name="pedir_membro_agua_viva" form={form} onChange={handleFormChange} />
+                 <p className="text-[10px] text-on-surface-variant italic">Pergunta se o participante já é membro da igreja.</p>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-surface-container border border-outline-variant/10 space-y-4">
+                 <div className="flex items-center gap-3 mb-2 text-primary">
+                    <span className="material-symbols-outlined">favorite</span>
+                    <h4 className="font-black text-xs uppercase tracking-widest">Cônjuge</h4>
+                 </div>
+                 <Toggle label="Pedir Nome/Zap do Cônjuge?" name="pedir_conjuge" form={form} onChange={handleFormChange} />
+                 <p className="text-[10px] text-on-surface-variant italic">Habilita campos para informações do parceiro(a).</p>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-surface-container border border-outline-variant/10 space-y-4">
+                 <div className="flex items-center gap-3 mb-2 text-primary">
+                    <span className="material-symbols-outlined">family_history</span>
+                    <h4 className="font-black text-xs uppercase tracking-widest">Pais (Filiação)</h4>
+                 </div>
+                 <div className="grid grid-cols-2 gap-4">
+                    <Toggle label="Pedir Nome/Zap do Pai?" name="pedir_pai" form={form} onChange={handleFormChange} />
+                    <Toggle label="Pedir Nome/Zap da Mãe?" name="pedir_mae" form={form} onChange={handleFormChange} />
+                 </div>
+                 <p className="text-[10px] text-on-surface-variant italic">Habilita campos para informações dos pais.</p>
+              </div>
            </div>
         </div>
       )
