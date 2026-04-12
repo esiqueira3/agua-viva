@@ -456,9 +456,9 @@ export default function InscricaoEvento() {
                  </div>
 
                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">WhatsApp (Opcional)</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">WhatsApp *</label>
                     <input 
-                       type="tel" placeholder="(00) 0 0000-0000"
+                       required type="tel" placeholder="(00) 0 0000-0000"
                        value={form.whatsapp} onChange={e => setForm({...form, whatsapp: e.target.value})}
                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary transition-all font-medium"
                     />
