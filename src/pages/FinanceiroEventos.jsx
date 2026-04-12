@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo } from 'react'
-import { supabase } from '../lib/supabase'
-import { PageHeader } from '../components/ui/PageHeader'
 import { usePermissions } from '../context/PermissionsContext'
+import jsPDF from 'jspdf'
+import 'jspdf-autotable'
+import * as XLSX from 'xlsx'
 
 const FORMAS_PAGAMENTO = [
   { value: 'PIX',           icon: 'qr_code_2',         color: '#32BCAD' },
@@ -38,6 +38,8 @@ export default function FinanceiroEventos() {
   const [showModalSaque, setShowModalSaque] = useState(false)
   const [qrModalData, setQrModalData] = useState(null)
   const [savingSaque, setSavingSaque] = useState(false)
+  const [showModalInfo, setShowModalInfo] = useState(false)
+  const [infoInscritoData, setInfoInscritoData] = useState(null)
   
   // Filtros
   const [filtroAno, setFiltroAno] = useState(new Date().getFullYear().toString())
@@ -277,6 +279,89 @@ export default function FinanceiroEventos() {
       await loadFinanceiro()
       setLoading(false)
     }
+  }
+
+  const exportToPDF = () => {
+    if (!eventoSelecionado || inscritos.length === 0) return
+
+    const doc = jsPDF()
+    const tableColumn = ["Nome", "WhatsApp", "Status", "Valor", "Saúde", "Alergias", "Camiseta"]
+    const tableRows = []
+
+    inscritos.forEach(ins => {
+      const rowData = [
+        ins.nome_participante,
+        ins.whatsapp || "-",
+        ins.status === 'confirmada' ? 'CONFIRMADO' : 'PENDENTE',
+        `R$ ${parseFloat(ins.valor_pago || 0).toFixed(2)}`,
+        ins.saude_info || "-",
+        ins.alergia_info || "-",
+        ins.quer_camiseta ? `SIM (${ins.camiseta_tamanho})` : "NÃO"
+      ]
+      tableRows.push(rowData)
+    })
+
+    // Header do PDF
+    doc.setFontSize(18)
+    doc.setTextColor(40)
+    doc.text("Relatório de Inscritos - Água Viva", 14, 22)
+    
+    doc.setFontSize(11)
+    doc.setTextColor(100)
+    doc.text(`Evento: ${eventoSelecionado.nome}`, 14, 30)
+    doc.text(`Data do Relatório: ${new Date().toLocaleDateString('pt-BR')}`, 14, 37)
+
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 45,
+      theme: 'grid',
+      headStyles: { fillColor: [40, 93, 169], textColor: 255, fontStyle: 'bold' },
+      styles: { fontSize: 8, cellPadding: 2 },
+      columnStyles: {
+        0: { cellWidth: 35 }, // Nome
+        4: { cellWidth: 35 }, // Saúde
+        5: { cellWidth: 35 }, // Alergias
+      }
+    })
+
+    doc.save(`Inscritos_${eventoSelecionado.nome.replace(/\s+/g, '_')}.pdf`)
+  }
+
+  const exportToExcel = () => {
+    if (!eventoSelecionado || inscritos.length === 0) return
+
+    const data = inscritos.map(ins => ({
+      "Nome": ins.nome_participante,
+      "E-mail": ins.email_participante || "-",
+      "WhatsApp": ins.whatsapp || "-",
+      "Status": ins.status === 'confirmada' ? 'CONFIRMADO' : 'PENDENTE',
+      "Valor Pago": parseFloat(ins.valor_pago || 0),
+      "Saúde": ins.saude_info || "-",
+      "Alergias": ins.alergia_info || "-",
+      "Quer Camiseta": ins.quer_camiseta ? "SIM" : "NÃO",
+      "Tamanho Camiseta": ins.camiseta_tamanho || "-"
+    }))
+
+    const worksheet = XLSX.utils.json_to_sheet(data)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Inscritos")
+    
+    // Ajuste de largura das colunas
+    const wscols = [
+      {wch: 30}, // Nome
+      {wch: 25}, // Email
+      {wch: 15}, // WhatsApp
+      {wch: 12}, // Status
+      {wch: 10}, // Valor
+      {wch: 30}, // Saúde
+      {wch: 30}, // Alergias
+      {wch: 12}, // Camiseta
+      {wch: 10}  // Tamanho
+    ]
+    worksheet['!cols'] = wscols
+
+    XLSX.writeFile(workbook, `Inscritos_${eventoSelecionado.nome.replace(/\s+/g, '_')}.xlsx`)
   }
 
   const totalGlobalArrecadado = eventos.reduce((s, ev) => s + (ev.totalArrecadado || 0), 0)
@@ -538,12 +623,32 @@ export default function FinanceiroEventos() {
             </div>
           )}
 
-          {/* INSCRITOS — CARDS */}
           <div className="p-6">
-            <h5 className="text-xs font-black uppercase tracking-widest text-on-surface-variant/60 flex items-center gap-2 mb-4">
-              <span className="material-symbols-outlined text-[16px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>group</span>
-              Inscritos e Pagamentos ({inscritos.length})
-            </h5>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+               <h5 className="text-xs font-black uppercase tracking-widest text-on-surface-variant/60 flex items-center gap-2">
+                 <span className="material-symbols-outlined text-[16px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>group</span>
+                 Inscritos e Pagamentos ({inscritos.length})
+               </h5>
+
+               {inscritos.length > 0 && (
+                 <div className="flex items-center gap-2">
+                    <button 
+                      onClick={exportToPDF}
+                      className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl font-bold text-[10px] border border-red-100 hover:bg-red-100 transition-all active:scale-95 shadow-sm"
+                    >
+                       <span className="material-symbols-outlined text-sm">picture_as_pdf</span>
+                       EXPORTAR PDF
+                    </button>
+                    <button 
+                      onClick={exportToExcel}
+                      className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-xl font-bold text-[10px] border border-green-100 hover:bg-green-100 transition-all active:scale-95 shadow-sm"
+                    >
+                       <span className="material-symbols-outlined text-sm">table_chart</span>
+                       EXPORTAR EXCEL
+                    </button>
+                 </div>
+               )}
+            </div>
 
             {inscritos.length === 0 ? (
               <div className="py-12 text-center">
@@ -610,15 +715,20 @@ export default function FinanceiroEventos() {
                         </p>
                       </div>
 
-                      {/* Ações — aparecem no hover */}
-                      <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                        {!isConfirmado && (
-                          <button onClick={() => handleConfirmarPagamento(ins.id)}
-                            className="p-1.5 bg-emerald-100 text-emerald-600 rounded-lg hover:bg-emerald-200 transition-colors"
-                            title="Confirmar pagamento">
-                            <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                          </button>
-                        )}
+                      {/* Ações — sempre visíveis */}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                             <button onClick={() => { setInfoInscritoData(ins); setShowModalInfo(true); }}
+                             className="p-1.5 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                             title="Ver Ficha do Inscrito">
+                             <span className="material-symbols-outlined text-[16px]">assignment</span>
+                           </button>
+                          {!isConfirmado && (
+                            <button onClick={() => handleConfirmarPagamento(ins.id)}
+                              className="p-1.5 bg-emerald-100 text-emerald-600 rounded-lg hover:bg-emerald-200 transition-colors"
+                              title="Confirmar pagamento">
+                              <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                            </button>
+                          )}
                         {ins.manual && (
                           <button onClick={() => handleDeleteInscricao(ins.id)}
                             className="p-1.5 bg-red-100 text-red-500 rounded-lg hover:bg-red-200 transition-colors"
@@ -805,6 +915,105 @@ export default function FinanceiroEventos() {
           </div>
         </div>
       )}
+
+        {/* ══════════ MODAL FICHA DO INSCRITO (NOVO) ══════════ */}
+        {showModalInfo && infoInscritoData && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+             <div className="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[2.5rem] shadow-2xl border border-white/20 overflow-hidden animate-in zoom-in-95 duration-300">
+                
+                {/* Header do Modal */}
+                <div className="p-8 bg-gradient-to-r from-blue-600 to-indigo-700 text-white relative overflow-hidden">
+                   <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none select-none">
+                      <span className="material-symbols-outlined text-8xl">account_circle</span>
+                   </div>
+                   
+                   <div className="relative flex justify-between items-start">
+                      <div>
+                         <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70 mb-1">Ficha de Inscrição</p>
+                         <h3 className="text-2xl font-black leading-tight uppercase tracking-tight">{infoInscritoData.nome_participante}</h3>
+                         <div className="flex items-center gap-3 mt-4 text-xs font-bold opacity-90">
+                            <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur">
+                               <span className="material-symbols-outlined text-sm">mail</span>
+                               {infoInscritoData.email_participante || 'Sem e-mail'}
+                            </div>
+                            {infoInscritoData.whatsapp && (
+                               <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur">
+                                  <span className="material-symbols-outlined text-sm">call</span>
+                                  {infoInscritoData.whatsapp}
+                               </div>
+                            )}
+                         </div>
+                      </div>
+                      <button onClick={() => setShowModalInfo(false)} className="p-2 hover:bg-white/20 rounded-full transition-colors">
+                         <span className="material-symbols-outlined">close</span>
+                      </button>
+                   </div>
+                </div>
+
+                {/* Conteúdo da Ficha */}
+                <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                   
+                   {/* Seção de Saúde */}
+                   <div className="p-6 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 rounded-[2rem] space-y-3">
+                      <div className="flex items-center gap-3 text-red-600 dark:text-red-400">
+                         <span className="material-symbols-outlined">medical_information</span>
+                         <h4 className="text-xs font-black uppercase tracking-widest">Saúde e Atenção Especial</h4>
+                      </div>
+                      <p className="text-sm text-slate-700 dark:text-slate-300 font-medium leading-relaxed italic">
+                         {infoInscritoData.saude_info || "Nenhuma observação de saúde informada."}
+                      </p>
+                   </div>
+
+                   {/* Seção de Alergias */}
+                   <div className="p-6 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20 rounded-[2rem] space-y-3">
+                      <div className="flex items-center gap-3 text-amber-600 dark:text-amber-400">
+                         <span className="material-symbols-outlined">warning</span>
+                         <h4 className="text-xs font-black uppercase tracking-widest">Alergias Detectadas</h4>
+                      </div>
+                      <p className="text-sm text-slate-700 dark:text-slate-300 font-medium leading-relaxed italic">
+                         {infoInscritoData.alergia_info || "Nenhuma alergia informada."}
+                      </p>
+                   </div>
+
+                   {/* Seção de Camiseta */}
+                   <div className={`p-6 border rounded-[2rem] space-y-3 ${infoInscritoData.quer_camiseta ? 'bg-primary/5 border-primary/10' : 'bg-slate-50 border-slate-100'}`}>
+                      <div className="flex items-center justify-between">
+                         <div className={`flex items-center gap-3 ${infoInscritoData.quer_camiseta ? 'text-primary' : 'text-slate-400'}`}>
+                            <span className="material-symbols-outlined">apparel</span>
+                            <h4 className="text-xs font-black uppercase tracking-widest">Opção de Camiseta</h4>
+                         </div>
+                         <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-full ${infoInscritoData.quer_camiseta ? 'bg-primary text-white' : 'bg-slate-200 text-slate-500'}`}>
+                            {infoInscritoData.quer_camiseta ? 'SOLICITADA' : 'NÃO SOLICITADA'}
+                         </span>
+                      </div>
+                      {infoInscritoData.quer_camiseta && (
+                        <div className="flex items-center gap-4 bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-primary/5">
+                           <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center font-black text-primary text-xl">
+                              {infoInscritoData.camiseta_tamanho}
+                           </div>
+                           <div>
+                              <p className="text-xs font-bold text-slate-900 dark:text-white uppercase">Tamanho Selecionado</p>
+                              <p className="text-[10px] text-slate-400 font-medium tracking-tight">O valor já foi incluído no total pago.</p>
+                           </div>
+                        </div>
+                      )}
+                   </div>
+
+                </div>
+
+                {/* Rodapé do Modal */}
+                <div className="p-6 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                   <button 
+                     onClick={() => setShowModalInfo(false)}
+                     className="px-8 py-3 bg-slate-900 dark:bg-primary text-white rounded-xl font-black text-xs uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-slate-900/20"
+                   >
+                      Entendido
+                   </button>
+                </div>
+
+             </div>
+          </div>
+        )}
 
        {/* Modal do QR Code Ampliado */}
        {qrModalData && (
