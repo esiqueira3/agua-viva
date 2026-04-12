@@ -24,6 +24,16 @@ export default function InscricaoEvento() {
   })
   const [publicKey, setPublicKey] = useState(null)
   const [step, setStep] = useState(1) // 1: Dados, 2: Pagamento
+  
+  // Forçar modo claro nesta página pública
+  useEffect(() => {
+    const root = document.documentElement
+    const wasDark = root.classList.contains('dark')
+    root.classList.remove('dark')
+    return () => {
+      if (wasDark) root.classList.add('dark')
+    }
+  }, [])
 
   useEffect(() => {
     async function loadEvento() {
@@ -409,7 +419,7 @@ export default function InscricaoEvento() {
     <div className="min-h-screen bg-slate-50 flex flex-col items-center py-12 px-4 selection:bg-primary selection:text-white">
       {/* Header Estilizado */}
       <div className="max-w-2xl w-full text-center mb-10">
-         <img src="/logo.png" alt="Água Viva" className="h-14 mx-auto mb-6" />
+         <img src="/logo.png" alt="Água Viva" className="h-20 mx-auto mb-6" />
          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
             Inscrição: <span className="text-primary">{evento.nome}</span>
          </h1>
@@ -417,9 +427,16 @@ export default function InscricaoEvento() {
             <div className="flex items-center gap-2">
                <span className="material-symbols-outlined text-primary">calendar_today</span>
                {/* Parse manual para evitar deslocamento de fuso UTC-3 */}
-               {evento.data_evento
-                 ? (() => { const [y, m, d] = evento.data_evento.split('-'); return `${d}/${m}/${y}`; })()
-                 : 'Data a definir'}
+               {evento.data_evento && evento.data_fim ? (
+                 (() => {
+                   const [y1, m1, d1] = evento.data_evento.split('-')
+                   const [y2, m2, d2] = evento.data_fim.split('-')
+                   if (evento.data_evento === evento.data_fim) return `${d1}/${m1}/${y1}`;
+                   return `De ${d1}/${m1}/${y1} até ${d2}/${m2}/${y2}`;
+                 })()
+               ) : evento.data_evento ? (
+                 (() => { const [y, m, d] = evento.data_evento.split('-'); return `${d}/${m}/${y}`; })()
+               ) : 'Data a definir'}
             </div>
             <div className="flex items-center gap-2">
                <span className="material-symbols-outlined text-primary">location_on</span>
@@ -438,7 +455,7 @@ export default function InscricaoEvento() {
            <form onSubmit={handleInscricao} className="relative z-10 space-y-6">
               <div className="space-y-4">
                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Nome Completo</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Nome completo</label>
                     <input 
                        required type="text" placeholder="Como devemos te chamar?"
                        value={form.nome} onChange={e => setForm({...form, nome: e.target.value})}
@@ -447,7 +464,7 @@ export default function InscricaoEvento() {
                  </div>
 
                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">E-mail</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Seu E-mail</label>
                     <input 
                        required type="email" placeholder="Para enviarmos seu ingresso"
                        value={form.email} onChange={e => setForm({...form, email: e.target.value})}
@@ -456,9 +473,9 @@ export default function InscricaoEvento() {
                  </div>
 
                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">WhatsApp (Opcional)</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">WhatsApp</label>
                     <input 
-                       type="tel" placeholder="(00) 0 0000-0000"
+                       required type="tel" placeholder="(00) 0 0000-0000"
                        value={form.whatsapp} onChange={e => setForm({...form, whatsapp: e.target.value})}
                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary transition-all font-medium"
                     />
