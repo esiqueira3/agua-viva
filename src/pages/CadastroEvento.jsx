@@ -64,7 +64,12 @@ export default function CadastroEvento() {
     frequencia: 'nao_repetir',
     pago: false, valor_base: '0.00', taxa_porc: '4.99', taxa_fixa: '0.40', valor_total: '0.00',
     max_parcelas: 1,
-    mostrar_link_calendario: true
+    mostrar_link_calendario: true,
+    valor_camiseta: '0.00',
+    pedir_saude: false,
+    pedir_alergia: false,
+    pedir_camiseta: false,
+    tamanho_referencia_camiseta: ''
   })
 
   useEffect(() => {
@@ -127,7 +132,7 @@ export default function CadastroEvento() {
   const handleFormChange = (e) => {
     let value = e.target.type === 'checkbox' ? e.target.checked : e.target.value
     let finalValue = value
-    if (e.target.name === 'max_parcelas') finalValue = Number(value)
+    if (['max_parcelas', 'valor_camiseta'].includes(e.target.name)) finalValue = Number(value)
     if (e.target.name === 'nome' && typeof value === 'string') {
       finalValue = value.toUpperCase()
     }
@@ -290,11 +295,11 @@ export default function CadastroEvento() {
 
                  {/* Removido: Usando Checkout Transparente Agora */}
 
-                <div className="col-span-4 grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                <div className="col-span-4 grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
                    <FormField label="Valor Líquido (Igreja) R$" name="valor_base" type="number" step="0.01" form={form} onChange={handleFormChange} />
                    <FormField label="Estimativa Taxa MP (%)" name="taxa_porc" type="number" step="0.01" form={form} onChange={handleFormChange} />
                    <FormField label="Máximo Parcelas Card" name="max_parcelas" type="number" min="1" step="1" form={form} onChange={handleFormChange} />
-                   <FormField label="Estimativa Taxa Fixa (R$)" name="taxa_fixa" type="number" step="0.01" disabled form={form} onChange={handleFormChange} />
+                   <FormField label="Valor Camiseta (R$)" name="valor_camiseta" type="number" step="0.01" form={form} onChange={handleFormChange} />
                 </div>
                 
                 <div className="col-span-4 p-5 rounded-2xl text-white flex justify-between items-center shadow-lg transform transition-all hover:scale-[1.01]"
@@ -313,6 +318,50 @@ export default function CadastroEvento() {
                 </div>
               </>
            )}
+        </div>
+      )
+    },
+    {
+      label: "3. Campos Adiconais",
+      content: (
+        <div className="space-y-8 max-w-4xl">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="p-5 rounded-2xl bg-surface-container border border-outline-variant/10 space-y-4">
+                 <div className="flex items-center gap-3 mb-2 text-primary">
+                    <span className="material-symbols-outlined">medical_services</span>
+                    <h4 className="font-black text-xs uppercase tracking-widest">Saúde e Alergias</h4>
+                 </div>
+                 <Toggle label="Pedir Problemas de Saúde?" name="pedir_saude" form={form} onChange={handleFormChange} />
+                 <Toggle label="Pedir Informações de Alergias?" name="pedir_alergia" form={form} onChange={handleFormChange} />
+                 <p className="text-[10px] text-on-surface-variant italic">Habilita campos de texto na ficha de inscrição pública.</p>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-surface-container border border-outline-variant/10 space-y-4">
+                 <div className="flex items-center gap-3 mb-2 text-primary">
+                    <span className="material-symbols-outlined">apparel</span>
+                    <h4 className="font-black text-xs uppercase tracking-widest">Vestuário / Camiseta</h4>
+                 </div>
+                 <Toggle label="Oferecer Camiseta?" name="pedir_camiseta" form={form} onChange={handleFormChange} />
+                 
+                 {form.pedir_camiseta && (
+                   <div className="animate-in fade-in slide-in-from-top-1 duration-300">
+                     <SelectMenu 
+                        label="Tamanho Sugerido/Fixo" 
+                        name="tamanho_referencia_camiseta" 
+                        options={[
+                          {label: 'P', value: 'P'},
+                          {label: 'M', value: 'M'},
+                          {label: 'G', value: 'G'},
+                          {label: 'GG', value: 'GG'},
+                          {label: 'XG', value: 'XG'}
+                        ]} 
+                        form={form} 
+                        onChange={handleFormChange} 
+                     />
+                   </div>
+                 )}
+              </div>
+           </div>
         </div>
       )
     }
@@ -379,7 +428,7 @@ export default function CadastroEvento() {
                   <span className={`material-symbols-outlined text-[20px] ${
                     isOpen ? 'text-white/80' : 'text-primary/60'
                   }`}>
-                    {index === 0 ? 'groups' : 'payments'}
+                    {index === 0 ? 'groups' : index === 1 ? 'payments' : 'add_task'}
                   </span>
                   <span className="uppercase tracking-wider text-xs font-black">{tab.label}</span>
                 </div>
