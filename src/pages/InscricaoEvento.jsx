@@ -409,7 +409,7 @@ export default function InscricaoEvento() {
     <div className="min-h-screen bg-slate-50 flex flex-col items-center py-12 px-4 selection:bg-primary selection:text-white">
       {/* Header Estilizado */}
       <div className="max-w-2xl w-full text-center mb-10">
-         <img src="/logo.png" alt="Água Viva" className="h-14 mx-auto mb-6" />
+         <img src="/logo.png" alt="Água Viva" className="h-24 mx-auto mb-6" />
          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
             Inscrição: <span className="text-primary">{evento.nome}</span>
          </h1>
@@ -418,7 +418,15 @@ export default function InscricaoEvento() {
                <span className="material-symbols-outlined text-primary">calendar_today</span>
                {/* Parse manual para evitar deslocamento de fuso UTC-3 */}
                {evento.data_evento
-                 ? (() => { const [y, m, d] = evento.data_evento.split('-'); return `${d}/${m}/${y}`; })()
+                 ? (() => { 
+                     const [y, m, d] = evento.data_evento.split('-'); 
+                     const dataInicio = `${d}/${m}/${y}`;
+                     if (evento.data_fim && evento.data_fim !== evento.data_evento) {
+                       const [yf, mf, df] = evento.data_fim.split('-');
+                       return `${dataInicio} até ${df}/${mf}/${yf}`;
+                     }
+                     return dataInicio;
+                   })()
                  : 'Data a definir'}
             </div>
             <div className="flex items-center gap-2">
