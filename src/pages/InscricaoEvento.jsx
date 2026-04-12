@@ -20,10 +20,21 @@ export default function InscricaoEvento() {
   const [form, setForm] = useState({
     nome: '',
     email: '',
-    whatsapp: ''
+    whatsapp: '',
+    saude_info: '',
+    alergia_info: '',
+    quer_camiseta: false,
+    camiseta_tamanho: ''
   })
   const [publicKey, setPublicKey] = useState(null)
   const [step, setStep] = useState(1) // 1: Dados, 2: Pagamento
+
+  const calculateTotal = () => {
+    if (!evento) return 0;
+    const base = Number(evento.valor_total) || 0;
+    const adicional = (form.quer_camiseta && evento.valor_camiseta) ? Number(evento.valor_camiseta) : 0;
+    return base + adicional;
+  };
 
   useEffect(() => {
     async function loadEvento() {
@@ -113,6 +124,10 @@ export default function InscricaoEvento() {
         nome_participante: form.nome,
         email_participante: form.email,
         whatsapp: form.whatsapp,
+        saude_info: form.saude_info,
+        alergia_info: form.alergia_info,
+        camiseta_tamanho: form.quer_camiseta ? form.camiseta_tamanho : null,
+        quer_camiseta: form.quer_camiseta,
         valor_pago: 0,
         status: 'confirmada'
       }
@@ -135,7 +150,7 @@ export default function InscricaoEvento() {
       const bricksBuilder = mp.bricks();
 
       const renderPaymentBrick = async (builder) => {
-        const amountValue = Number(evento.valor_total) || 0;
+        const amountValue = calculateTotal();
         const maxInstallmentsValue = Number(evento.max_parcelas) || 1;
 
         console.log("Configurando Payment Brick - Valor:", amountValue);
@@ -194,6 +209,10 @@ export default function InscricaoEvento() {
                       nome: form.nome,
                       email: form.email,
                       whatsapp: form.whatsapp,
+                      saude_info: form.saude_info,
+                      alergia_info: form.alergia_info,
+                      camiseta_tamanho: form.quer_camiseta ? form.camiseta_tamanho : null,
+                      quer_camiseta: form.quer_camiseta,
                       evento_id: id,
                       evento_nome: evento.nome
                     }
@@ -213,6 +232,10 @@ export default function InscricaoEvento() {
                     nome_participante: form.nome,
                     email_participante: form.email,
                     whatsapp: form.whatsapp,
+                    saude_info: form.saude_info,
+                    alergia_info: form.alergia_info,
+                    camiseta_tamanho: form.quer_camiseta ? form.camiseta_tamanho : null,
+                    quer_camiseta: form.quer_camiseta,
                     valor_pago: result.transaction_amount,
                     pagamento_id: String(result.id),
                     status: 'confirmada'
@@ -249,6 +272,10 @@ export default function InscricaoEvento() {
                     nome_participante: form.nome,
                     email_participante: form.email,
                     whatsapp: form.whatsapp,
+                    saude_info: form.saude_info,
+                    alergia_info: form.alergia_info,
+                    camiseta_tamanho: form.quer_camiseta ? form.camiseta_tamanho : null,
+                    quer_camiseta: form.quer_camiseta,
                     valor_pago: result.transaction_amount,
                     pagamento_id: String(result.id),
                     status: 'pendente'
@@ -278,7 +305,7 @@ export default function InscricaoEvento() {
 
       renderPaymentBrick(bricksBuilder);
     }
-  }, [step, publicKey, id, evento?.valor_total, evento?.max_parcelas]);
+  }, [step, publicKey, id, calculateTotal(), evento?.max_parcelas]);
 
   if (loading) return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center font-headline text-primary font-bold">
@@ -406,40 +433,54 @@ export default function InscricaoEvento() {
   )
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center py-12 px-4 selection:bg-primary selection:text-white">
-      {/* Header Estilizado */}
-      <div className="max-w-2xl w-full text-center mb-10">
-         <img src="/logo.png" alt="Água Viva" className="h-24 mx-auto mb-6" />
-         <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
-            Inscrição: <span className="text-primary">{evento.nome}</span>
+    <div className="min-h-screen bg-slate-200 flex flex-col items-center py-12 px-4 selection:bg-primary selection:text-white relative overflow-hidden">
+      {/* Elementos Decorativos de Fundo (Premium) */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] pointer-events-none animate-pulse" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none animate-pulse" style={{ animationDelay: '2s' }} />
+
+      {/* Header Estilizado Premium */}
+      <div className="max-w-3xl w-full text-center mb-10 relative z-10 animate-in fade-in slide-in-from-top-4 duration-700">
+         <div className="inline-block p-4 bg-white/40 backdrop-blur-xl rounded-[2rem] border border-white/50 shadow-xl shadow-primary/5 mb-8 transform hover:scale-105 transition-transform duration-500">
+            <img src="/logo.png" alt="Água Viva" className="h-20 md:h-24 mx-auto" />
+         </div>
+         
+         <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-tight mb-8">
+            <span className="text-slate-900">Inscrição: </span>
+            <span className="bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent">
+              {evento.nome}
+            </span>
          </h1>
-         <div className="flex flex-wrap justify-center gap-6 mt-6 text-slate-500 font-bold text-sm uppercase tracking-widest">
-            <div className="flex items-center gap-2">
-               <span className="material-symbols-outlined text-primary">calendar_today</span>
-               {/* Parse manual para evitar deslocamento de fuso UTC-3 */}
-               {evento.data_evento
-                 ? (() => { 
-                     const [y, m, d] = evento.data_evento.split('-'); 
-                     const dataInicio = `${d}/${m}/${y}`;
-                     if (evento.data_fim && evento.data_fim !== evento.data_evento) {
-                       const [yf, mf, df] = evento.data_fim.split('-');
-                       return `${dataInicio} até ${df}/${mf}/${yf}`;
-                     }
-                     return dataInicio;
-                   })()
-                 : 'Data a definir'}
+
+         <div className="flex flex-wrap justify-center gap-4 text-white font-black text-[10px] md:text-xs uppercase tracking-[0.2em]">
+            <div className="flex items-center gap-3 px-6 py-3 bg-orange-500 shadow-xl shadow-orange-500/20 rounded-full animate-in zoom-in duration-700 delay-100 border border-orange-400">
+               <span className="material-symbols-outlined text-white text-xl font-bold">calendar_month</span>
+               <span className="text-white">
+                  {evento.data_evento
+                    ? (() => { 
+                        const [y, m, d] = evento.data_evento.split('-'); 
+                        const dataInicio = `${d}/${m}/${y}`;
+                        if (evento.data_fim && evento.data_fim !== evento.data_evento) {
+                          const [yf, mf, df] = evento.data_fim.split('-');
+                          return `${dataInicio} ATÉ ${df}/${mf}/${yf}`;
+                        }
+                        return dataInicio;
+                      })()
+                    : 'Data a definir'}
+               </span>
             </div>
-            <div className="flex items-center gap-2">
-               <span className="material-symbols-outlined text-primary">location_on</span>
-               {evento.locais?.descricao || 'Local a definir'}
+            
+            <div className="flex items-center gap-3 px-6 py-3 bg-sky-500 shadow-xl shadow-sky-500/20 rounded-full animate-in zoom-in duration-700 delay-200">
+               <span className="material-symbols-outlined text-white text-xl font-bold">location_on</span>
+               <span className="text-white">{evento.locais?.descricao || 'Local a definir'}</span>
             </div>
          </div>
       </div>
 
-      {/* Card de Inscrição */}
-      <div className="max-w-xl w-full bg-white border border-slate-200 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8">
-           <span className="text-slate-100 font-black text-8xl select-none">AV</span>
+      {/* Card de Inscrição Premium */}
+      <div className="max-w-xl w-full bg-white/80 backdrop-blur-2xl border border-white rounded-[3rem] p-8 md:p-12 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] relative overflow-hidden animate-in fade-in zoom-in-95 duration-1000">
+        {/* Marca d'água sutil */}
+        <div className="absolute top-[-20px] right-[-20px] p-8 opacity-[0.03] pointer-events-none select-none">
+           <span className="font-black text-[180px] leading-none">AV</span>
         </div>
 
         {step === 1 ? (
@@ -471,17 +512,93 @@ export default function InscricaoEvento() {
                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary transition-all font-medium"
                     />
                  </div>
+
+                 {/* Campos Adicionais Condicionais */}
+                 {(evento.pedir_saude || evento.pedir_alergia || evento.pedir_camiseta) && (
+                   <div className="pt-6 border-t border-slate-100 space-y-6">
+                      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 mb-2">Informações Adicionais</h4>
+                      
+                      {evento.pedir_saude && (
+                        <div className="flex flex-col gap-1">
+                           <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Algum problema de saúde?</label>
+                           <textarea 
+                              placeholder="Descreva se houver algum problema de saúde..."
+                              value={form.saude_info} onChange={e => setForm({...form, saude_info: e.target.value})}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary transition-all font-medium min-h-[80px] resize-none"
+                           />
+                        </div>
+                      )}
+
+                      {evento.pedir_alergia && (
+                        <div className="flex flex-col gap-1">
+                           <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Possui alguma Alergia?</label>
+                           <textarea 
+                              placeholder="Medicamento, alimento, etc..."
+                              value={form.alergia_info} onChange={e => setForm({...form, alergia_info: e.target.value})}
+                              className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary transition-all font-medium min-h-[80px] resize-none"
+                           />
+                        </div>
+                      )}
+
+                      {evento.pedir_camiseta && (
+                        <div className="space-y-4">
+                           <div className="flex flex-col gap-2">
+                              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Deseja adquirir a camiseta?</label>
+                              <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl w-fit">
+                                 <button 
+                                   type="button"
+                                   onClick={() => setForm({...form, quer_camiseta: true})}
+                                   className={`px-6 py-2 rounded-xl text-xs font-black uppercase transition-all ${form.quer_camiseta ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                 >
+                                   Sim
+                                 </button>
+                                 <button 
+                                   type="button"
+                                   onClick={() => setForm({...form, quer_camiseta: false, camiseta_tamanho: ''})}
+                                   className={`px-6 py-2 rounded-xl text-xs font-black uppercase transition-all ${!form.quer_camiseta ? 'bg-white text-slate-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                                 >
+                                   Não
+                                 </button>
+                              </div>
+                           </div>
+
+                           {form.quer_camiseta && (
+                             <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Tamanho da Camiseta</label>
+                                <select 
+                                   required
+                                   value={form.camiseta_tamanho} onChange={e => setForm({...form, camiseta_tamanho: e.target.value})}
+                                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary transition-all font-medium mt-1"
+                                >
+                                   <option value="">Escolha um tamanho</option>
+                                   <option value="P">Tamanho P</option>
+                                   <option value="M">Tamanho M</option>
+                                   <option value="G">Tamanho G</option>
+                                   <option value="GG">Tamanho GG</option>
+                                   <option value="XXG">Tamanho XXG</option>
+                                </select>
+                                {evento.valor_camiseta > 0 && (
+                                  <p className="text-[10px] text-primary/70 font-bold mt-2 ml-1">
+                                     + R$ {evento.valor_camiseta} adicionados ao total
+                                  </p>
+                                )}
+                             </div>
+                           )}
+                        </div>
+                      )}
+                   </div>
+                 )}
               </div>
 
-              <div className={`p-6 rounded-3xl border flex items-center justify-between transition-colors ${evento.pago ? 'bg-primary/5 border-primary/10' : 'bg-green-500/10 border-green-500/20'}`}>
+              <div className={`p-6 rounded-3xl border flex items-center justify-between transition-colors ${evento.pago || form.quer_camiseta ? 'bg-primary/5 border-primary/10' : 'bg-green-500/10 border-green-500/20'}`}>
                  <div>
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Investimento</p>
                     <h3 className="text-2xl font-black text-slate-900">
-                       {evento.pago ? `R$ ${evento.valor_total}` : 'Gratuito'}
+                       {calculateTotal() > 0 ? `R$ ${calculateTotal().toFixed(2)}` : 'Gratuito'}
                     </h3>
                  </div>
                  <span className="material-symbols-outlined text-4xl text-slate-300">
-                    {evento.pago ? 'payments' : 'volunteer_activism'}
+                    {evento.pago || form.quer_camiseta ? 'payments' : 'volunteer_activism'}
                  </span>
               </div>
 
