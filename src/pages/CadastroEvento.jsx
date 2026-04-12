@@ -322,7 +322,7 @@ export default function CadastroEvento() {
       )
     },
     {
-      label: "3. Campos Adiconais",
+      label: "3. Campos Adicionais",
       content: (
         <div className="space-y-8 max-w-4xl">
            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -342,24 +342,7 @@ export default function CadastroEvento() {
                     <h4 className="font-black text-xs uppercase tracking-widest">Vestuário / Camiseta</h4>
                  </div>
                  <Toggle label="Oferecer Camiseta?" name="pedir_camiseta" form={form} onChange={handleFormChange} />
-                 
-                 {form.pedir_camiseta && (
-                   <div className="animate-in fade-in slide-in-from-top-1 duration-300">
-                     <SelectMenu 
-                        label="Tamanho Sugerido/Fixo" 
-                        name="tamanho_referencia_camiseta" 
-                        options={[
-                          {label: 'P', value: 'P'},
-                          {label: 'M', value: 'M'},
-                          {label: 'G', value: 'G'},
-                          {label: 'GG', value: 'GG'},
-                          {label: 'XG', value: 'XG'}
-                        ]} 
-                        form={form} 
-                        onChange={handleFormChange} 
-                     />
-                   </div>
-                 )}
+                 <p className="text-[10px] text-on-surface-variant italic">Exibe seleção de tamanhos e escolha de camiseta na inscrição.</p>
               </div>
            </div>
         </div>
