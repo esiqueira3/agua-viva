@@ -455,7 +455,7 @@ export default function InscricaoEvento() {
            <form onSubmit={handleInscricao} className="relative z-10 space-y-6">
               <div className="space-y-4">
                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Nome completo</label>
+                    <label className="text-xs font-bold text-slate-500 tracking-widest pl-1">Nome completo</label>
                     <input 
                        required type="text" placeholder="Como devemos te chamar?"
                        value={form.nome} onChange={e => setForm({...form, nome: e.target.value})}
@@ -464,7 +464,7 @@ export default function InscricaoEvento() {
                  </div>
 
                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Seu E-mail</label>
+                    <label className="text-xs font-bold text-slate-500 tracking-widest pl-1">Seu E-mail</label>
                     <input 
                        required type="email" placeholder="Para enviarmos seu ingresso"
                        value={form.email} onChange={e => setForm({...form, email: e.target.value})}
@@ -473,7 +473,7 @@ export default function InscricaoEvento() {
                  </div>
 
                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">WhatsApp</label>
+                    <label className="text-xs font-bold text-slate-500 tracking-widest pl-1">WhatsApp</label>
                     <input 
                        required type="tel" placeholder="(00) 0 0000-0000"
                        value={form.whatsapp} onChange={e => setForm({...form, whatsapp: e.target.value})}
