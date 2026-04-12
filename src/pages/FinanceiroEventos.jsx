@@ -1,3 +1,6 @@
+import { useState, useEffect, useMemo } from 'react'
+import { supabase } from '../lib/supabase'
+import { PageHeader } from '../components/ui/PageHeader'
 import { usePermissions } from '../context/PermissionsContext'
 import jsPDF from 'jspdf'
 import 'jspdf-autotable'
