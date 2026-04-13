@@ -591,7 +591,12 @@ export default function InscricaoEvento() {
                                    <option value="M">Tamanho M</option>
                                    <option value="G">Tamanho G</option>
                                    <option value="GG">Tamanho GG</option>
+                                   <option value="XG">Tamanho XG</option>
                                    <option value="XXG">Tamanho XXG</option>
+                                   <option value="G1">Tamanho G1</option>
+                                   <option value="G2">Tamanho G2</option>
+                                   <option value="G3">Tamanho G3</option>
+                                   <option value="G4">Tamanho G4</option>
                                 </select>
                                 {evento.valor_camiseta > 0 && (
                                   <p className="text-[10px] text-primary/70 font-bold mt-2 ml-1">
