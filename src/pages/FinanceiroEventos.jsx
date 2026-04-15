@@ -149,7 +149,7 @@ export default function FinanceiroEventos() {
 
     setEventoSelecionado(evento)
     const [{ data: inscData }, { data: saqueData }] = await Promise.all([
-      supabase.from('inscricoes').select('*').eq('evento_id', evento.id).order('created_at', { ascending: false }),
+      supabase.from('inscricoes').select('id, evento_id, nome_participante, email_participante, whatsapp, valor_pago, status, pagamento_id, created_at, manual, saude_info, alergia_info, camiseta_tamanho, quer_camiseta, membro_agua_viva, nome_conjuge, whatsapp_conjuge, nome_pai, whatsapp_pai, nome_mae, whatsapp_mae').eq('evento_id', evento.id).order('created_at', { ascending: false }),
       supabase.from('saques_eventos').select('*').eq('evento_id', evento.id).order('created_at', { ascending: false })
     ])
     if (inscData) setInscritos(inscData)
@@ -218,7 +218,7 @@ export default function FinanceiroEventos() {
   }
 
   const handleDeleteInscricao = async (id) => {
-    if (!window.confirm('⚠️ Deseja realmente excluir este lançamento manual?')) return
+    if (!window.confirm('⚠️ Deseja realmente excluir este registro de inscrição?')) return
     await supabase.from('inscricoes').delete().eq('id', id)
     await verDetalhes(eventoSelecionado)
     await loadFinanceiro()
@@ -227,7 +227,6 @@ export default function FinanceiroEventos() {
   const handleConfirmarPagamento = async (inscricaoId) => {
     await supabase.from('inscricoes').update({ status: 'confirmada' }).eq('id', inscricaoId)
     await verDetalhes(eventoSelecionado)
-    await loadFinanceiro()
   }
 
   const consultarMP = async () => {
@@ -237,49 +236,109 @@ export default function FinanceiroEventos() {
       const { data: config } = await supabase.from('config_global').select('valor').eq('chave', 'MP_ACCESS_TOKEN').single()
       if (!config?.valor) throw new Error('Token do Mercado Pago não configurado!')
 
-      // Busca inscrições pendentes do evento que têm pagamento_id registrado
-      const { data: pendentes } = await supabase
-        .from('inscricoes')
-        .select('*')
-        .eq('evento_id', eventoSelecionado.id)
-        .eq('status', 'pendente')
-        .not('pagamento_id', 'is', null)
+      const mpResponse = await fetch(`https://api.mercadopago.com/v1/payments/search?status=approved&sort=date_created&criteria=desc&limit=50`, {
+        headers: { 'Authorization': `Bearer ${config.valor}` }
+      })
+      
+      if (!mpResponse.ok) throw new Error('Erro ao consultar API do Mercado Pago')
+      const mpData = await mpResponse.json()
+      const payments = mpData.results || []
 
-      if (!pendentes || pendentes.length === 0) {
-        alert('✅ Não há inscrições pendentes com pagamento para sincronizar!')
-        return
-      }
+      let recuperados = 0
+      let atualizados = 0
 
-      let count = 0
-      for (const inscricao of pendentes) {
-        try {
-          const resp = await fetch(`https://api.mercadopago.com/v1/payments/${inscricao.pagamento_id}`, {
-            headers: { 'Authorization': `Bearer ${config.valor}` }
-          })
-          const payment = await resp.json()
+      for (const payment of payments) {
+        const metadataEventoId = payment.metadata?.evento_id
+        const extRef = payment.external_reference
+        const isThisEvent = metadataEventoId === eventoSelecionado.id || extRef === eventoSelecionado.id || payment.description?.includes(eventoSelecionado.id.substring(0,8))
 
-          if (payment.status === 'approved') {
-            await supabase.from('inscricoes')
-              .update({ status: 'confirmada', valor_pago: payment.transaction_amount })
-              .eq('id', inscricao.id)
-            count++
-          } else if (['rejected', 'cancelled', 'refunded', 'charged_back'].includes(payment.status)) {
-            await supabase.from('inscricoes')
-              .update({ status: 'recusada' })
-              .eq('id', inscricao.id)
-            count++
+        if (!isThisEvent) continue
+
+        const { data: existente } = await supabase
+          .from('inscricoes')
+          .select('id, status')
+          .or(`pagamento_id.eq.${payment.id},id.eq.${extRef}`)
+          .maybeSingle()
+
+        if (existente) {
+          if (existente.status !== 'confirmada') {
+            await supabase.from('inscricoes').update({ status: 'confirmada', valor_pago: payment.transaction_amount, pagamento_id: String(payment.id) }).eq('id', existente.id)
+            atualizados++
           }
-        } catch (payErr) {
-          console.warn(`⚠️ Erro ao consultar pagamento ${inscricao.pagamento_id}:`, payErr)
+        } else {
+          // 3. RECUPERAÇÃO MÁGICA: Se não existe no nosso banco, vamos criar!
+          let nome = "Participante MP"
+          let email = payment.payer?.email || ""
+          let whatsapp = ""
+
+          // Tentar pegar do additional_info (mais rico em detalhes)
+          if (payment.additional_info?.payer?.first_name) {
+            nome = `${payment.additional_info.payer.first_name} ${payment.additional_info.payer.last_name || ""}`.trim()
+            if (payment.additional_info.payer.phone?.number) {
+              whatsapp = payment.additional_info.payer.phone.number
+            }
+          } else if (payment.payer?.first_name) {
+            nome = `${payment.payer.first_name} ${payment.payer.last_name || ""}`.trim()
+          }
+
+          try {
+            if (extRef) {
+              // Se o JSON estiver inteiro, parse normal
+              if (extRef.startsWith('{') && extRef.endsWith('}')) {
+                const p = JSON.parse(extRef)
+                nome = p.nome || nome
+                email = p.email || email
+                whatsapp = p.whatsapp || whatsapp
+              } else if (extRef.includes('"nome":"')) {
+                // SE O JSON ESTIVER CORTADO (nosso caso!), vamos "garimpar" com Regex
+                const nomeMatch = extRef.match(/"nome":"(.*?)"/)
+                if (nomeMatch) nome = nomeMatch[1]
+                
+                const emailMatch = extRef.match(/"email":"(.*?)"/)
+                if (emailMatch) email = emailMatch[1]
+                
+                const whatsappMatch = extRef.match(/"whatsapp":"(.*?)"/)
+                if (whatsappMatch) whatsapp = whatsappMatch[1]
+              }
+            }
+          } catch(e) {
+            console.warn("⚠️ Falha ao garimpar dados do extRef:", e)
+          }
+
+          const { error: insErr } = await supabase.from('inscricoes').insert([{
+            evento_id: eventoSelecionado.id,
+            nome_participante: nome,
+            email_participante: email,
+            whatsapp: whatsapp,
+            valor_pago: payment.transaction_amount,
+            pagamento_id: String(payment.id),
+            status: 'confirmada'
+          }])
+
+          if (insErr) {
+            console.error("❌ Erro ao inserir inscrição recuperada:", insErr)
+          } else {
+            recuperados++
+          }
         }
       }
 
-      alert(`🎉 ${count} inscrição(ões) atualizada(s) com sucesso!`)
-    } catch (err) {
-      alert('❌ Erro na consulta: ' + err.message)
-    } finally {
-      await verDetalhes(eventoSelecionado)
+      alert(`✅ Sincronização Concluída!\n\n- ${atualizados} inscrições atualizadas.\n- ${recuperados} inscrições recuperadas do Mercado Pago.`)
+      
+      // Atualizar lista de inscritos sem fechar o painel
+      const { data: freshInsc } = await supabase.from('inscricoes').select('id, evento_id, nome_participante, email_participante, whatsapp, valor_pago, status, pagamento_id, created_at, manual, saude_info, alergia_info, camiseta_tamanho, quer_camiseta, membro_agua_viva, nome_conjuge, whatsapp_conjuge, nome_pai, whatsapp_pai, nome_mae, whatsapp_mae').eq('evento_id', eventoSelecionado.id).order('created_at', { ascending: false })
+      if (freshInsc) setInscritos(freshInsc)
+      
+      // Atualizar o total arrecadado no objeto do evento selecionado
+      const novoTotal = (freshInsc || []).filter(i => i.status === 'confirmada').reduce((sum, i) => sum + (parseFloat(i.valor_pago) || 0), 0)
+      setEventoSelecionado(prev => ({ ...prev, totalArrecadado: novoTotal, qtdeConfirmados: (freshInsc || []).filter(i => i.status === 'confirmada').length }))
+
       await loadFinanceiro()
+
+    } catch (err) {
+      console.error('Erro ao sincronizar:', err)
+      alert('❌ Erro na sincronização: ' + err.message)
+    } finally {
       setLoading(false)
     }
   }
@@ -748,10 +807,10 @@ export default function FinanceiroEventos() {
                               <span className="material-symbols-outlined text-[16px]">check_circle</span>
                             </button>
                           )}
-                        {ins.manual && (
+                        {(ins.manual || !isConfirmado || isAdmin) && (
                           <button onClick={() => handleDeleteInscricao(ins.id)}
                             className="p-1.5 bg-red-100 text-red-500 rounded-lg hover:bg-red-200 transition-colors"
-                            title="Excluir lançamento">
+                            title="Excluir inscrição">
                             <span className="material-symbols-outlined text-[16px]">delete</span>
                           </button>
                         )}

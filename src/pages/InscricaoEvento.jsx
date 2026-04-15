@@ -31,7 +31,8 @@ export default function InscricaoEvento() {
     nome_pai: '',
     whatsapp_pai: '',
     nome_mae: '',
-    whatsapp_mae: ''
+    whatsapp_mae: '',
+    cpf: ''
   })
   const [publicKey, setPublicKey] = useState(null)
   const [step, setStep] = useState(1) // 1: Dados, 2: Pagamento
@@ -176,6 +177,11 @@ export default function InscricaoEvento() {
               email: form.email,
               firstName: form.nome.split(' ')[0],
               lastName: form.nome.split(' ').slice(1).join(' ') || ' ',
+              entityType: 'individual',
+              identification: {
+                type: 'CPF',
+                number: form.cpf,
+              },
             }
           },
           customization: {
@@ -207,74 +213,90 @@ export default function InscricaoEvento() {
             },
             onSubmit: async ({ formData }) => {
               setSubmitting(true);
-              console.log("Enviado para processamento:", formData.payment_method_id);
               try {
+                // 1. Criar a inscrição como PENDENTE antes de chamar o pagamento
+                // Isso garante que não perdemos os dados do participante (o external_reference do MP é limitado)
+                const payloadPendente = {
+                  evento_id: id,
+                  nome_participante: form.nome,
+                  email_participante: form.email,
+                  whatsapp: form.whatsapp,
+                  saude_info: form.saude_info,
+                  alergia_info: form.alergia_info,
+                  camiseta_tamanho: form.quer_camiseta ? form.camiseta_tamanho : null,
+                  quer_camiseta: form.quer_camiseta,
+                  membro_agua_viva: form.membro_agua_viva,
+                  nome_conjuge: form.nome_conjuge,
+                  whatsapp_conjuge: form.whatsapp_conjuge,
+                  nome_pai: form.nome_pai,
+                  whatsapp_pai: form.whatsapp_pai,
+                  nome_mae: form.nome_mae,
+                  whatsapp_mae: form.whatsapp_mae,
+                  valor_pago: amountValue,
+                  status: 'pendente' // Começa como pendente
+                }
+
+                const { data: novaInscricao, error: errorInsc } = await supabase
+                  .from('inscricoes')
+                  .insert([payloadPendente])
+                  .select()
+                  .single()
+
+                if (errorInsc) throw new Error("Falha ao registrar pré-inscrição: " + errorInsc.message)
+
+                console.log("Enviado para processamento:", formData.payment_method_id);
+                
                 const { data: result, error: invokeError } = await supabase.functions.invoke('mercado-pago-process', {
                   body: {
                     ...formData,
                     deviceId: formData.deviceId || window.MP_DEVICE_SESSION_ID,
                     evento_id: id,
+                    inscricao_id: novaInscricao.id, // Enviamos o ID da inscrição para conciliação
                     nome_pagador: form.nome,
                     email_pagador: form.email,
                     whatsapp_pagador: form.whatsapp,
                     description: `Inscrição: ${evento.nome} - Titular: ${form.nome}`,
-                    // Dados completos para o webhook poder registrar a inscrição do Pix
-                    participante: {
-                      nome: form.nome,
-                      email: form.email,
-                      whatsapp: form.whatsapp,
-                      saude_info: form.saude_info,
-                      alergia_info: form.alergia_info,
-                      camiseta_tamanho: form.quer_camiseta ? form.camiseta_tamanho : null,
-                      quer_camiseta: form.quer_camiseta,
-                      membro_agua_viva: form.membro_agua_viva,
-                      nome_conjuge: form.nome_conjuge,
-                      whatsapp_conjuge: form.whatsapp_conjuge,
-                      nome_pai: form.nome_pai,
-                      whatsapp_pai: form.whatsapp_pai,
-                      nome_mae: form.nome_mae,
-                      whatsapp_mae: form.whatsapp_mae,
-                      evento_id: id,
-                      evento_nome: evento.nome
-                    }
                   }
                 });
 
                 if (invokeError) {
                   console.error("❌ Erro ao invocar função:", invokeError);
-                  throw new Error(invokeError.message || 'Falha na comunicação com o servidor de pagamento');
+                  // Tenta extrair mensagem detalhada se houver
+                  let detailMsg = invokeError.message;
+                  try {
+                    if (invokeError.context?.error) detailMsg = invokeError.context.error;
+                  } catch (e) {}
+                  throw new Error(detailMsg || 'Falha na comunicação com o servidor de pagamento');
                 }
 
-                console.log("💎 Resposta do Mercado Pago:", result);
+                console.log("💎 Resposta do Robô:", result);
+                
+                if (result.error_mp) {
+                   console.error("❌ Erro retornado pelo Mercado Pago:", result);
+                   throw new Error(result.message || 'O Mercado Pago recusou o pagamento.');
+                }
 
                 if (result.status === 'approved') {
-                  const payload = {
-                    evento_id: id,
-                    nome_participante: form.nome,
-                    email_participante: form.email,
-                    whatsapp: form.whatsapp,
-                    saude_info: form.saude_info,
-                    alergia_info: form.alergia_info,
-                    camiseta_tamanho: form.quer_camiseta ? form.camiseta_tamanho : null,
-                    quer_camiseta: form.quer_camiseta,
-                    membro_agua_viva: form.membro_agua_viva,
-                    nome_conjuge: form.nome_conjuge,
-                    whatsapp_conjuge: form.whatsapp_conjuge,
-                    nome_pai: form.nome_pai,
-                    whatsapp_pai: form.whatsapp_pai,
-                    nome_mae: form.nome_mae,
-                    whatsapp_mae: form.whatsapp_mae,
-                    valor_pago: result.transaction_amount,
-                    pagamento_id: String(result.id),
-                    status: 'confirmada'
-                  }
-                  await supabase.from('inscricoes').insert([payload])
+                  // UPDATE em vez de INSERT
+                  await supabase
+                    .from('inscricoes')
+                    .update({ 
+                      status: 'confirmada',
+                      pagamento_id: String(result.id),
+                      valor_pago: result.transaction_amount
+                    })
+                    .eq('id', novaInscricao.id)
+
                   notifyRegistration(form.nome, result.transaction_amount);
                   navigate('/obrigado');
                 } else if (result.status === 'pending' && result.payment_method_id === 'pix') {
-                  // PIX: Não registrar agora! O webhook fará o INSERT quando o pagamento for confirmado.
-                  // Apenas exibir o QR Code para o usuário.
+                  // Apenas atrelar o pagamento_id à inscrição pendente
                   const pixPaymentId = String(result.id)
+                  await supabase
+                    .from('inscricoes')
+                    .update({ pagamento_id: pixPaymentId })
+                    .eq('id', novaInscricao.id)
+
                   setPixData({
                     qrCode: result.point_of_interaction.transaction_data.qr_code,
                     qrCodeBase64: result.point_of_interaction.transaction_data.qr_code_base64,
@@ -547,6 +569,17 @@ export default function InscricaoEvento() {
                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary transition-all font-medium"
                     />
                  </div>
+
+                 {evento.pago && (
+                    <div className="flex flex-col gap-1 animate-in fade-in slide-in-from-left-2 duration-500 px-1">
+                      <label className="text-xs font-bold text-primary uppercase tracking-widest pl-1">CPF (Necessário para Pix) *</label>
+                      <input 
+                        required type="text" placeholder="000.000.000-00"
+                        value={form.cpf} onChange={e => setForm({...form, cpf: e.target.value})}
+                        className="w-full bg-primary/5 border border-primary/20 rounded-2xl p-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary transition-all font-medium"
+                      />
+                    </div>
+                  )}
 
                  {/* Campos Adicionais Condicionais */}
                  {(evento.pedir_saude || evento.pedir_alergia || evento.pedir_camiseta || 

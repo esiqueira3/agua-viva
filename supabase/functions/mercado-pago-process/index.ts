@@ -47,8 +47,10 @@ serve(async (req) => {
 
     if (!config?.valor) throw new Error("Access Token não encontrado no banco!")
 
+    const cleanToken = config.valor.replace(/Bearer /i, '').trim()
+
     const mpHeaders: Record<string, string> = {
-      'Authorization': `Bearer ${config.valor}`,
+      'Authorization': `Bearer ${cleanToken}`,
       'Content-Type': 'application/json',
       'X-Idempotency-Key': crypto.randomUUID()
     }
@@ -61,16 +63,22 @@ serve(async (req) => {
     const firstName = nomePartes[0]
     const lastName = nomePartes.slice(1).join(' ') || 'Fiel'
 
-    // Construção robusta do payload do Mercado Pago
+    // Limpeza de campos para o Mercado Pago
+    const cleanCPF = (payer?.identification?.number || body.identification?.number || '') .replace(/\D/g, '')
+
     const mpPayload: any = {
       transaction_amount: Number(transaction_amount),
       description: description || `Agua Viva - Inscrição Evento ID: ${evento_id}`,
       payment_method_id: payment_method_id,
       payer: {
         email: email_pagador || payer?.email,
-        identification: payer?.identification,
+        identification: {
+          type: (payer?.identification?.type || body.identification?.type || 'CPF').toUpperCase(),
+          number: cleanCPF
+        },
         first_name: firstName,
-        last_name: lastName
+        last_name: lastName,
+        entity_type: 'individual'
       },
       additional_info: {
         ip_address: clientIP,
@@ -89,8 +97,13 @@ serve(async (req) => {
         }
       },
       notification_url: "https://kfalhtebjoilpnncpkbd.supabase.co/functions/v1/mercado-pago-webhook",
-      external_reference: JSON.stringify(participante || { evento_id, nome: nome_pagador, email: email_pagador, whatsapp: whatsapp_pagador }),
+      external_reference: String(body.inscricao_id || evento_id),
+      // Campos específicos para Cartão de Crédito
+      token: body.token,
+      installments: body.installments ? Number(body.installments) : undefined,
+      issuer_id: body.issuer_id,
       metadata: {
+        inscricao_id: body.inscricao_id,
         evento_id: evento_id,
         projeto: "Água Viva Church",
         ip: clientIP
@@ -111,11 +124,25 @@ serve(async (req) => {
     })
 
     const paymentResult = await mpResponse.json()
-    console.log("Resposta MP:", paymentResult.status, paymentResult.status_detail)
+    console.log("Resposta MP:", paymentResult.status, paymentResult.status_detail, paymentResult.message)
+
+    if (!mpResponse.ok) {
+      console.error("❌ Erro na API do Mercado Pago:", paymentResult)
+      // Retornar 200 com erro dentro para facilitar o frontend ler o conteúdo
+      return new Response(JSON.stringify({ 
+        error_mp: true,
+        status: paymentResult.status,
+        message: paymentResult.message || "Erro na API do Mercado Pago", 
+        details: paymentResult.cause || paymentResult
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
+      })
+    }
 
     return new Response(JSON.stringify(paymentResult), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: mpResponse.status
+      status: 200
     })
 
   } catch (error) {
