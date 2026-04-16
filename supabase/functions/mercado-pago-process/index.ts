@@ -128,7 +128,6 @@ serve(async (req) => {
 
     if (!mpResponse.ok) {
       console.error("❌ Erro na API do Mercado Pago:", paymentResult)
-      // Retornar 200 com erro dentro para facilitar o frontend ler o conteúdo
       return new Response(JSON.stringify({ 
         error_mp: true,
         status: paymentResult.status,
@@ -138,6 +137,33 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200
       })
+    }
+
+    // --- ATUALIZAÇÃO DO BANCO DE DADOS (USANDO SERVICE ROLE NO SERVIDOR) ---
+    // Isso evita problemas de RLS/Permissões no Frontend para usuários não logados
+    const inscricao_id = body.inscricao_id
+    if (inscricao_id) {
+       console.log(`📝 Atualizando inscrição ${inscricao_id} com status do MP...`)
+       
+       const updatePayload: any = {
+         pagamento_id: String(paymentResult.id)
+       }
+
+       if (paymentResult.status === 'approved') {
+         updatePayload.status = 'confirmada'
+         updatePayload.valor_pago = paymentResult.transaction_amount
+       }
+
+       const { error: updateError } = await supabaseAdmin
+         .from('inscricoes')
+         .update(updatePayload)
+         .eq('id', inscricao_id)
+
+       if (updateError) {
+         console.error("⚠️ Erro ao atualizar inscrição pós-pagamento:", updateError)
+       } else {
+         console.log("✅ Inscrição atualizada com sucesso no banco.")
+       }
     }
 
     return new Response(JSON.stringify(paymentResult), {

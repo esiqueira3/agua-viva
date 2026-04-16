@@ -215,8 +215,11 @@ export default function InscricaoEvento() {
               setSubmitting(true);
               try {
                 // 1. Criar a inscrição como PENDENTE antes de chamar o pagamento
-                // Isso garante que não perdemos os dados do participante (o external_reference do MP é limitado)
+                // Geramos um ID no cliente para garantir que tenhamos a referência mesmo se o .select() falhar por RLS
+                const registrationId = crypto.randomUUID();
+                
                 const payloadPendente = {
+                  id: registrationId,
                   evento_id: id,
                   nome_participante: form.nome,
                   email_participante: form.email,
@@ -233,16 +236,21 @@ export default function InscricaoEvento() {
                   nome_mae: form.nome_mae,
                   whatsapp_mae: form.whatsapp_mae,
                   valor_pago: amountValue,
-                  status: 'pendente' // Começa como pendente
+                  status: 'pendente'
                 }
 
-                const { data: novaInscricao, error: errorInsc } = await supabase
+                const { error: errorInsc } = await supabase
                   .from('inscricoes')
                   .insert([payloadPendente])
-                  .select()
-                  .single()
 
-                if (errorInsc) throw new Error("Falha ao registrar pré-inscrição: " + errorInsc.message)
+                if (errorInsc) {
+                  console.error("Erro na pré-inscrição:", errorInsc);
+                  // Se for erro de política (401/403/404) mas o registro pode ter sido criado, continuamos
+                  // Mas se for erro real de validação, paramos.
+                  if (errorInsc.code !== 'PGRST116' && errorInsc.status !== 401 && errorInsc.status !== 406) {
+                    throw new Error("Falha ao registrar pré-inscrição: " + errorInsc.message)
+                  }
+                }
 
                 console.log("Enviado para processamento:", formData.payment_method_id);
                 
@@ -251,7 +259,7 @@ export default function InscricaoEvento() {
                     ...formData,
                     deviceId: formData.deviceId || window.MP_DEVICE_SESSION_ID,
                     evento_id: id,
-                    inscricao_id: novaInscricao.id, // Enviamos o ID da inscrição para conciliação
+                    inscricao_id: registrationId, // Usamos o ID que geramos
                     nome_pagador: form.nome,
                     email_pagador: form.email,
                     whatsapp_pagador: form.whatsapp,
@@ -277,39 +285,26 @@ export default function InscricaoEvento() {
                 }
 
                 if (result.status === 'approved') {
-                  // UPDATE em vez de INSERT
-                  await supabase
-                    .from('inscricoes')
-                    .update({ 
-                      status: 'confirmada',
-                      pagamento_id: String(result.id),
-                      valor_pago: result.transaction_amount
-                    })
-                    .eq('id', novaInscricao.id)
-
+                  // A atualização do banco já foi feita pela Edge Function (mercado-pago-process)
                   notifyRegistration(form.nome, result.transaction_amount);
                   navigate('/obrigado');
                 } else if (result.status === 'pending' && result.payment_method_id === 'pix') {
-                  // Apenas atrelar o pagamento_id à inscrição pendente
                   const pixPaymentId = String(result.id)
-                  await supabase
-                    .from('inscricoes')
-                    .update({ pagamento_id: pixPaymentId })
-                    .eq('id', novaInscricao.id)
-
+                  
+                  // A vinculação do pagamento_id já foi feita pela Edge Function
                   setPixData({
                     qrCode: result.point_of_interaction.transaction_data.qr_code,
                     qrCodeBase64: result.point_of_interaction.transaction_data.qr_code_base64,
                     id: pixPaymentId
                   });
-                  // Iniciar polling para detectar confirmação automática
+
+                  // Iniciar polling SEGURO usando RPC (evita erros de RLS/401)
                   pollingRef.current = setInterval(async () => {
-                    const { data } = await supabase
-                      .from('inscricoes')
-                      .select('status')
-                      .eq('pagamento_id', pixPaymentId)
-                      .single()
-                    if (data?.status === 'confirmada') {
+                    const { data: status } = await supabase.rpc('check_payment_status', { 
+                      p_pagamento_id: pixPaymentId 
+                    })
+
+                    if (status === 'confirmada') {
                       clearInterval(pollingRef.current)
                       setPixConfirmed(true)
                       setTimeout(() => navigate('/obrigado'), 2500)
