@@ -70,46 +70,13 @@ export default function InscricaoEvento() {
 
   const notifyRegistration = async (participantName, amount) => {
     try {
-      // 1. Busca todos os Administradores
-      const { data: admins } = await supabase
-        .from('usuarios_sistema')
-        .select('email')
-        .eq('perfil', 'Administrador')
-
-      // 2. Busca email do líder do departamento deste evento
-      const { data: depto } = await supabase
-        .from('departamentos')
-        .select('lider_principal_id')
-        .eq('id', evento.departamento_id)
-        .single()
-
-      let leaderEmail = null
-      if (depto?.lider_principal_id) {
-        const { data: leader } = await supabase
-          .from('membros')
-          .select('email')
-          .eq('id', depto.lider_principal_id)
-          .single()
-        leaderEmail = leader?.email
-      }
-
-      // 3. Monta lista de destinatários (Admins + Líder do Evento)
-      const targetEmails = new Set([
-        ...(admins?.map(a => a.email) || []),
-        ...(leaderEmail ? [leaderEmail] : [])
-      ])
-
-      const notifications = Array.from(targetEmails).map(email => ({
-        user_email: email,
-        titulo: '🎟️ Nova Inscrição!',
-        mensagem: `${participantName} se inscreveu em "${evento.nome}" (${amount > 0 ? `R$ ${amount}` : 'Gratuito'})`,
-        tipo: 'inscricao',
-        link: '/financeiro-eventos'
-      }))
-
-      if (notifications.length > 0) {
-        await supabase.from('notificacoes').insert(notifications)
-      }
+      // Usar a Nova Função Segura (RPC) no PostgREST
+      // Isso centraliza a lógica no banco e evita expor emails de admins no front
+      await supabase.rpc('notify_new_registration', {
+        p_evento_id: id,
+        p_participante_nome: participantName,
+        p_valor_pago: amount
+      });
     } catch (err) {
       console.error("Erro ao gerar notificação de inscrição:", err)
     }
