@@ -2,6 +2,18 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
+const translateError = (msg) => {
+  if (!msg) return null;
+  if (msg.includes("For security purposes, you can only request this after")) {
+    const seconds = msg.match(/\d+/);
+    return `🔒 Por segurança, aguarde ${seconds ? seconds[0] : 'alguns'} segundos para solicitar um novo código.`;
+  }
+  if (msg.includes("Email not confirmed")) return "E-mail não confirmado. Verifique sua caixa de entrada.";
+  if (msg.includes("Too many requests")) return "Muitas solicitações! Tente novamente em alguns minutos.";
+  if (msg.includes("Rate limit exceeded")) return "Limite de tentativas excedido. Aguarde um momento.";
+  return msg;
+};
+
 export default function Login() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
@@ -181,9 +193,9 @@ export default function Login() {
              <div className="space-y-6">
                 
                 {errorMsg && (
-                  <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-r-lg text-xs font-black uppercase tracking-tight flex items-center gap-3">
-                    <span className="material-symbols-outlined text-lg">warning</span>
-                    {errorMsg}
+                  <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 text-amber-800 dark:text-amber-200 p-4 rounded-r-lg text-xs font-black uppercase tracking-tight flex items-center gap-3 animate-in fade-in slide-in-from-left-2 transition-all">
+                    <span className="material-symbols-outlined text-lg">info</span>
+                    {translateError(errorMsg)}
                   </div>
                 )}
 
