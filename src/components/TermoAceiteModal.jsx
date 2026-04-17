@@ -9,13 +9,7 @@ export default function TermoAceiteModal({ readOnly = false, onClose }) {
   const handleAccept = async () => {
     setLoading(true)
     try {
-      const { error } = await supabase
-        .from('usuarios_sistema')
-        .update({ 
-          aceite_termo: true, 
-          data_aceite: new Date().toISOString() 
-        })
-        .eq('email', user.email)
+      const { error } = await supabase.rpc('registra_aceite_termo')
 
       if (error) throw error
       

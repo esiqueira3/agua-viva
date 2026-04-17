@@ -53,7 +53,7 @@ export function PermissionsProvider({ children }) {
       const { data: userData } = await supabase
         .from('usuarios_sistema')
         .select('nome, perfil, departamentos_vinculados, aceite_termo, data_aceite')
-        .eq('email', email)
+        .ilike('email', email)
         .maybeSingle()
 
       // Prioriza a tabela usuarios_sistema, senão usa o metadata, senão fallback para Liderança
