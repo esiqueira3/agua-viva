@@ -4,7 +4,7 @@ import { PageHeader } from '../components/ui/PageHeader'
 import { usePermissions } from '../context/PermissionsContext'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
-import * as XLSX from 'xlsx'
+import * as XLSX from 'xlsx-js-style'
 
 const FORMAS_PAGAMENTO = [
   { value: 'PIX',           icon: 'qr_code_2',         color: '#32BCAD' },
