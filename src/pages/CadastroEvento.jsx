@@ -350,8 +350,8 @@ export default function CadastroEvento() {
                     <span className="material-symbols-outlined">group</span>
                     <h4 className="font-black text-xs uppercase tracking-widest">Associação</h4>
                  </div>
-                 <Toggle label="Pedir Membro da Água Viva?" name="pedir_membro_agua_viva" form={form} onChange={handleFormChange} />
-                 <p className="text-[10px] text-on-surface-variant italic">Pergunta se o participante já é membro da igreja.</p>
+                 <Toggle label="Pedir Qual igreja congrega?" name="pedir_membro_agua_viva" form={form} onChange={handleFormChange} />
+                 <p className="text-[10px] text-on-surface-variant italic">Habilita a pergunta sobre a igreja onde o participante congrega.</p>
               </div>
 
               <div className="p-5 rounded-2xl bg-surface-container border border-outline-variant/10 space-y-4">

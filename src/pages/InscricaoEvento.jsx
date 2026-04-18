@@ -606,9 +606,9 @@ export default function InscricaoEvento() {
                       {/* 2. Membro Água Viva */}
                       {evento.pedir_membro_agua_viva && (
                          <div className="flex flex-col gap-1">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Você é membro da Água Viva?</label>
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Qual igreja você congrega ?</label>
                             <input 
-                               type="text" placeholder="Sim / Não (ou departamento)"
+                               type="text" placeholder="Nome da sua igreja"
                                value={form.membro_agua_viva} onChange={e => setForm({...form, membro_agua_viva: e.target.value})}
                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary transition-all font-medium"
                             />
