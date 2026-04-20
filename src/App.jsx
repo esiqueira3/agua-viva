@@ -28,6 +28,7 @@ import CertificadoBatismo from './pages/CertificadoBatismo'
 import GestaoAcessos from './pages/GestaoAcessos'
 import CalendarioPublico from './pages/CalendarioPublico'
 import Obrigado from './pages/Obrigado'
+import Novidades from './pages/Novidades'
 import { useEffect } from 'react'
 
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
@@ -101,6 +102,7 @@ function App() {
         <Route path="/agenda" element={<CalendarioPublico />} />
         <Route path="/obrigado" element={<Obrigado />} />
         
+        <Route path="/novidades" element={<Novidades />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
