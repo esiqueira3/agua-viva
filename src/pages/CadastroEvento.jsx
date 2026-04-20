@@ -69,7 +69,8 @@ export default function CadastroEvento() {
     pedir_saude: false,
     pedir_alergia: false,
     pedir_camiseta: false,
-    tamanho_referencia_camiseta: ''
+    tamanho_referencia_camiseta: '',
+    taxa_pix: 0.99
   })
 
   useEffect(() => {
@@ -132,7 +133,7 @@ export default function CadastroEvento() {
   const handleFormChange = (e) => {
     let value = e.target.type === 'checkbox' ? e.target.checked : e.target.value
     let finalValue = value
-    if (['max_parcelas', 'valor_camiseta'].includes(e.target.name)) finalValue = Number(value)
+    if (['max_parcelas', 'valor_camiseta', 'taxa_pix'].includes(e.target.name)) finalValue = Number(value)
     if (e.target.name === 'nome' && typeof value === 'string') {
       finalValue = value.toUpperCase()
     }
@@ -300,6 +301,7 @@ export default function CadastroEvento() {
                    <FormField label="Estimativa Taxa MP (%)" name="taxa_porc" type="number" step="0.01" form={form} onChange={handleFormChange} />
                    <FormField label="Máximo Parcelas Card" name="max_parcelas" type="number" min="1" step="1" form={form} onChange={handleFormChange} />
                    <FormField label="Valor Camiseta (R$)" name="valor_camiseta" type="number" step="0.01" form={form} onChange={handleFormChange} />
+                   <FormField label="Taxa PIX (%)" name="taxa_pix" type="number" step="0.01" form={form} onChange={handleFormChange} />
                 </div>
                 
                 <div className="col-span-4 p-5 rounded-2xl text-white flex justify-between items-center shadow-lg transform transition-all hover:scale-[1.01]"

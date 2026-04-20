@@ -37,11 +37,14 @@ export default function InscricaoEvento() {
   const [publicKey, setPublicKey] = useState(null)
   const [step, setStep] = useState(1) // 1: Dados, 2: Pagamento
 
-  const calculateTotal = () => {
+  const calculateTotal = (method = 'card') => {
     if (!evento) return 0;
-    const base = Number(evento.valor_total) || 0;
-    const adicional = (form.quer_camiseta && evento.valor_camiseta) ? Number(evento.valor_camiseta) : 0;
-    return base + adicional;
+    const baseAmount = Number(evento.valor_base) || 0;
+    // Se for PIX, usa a taxa_pix (fallback para taxa_porc se não existir)
+    const fee = (method === 'pix' && evento.taxa_pix !== undefined) ? Number(evento.taxa_pix) : Number(evento.taxa_porc || 0);
+    const calculatedTotal = baseAmount * (1 + fee / 100);
+    const adicionalCamiseta = (form.quer_camiseta && evento.valor_camiseta) ? Number(evento.valor_camiseta) : 0;
+    return Number((calculatedTotal + adicionalCamiseta).toFixed(2));
   };
 
   useEffect(() => {
@@ -712,16 +715,32 @@ export default function InscricaoEvento() {
                            )}
                         </div>
                       )}
+
+                      {evento.pago && calculateTotal('card') > calculateTotal('pix') && (
+                         <div className="p-4 bg-green-50 border border-green-100 rounded-[2rem] flex items-center justify-between animate-in slide-in-from-right-4 duration-500">
+                            <div className="flex items-center gap-3">
+                               <div className="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-green-500/20">
+                                  <span className="material-symbols-outlined text-xl">savings</span>
+                               </div>
+                               <div>
+                                  <p className="text-[10px] font-black text-green-700 uppercase tracking-widest">Dica de Economia</p>
+                                  <p className="text-xs font-bold text-green-900">Pague apenas R$ {calculateTotal('pix').toFixed(2)} no PIX</p>
+                               </div>
+                            </div>
+                            <span className="text-[10px] font-black bg-green-500 text-white px-3 py-1 rounded-full uppercase tracking-tighter shadow-sm animate-pulse">Desconto Ativo</span>
+                         </div>
+                       )}
                    </div>
                  )}
               </div>
 
               <div className={`p-6 rounded-3xl border flex items-center justify-between transition-colors ${evento.pago || form.quer_camiseta ? 'bg-primary/5 border-primary/10' : 'bg-green-500/10 border-green-500/20'}`}>
                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Investimento</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Investimento Estimado</p>
                     <h3 className="text-2xl font-black text-slate-900">
                        {calculateTotal() > 0 ? `R$ ${calculateTotal().toFixed(2)}` : 'Gratuito'}
                     </h3>
+                    {evento.pago && <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">* Valor ref. ao Cartão de Crédito</p>}
                  </div>
                  <span className="material-symbols-outlined text-4xl text-slate-300">
                     {evento.pago || form.quer_camiseta ? 'payments' : 'volunteer_activism'}

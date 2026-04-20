@@ -59,6 +59,41 @@ serve(async (req) => {
       mpHeaders['X-Meli-Session-Id'] = deviceId
     }
 
+    // --- RECALCULO SEGURO DO VALOR (ANTI-FRAUDE E DESCONTO PIX) ---
+    // Buscamos os valores direto do banco para evitar manipulação no front
+    const { data: evento } = await supabaseAdmin
+      .from('eventos')
+      .select('valor_base, taxa_porc, taxa_pix, valor_camiseta')
+      .eq('id', evento_id)
+      .single()
+
+    let finalAmount = Number(transaction_amount)
+
+    if (evento) {
+      const base = Number(evento.valor_base) || 0
+      // Se for PIX, usa a taxa_pix. Se não, usa a taxa padrão de cartão.
+      const fee = (payment_method_id === 'pix' && evento.taxa_pix !== undefined) 
+        ? Number(evento.taxa_pix) 
+        : Number(evento.taxa_porc || 0)
+      
+      const priceWithFee = base * (1 + fee / 100)
+      
+      // Verificar se o participante solicitou camiseta buscando a pré-inscrição
+      let adicionalCamiseta = 0
+      const { data: inscPendente } = await supabaseAdmin
+        .from('inscricoes')
+        .select('quer_camiseta')
+        .eq('id', body.inscricao_id)
+        .single()
+      
+      if (inscPendente?.quer_camiseta) {
+        adicionalCamiseta = Number(evento.valor_camiseta) || 0
+      }
+
+      finalAmount = Number((priceWithFee + adicionalCamiseta).toFixed(2))
+      console.log(`💰 Valor Recalculado [${payment_method_id}]: R$ ${finalAmount} (Base: ${base}, Taxa: ${fee}%, Camiseta: ${adicionalCamiseta})`)
+    }
+
     const nomePartes = (nome_pagador || 'Pagador').trim().split(' ')
     const firstName = nomePartes[0]
     const lastName = nomePartes.slice(1).join(' ') || 'Fiel'
@@ -67,7 +102,7 @@ serve(async (req) => {
     const cleanCPF = (payer?.identification?.number || body.identification?.number || '') .replace(/\D/g, '')
 
     const mpPayload: any = {
-      transaction_amount: Number(transaction_amount),
+      transaction_amount: finalAmount,
       description: description || `Agua Viva - Inscrição Evento ID: ${evento_id}`,
       payment_method_id: payment_method_id,
       payer: {
@@ -87,7 +122,7 @@ serve(async (req) => {
             id: String(evento_id),
             title: description || 'Inscrição em Evento',
             quantity: 1,
-            unit_price: Number(transaction_amount)
+            unit_price: finalAmount
           }
         ],
         payer: {
