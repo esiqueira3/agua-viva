@@ -140,10 +140,9 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
       
       {/* MODAL DE RELEASE NOTES (NOVIDADES) */}
       {showReleaseNotes && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setShowReleaseNotes(false)}></div>
-          <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2.5rem] shadow-2xl border border-outline-variant/10 overflow-hidden relative z-10 animate-in zoom-in-95 duration-300 max-h-[90vh] flex flex-col">
-            <div className="p-8 pb-4 flex justify-between items-start">
+        <div className="fixed inset-0 z-[100] flex items-start justify-center p-4 overflow-y-auto bg-slate-950/60 backdrop-blur-sm transition-all duration-500" onClick={() => setShowReleaseNotes(false)}>
+          <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2.5rem] shadow-2xl border border-outline-variant/10 overflow-hidden relative z-10 animate-in zoom-in-95 duration-300 my-auto flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="p-8 pb-4 flex justify-between items-start bg-white dark:bg-slate-900 sticky top-0 z-20">
                <div>
                   <div className="flex items-center gap-2 mb-2">
                      <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest rounded-full">Lançamento</span>
