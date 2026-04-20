@@ -76,6 +76,26 @@ export default function Usuarios() {
        </div>
     )},
     { label: 'Contato', key: 'telefone', render: (row) => <span className="font-mono text-xs text-on-surface">{row.telefone || 'Não Informado'}</span> },
+    { label: 'Aceite', key: 'data_aceite', render: (row) => (
+       <div className="py-1">
+         {row.aceite_termo ? (
+           <div className="flex flex-col">
+             <div className="flex items-center gap-1 text-green-600 mb-0.5">
+                <span className="material-symbols-outlined text-[14px] font-bold">check_circle</span>
+                <span className="text-[10px] font-black uppercase tracking-widest">Aceito</span>
+             </div>
+             <span className="text-[9px] font-bold text-on-surface-variant/60">
+                {row.data_aceite ? new Date(row.data_aceite).toLocaleString('pt-BR') : '--'}
+             </span>
+           </div>
+         ) : (
+           <div className="flex items-center gap-1 text-amber-500">
+              <span className="material-symbols-outlined text-[14px] font-bold">history</span>
+              <span className="text-[10px] font-black uppercase tracking-widest">Pendente</span>
+           </div>
+         )}
+       </div>
+    )},
     { label: 'Status', key: 'status', render: (row) => (
       <label className="relative inline-flex items-center cursor-pointer" onClick={(e) => e.stopPropagation()}>
         <input type="checkbox" className="sr-only peer" checked={row.status} onChange={() => handleToggleStatus(row)} />
