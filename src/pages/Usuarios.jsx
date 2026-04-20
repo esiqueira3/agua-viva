@@ -1,13 +1,27 @@
 import { useState, useEffect } from 'react'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Table } from '../components/ui/Table'
+import { ControlBar } from '../components/ui/ControlBar'
+import { Pagination } from '../components/ui/Pagination'
 import { supabase } from '../lib/supabase'
 import { useNavigate } from 'react-router-dom'
 
 export default function Usuarios() {
   const [usuarios, setUsuarios] = useState([])
   const [loading, setLoading] = useState(true)
+  const [viewMode, setViewMode] = useState(() => localStorage.getItem('usuarios_view_mode') || 'grid')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 6
   const navigate = useNavigate()
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm])
+
+  useEffect(() => {
+    localStorage.setItem('usuarios_view_mode', viewMode)
+  }, [viewMode])
 
   useEffect(() => {
     async function fetchUsuarios() {
@@ -107,21 +121,123 @@ export default function Usuarios() {
     )}
   ]
 
+  const filteredUsuarios = usuarios.filter(u => 
+    u.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    u.perfil?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const paginatedUsuarios = filteredUsuarios.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  )
+
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6 pb-20">
       <PageHeader 
         title="Controle de Acessos" 
         description="Gestão de painel e e-mails oficiais de membros da equipe (Whitelist)."
         icon="admin_panel_settings"
-        buttonLabel="Novo"
+        buttonLabel="Novo Usuário"
         buttonLink="/usuarios/novo"
+      />
+
+      <ControlBar 
+        searchPlaceholder="Buscar colaboradores..."
+        onSearch={setSearchTerm}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        onFiltersClick={() => alert("Filtros em breve!")}
       />
       
       {loading ? (
         <div className="flex justify-center p-12"><span className="material-symbols-outlined animate-spin text-tertiary-fixed-dim text-4xl">refresh</span></div>
+      ) : viewMode === 'list' ? (
+        <Table columns={columns} data={paginatedUsuarios} onDelete={handleDelete} onEdit={(row) => navigate(`/usuarios/editar/${row.id}`)} />
       ) : (
-        <Table columns={columns} data={usuarios} onDelete={handleDelete} onEdit={(row) => navigate(`/usuarios/editar/${row.id}`)} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          {paginatedUsuarios.map(u => {
+             const initials = (u.nome || '?').split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase()
+             return (
+                <div key={u.id} className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                   {/* HEADER DO CARD */}
+                   <div className="flex items-start justify-between mb-6">
+                      <div className="flex items-center gap-4">
+                         <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-black/10 ${getPerfilBadge(u.perfil)}`}>
+                            {initials}
+                         </div>
+                         <div>
+                            <h3 className="font-black text-on-surface tracking-tight uppercase text-sm leading-tight">{u.nome}</h3>
+                            <span className="text-[10px] font-black text-primary uppercase tracking-widest">{u.perfil || 'Usuário'}</span>
+                         </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                         <button onClick={() => navigate(`/usuarios/editar/${u.id}`)} className="p-2 text-on-surface-variant hover:text-primary hover:bg-primary/5 rounded-xl transition-all">
+                            <span className="material-symbols-outlined text-lg">edit</span>
+                         </button>
+                         <button onClick={() => handleDelete(u)} className="p-2 text-on-surface-variant hover:text-red-500 hover:bg-red-500/5 rounded-xl transition-all">
+                            <span className="material-symbols-outlined text-lg">delete</span>
+                         </button>
+                      </div>
+                   </div>
+
+                   {/* INFO DE CONTATO */}
+                   <div className="space-y-3 mb-6">
+                      <div className="flex items-center gap-3 p-3 bg-surface-container-low rounded-2xl border border-outline-variant/10">
+                         <span className="material-symbols-outlined text-primary text-lg">alternate_email</span>
+                         <span className="text-xs font-bold text-on-surface-variant truncate">{u.email}</span>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 bg-surface-container-low rounded-2xl border border-outline-variant/10">
+                         <span className="material-symbols-outlined text-primary text-lg">phone_iphone</span>
+                         <span className="text-xs font-bold text-on-surface-variant font-mono">{u.telefone || 'Sem telefone'}</span>
+                      </div>
+                   </div>
+
+                   {/* STATUS DE ACEITE (RESPONSIVO MODO FINANCEIRO) */}
+                   <div className="pt-4 border-t border-outline-variant/10 space-y-4">
+                      <div className="flex items-center justify-between">
+                         <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/40">Aceite do Termo</p>
+                         {u.aceite_termo ? (
+                            <div className="text-right">
+                               <div className="flex items-center gap-1 text-green-600 justify-end">
+                                  <span className="material-symbols-outlined text-[14px] font-bold">check_circle</span>
+                                  <span className="text-[10px] font-black uppercase tracking-widest">Concluído</span>
+                               </div>
+                               <p className="text-[9px] font-bold text-on-surface-variant/40">{u.data_aceite ? new Date(u.data_aceite).toLocaleString('pt-BR') : '--'}</p>
+                            </div>
+                         ) : (
+                            <div className="flex items-center gap-1 text-amber-500">
+                               <span className="material-symbols-outlined text-[14px] font-bold">pending</span>
+                               <span className="text-[10px] font-black uppercase tracking-widest">Pendente</span>
+                            </div>
+                         )}
+                      </div>
+
+                      <div className="flex items-center justify-between bg-surface-container-highest/20 p-3 rounded-2xl border border-outline-variant/10">
+                         <span className={`text-[10px] font-black uppercase tracking-widest ${u.status ? 'text-green-600' : 'text-on-surface-variant/40'}`}>
+                            {u.status ? 'Conta Ativa' : 'Conta Inativa'}
+                         </span>
+                         <label className="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" className="sr-only peer" checked={u.status} onChange={() => handleToggleStatus(u)} />
+                            <div className="w-9 h-5 bg-outline-variant/60 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-500"></div>
+                         </label>
+                      </div>
+                   </div>
+                </div>
+             )
+          })}
+        </div>
+      )}
+
+      {!loading && (
+        <Pagination 
+          totalItems={filteredUsuarios.length}
+          itemsPerPage={itemsPerPage}
+          currentPage={currentPage}
+          onPageChange={setCurrentPage}
+        />
       )}
     </div>
   )
 }
+
