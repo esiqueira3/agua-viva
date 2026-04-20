@@ -136,13 +136,12 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
   const [showReleaseNotes, setShowReleaseNotes] = useState(false)
 
   return (
-    <header className="flex justify-between items-center w-full px-8 py-4 sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/20 shadow-sm transition-all duration-300">
-      
-      {/* MODAL DE RELEASE NOTES (NOVIDADES) — TÉCNICA DEFINITIVA DE POSICIONAMENTO */}
+    <>
+      {/* MODAL DE RELEASE NOTES (NOVIDADES) — MOVIMENTADO PARA FORA DO HEADER (PORTAL-LIKE) */}
       {showReleaseNotes && (
-        <div className="fixed inset-0 z-[200] overflow-y-auto bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setShowReleaseNotes(false)}>
+        <div className="fixed inset-0 z-[9999] overflow-y-auto bg-slate-950/90 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowReleaseNotes(false)}>
           <div className="min-h-full flex items-center justify-center p-4 md:p-8">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2.5rem] shadow-2xl border border-outline-variant/10 overflow-hidden relative z-[210] animate-in zoom-in-95 duration-300 flex flex-col my-auto" onClick={e => e.stopPropagation()}>
+            <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2.5rem] shadow-2xl border border-outline-variant/10 overflow-hidden relative z-[10000] animate-in zoom-in-95 duration-300 flex flex-col my-auto" onClick={e => e.stopPropagation()}>
               <div className="p-8 pb-4 flex justify-between items-start bg-white dark:bg-slate-900 sticky top-0 z-20">
                <div>
                   <div className="flex items-center gap-2 mb-2">
@@ -205,8 +204,9 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
           </div>
         </div>
       )}
-
-      <div className="flex items-center gap-2">
+      
+      <header className="flex justify-between items-center w-full px-8 py-4 sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/20 shadow-sm transition-all duration-300">
+        <div className="flex items-center gap-2">
         <button 
           onClick={toggleSidebar} 
           className="p-2 text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center rounded-xl bg-surface-container-low focus:ring-2 focus:ring-primary/20"
@@ -459,5 +459,6 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
         </div>
       </div>
     </header>
+    </>
   )
 }
