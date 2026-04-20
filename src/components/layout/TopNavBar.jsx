@@ -132,8 +132,80 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
     await supabase.auth.signOut()
     window.location.href = '/'
   }
+
+  const [showReleaseNotes, setShowReleaseNotes] = useState(false)
+
   return (
     <header className="flex justify-between items-center w-full px-8 py-4 sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/20 shadow-sm transition-all duration-300">
+      
+      {/* MODAL DE RELEASE NOTES (NOVIDADES) */}
+      {showReleaseNotes && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setShowReleaseNotes(false)}></div>
+          <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2.5rem] shadow-2xl border border-outline-variant/10 overflow-hidden relative z-10 animate-in zoom-in-95 duration-300 max-h-[90vh] flex flex-col">
+            <div className="p-8 pb-4 flex justify-between items-start">
+               <div>
+                  <div className="flex items-center gap-2 mb-2">
+                     <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest rounded-full">Lançamento</span>
+                     <span className="text-[10px] font-black text-on-surface-variant/40">20 de Abril, 2026</span>
+                  </div>
+                  <h2 className="text-3xl font-black text-on-surface tracking-tighter uppercase leading-none">Release Notes <span className="text-primary italic">v1.0</span></h2>
+               </div>
+               <button onClick={() => setShowReleaseNotes(false)} className="w-10 h-10 rounded-full hover:bg-surface-container-low flex items-center justify-center transition-colors">
+                  <span className="material-symbols-outlined text-outline">close</span>
+               </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-8 py-4 custom-scrollbar space-y-8">
+               <div className="p-6 bg-gradient-to-br from-primary to-primary-container rounded-[2rem] text-white shadow-xl shadow-primary/20">
+                  <p className="text-lg font-bold leading-tight">"O Água Viva agora é 1.0 Oficial! Saímos da fase BETA com um motor financeiro blindado e visual ultra-moderno."</p>
+               </div>
+
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-5 rounded-3xl bg-surface-container-low border border-outline-variant/5">
+                     <span className="material-symbols-outlined text-primary mb-3">payments</span>
+                     <h4 className="font-black text-xs uppercase tracking-tight text-on-surface mb-2">Motor Financeiro 2.0</h4>
+                     <p className="text-[11px] font-bold text-on-surface-variant/70 leading-relaxed">Cálculo dinâmico inteligente para PIX e Cartão, garantindo o valor líquido exato para a igreja.</p>
+                  </div>
+                  <div className="p-5 rounded-3xl bg-surface-container-low border border-outline-variant/5">
+                     <span className="material-symbols-outlined text-green-500 mb-3">security</span>
+                     <h4 className="font-black text-xs uppercase tracking-tight text-on-surface mb-2">Blindagem de Segurança</h4>
+                     <p className="text-[11px] font-bold text-on-surface-variant/70 leading-relaxed">Proteção contra manipulação de preços servidorside e auditoria de aceite de termos por colaborador.</p>
+                  </div>
+                  <div className="p-5 rounded-3xl bg-surface-container-low border border-outline-variant/5">
+                     <span className="material-symbols-outlined text-amber-500 mb-3">grid_view</span>
+                     <h4 className="font-black text-xs uppercase tracking-tight text-on-surface mb-2">Interface em Cards</h4>
+                     <p className="text-[11px] font-bold text-on-surface-variant/70 leading-relaxed">Controle de acessos e usuários totalmente remodelado com visual ultra-rápido e intuitivo.</p>
+                  </div>
+                  <div className="p-5 rounded-3xl bg-surface-container-low border border-outline-variant/5">
+                     <span className="material-symbols-outlined text-blue-500 mb-3">ad_units</span>
+                     <h4 className="font-black text-xs uppercase tracking-tight text-on-surface mb-2">Otimização Mobile</h4>
+                     <p className="text-[11px] font-bold text-on-surface-variant/70 leading-relaxed">Gestão financeira e de inscritos redesenhada para iPhones e Androids com foco em usabilidade.</p>
+                  </div>
+               </div>
+
+               <div className="space-y-3 pb-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant/40">Outras Melhorias</p>
+                  <ul className="space-y-2">
+                     <li className="flex items-center gap-2 text-xs font-bold text-on-surface-variant">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                        Performance: Carregamento de Dashboards 40% mais rápido.
+                     </li>
+                     <li className="flex items-center gap-2 text-xs font-bold text-on-surface-variant">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                        Exportação: Novo motor de geração de PDF e Excel para inscritos.
+                     </li>
+                  </ul>
+               </div>
+            </div>
+
+            <div className="p-6 bg-surface-container-lowest border-t border-outline-variant/10 flex justify-center">
+               <button onClick={() => setShowReleaseNotes(false)} className="px-10 py-4 bg-on-surface text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-105 transition-all">Começar a Usar v1.0</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center gap-2">
         <button 
           onClick={toggleSidebar} 
@@ -313,25 +385,34 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
                 </div>
                 <div>
                   <p className="text-xs font-black text-on-surface uppercase tracking-tight">Avadora System</p>
-                  <p className="text-[10px] font-bold text-primary">Versão 0.9.1 (BETA)</p>
+                  <p className="text-[10px] font-bold text-primary">Versão 1.0 Oficial</p>
                 </div>
               </div>
               
-              <div className="space-y-2 pt-3 border-t border-outline-variant/10">
-                <p className="text-[10px] font-black uppercase text-on-surface-variant/40 tracking-widest">Recursos de Ajuda</p>
-                <button className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-surface-container-low transition-colors text-left group">
+              <div className="space-y-1 pt-3 border-t border-outline-variant/10">
+                <p className="text-[10px] font-black uppercase text-on-surface-variant/40 tracking-widest mb-2">Suporte & Novidades</p>
+                
+                <button 
+                  onClick={() => { setShowHelpMenu(false); setShowReleaseNotes(true); }}
+                  className="w-full flex items-center gap-3 p-2.5 rounded-xl bg-primary/5 hover:bg-primary/10 transition-all text-left group border border-primary/10"
+                >
+                  <span className="material-symbols-outlined text-[18px] text-primary animate-pulse">campaign</span>
+                  <span className="text-xs font-black text-primary uppercase">O que há de novo?</span>
+                </button>
+
+                <button className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-surface-container-low transition-colors text-left group">
                   <span className="material-symbols-outlined text-[18px] text-on-surface-variant group-hover:text-primary transition-colors">description</span>
                   <span className="text-xs font-bold text-on-surface">Guia do Usuário</span>
                 </button>
-                <button className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-surface-container-low transition-colors text-left group">
+                <button className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-surface-container-low transition-colors text-left group">
                   <span className="material-symbols-outlined text-[18px] text-on-surface-variant group-hover:text-primary transition-colors">support_agent</span>
                   <span className="text-xs font-bold text-on-surface">Suporte Técnico</span>
                 </button>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-outline-variant/10">
-                 <p className="text-[9px] text-on-surface-variant/40 font-bold italic text-center">Orgulhosamente servindo à <br/> Comunidade Água Viva.</p>
-              </div>
+               <div className="mt-4 pt-4 border-t border-outline-variant/10">
+                  <p className="text-[9px] text-on-surface-variant/30 font-black uppercase text-center tracking-tighter">Orgulhosamente servindo à <br/> Comunidade Água Viva.</p>
+               </div>
             </div>
           )}
         </div>
