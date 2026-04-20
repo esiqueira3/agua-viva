@@ -21,10 +21,10 @@ function CurrencyDisplay({ value, size = 'lg', className = '' }) {
   const [int, dec] = formatted.split(',')
   return (
     <div className={`flex flex-col ${className}`}>
-      <span className={size === 'lg' ? 'text-sm md:text-lg opacity-60' : 'text-[10px] opacity-60'}>R$</span>
-      <div className="flex items-baseline gap-0.5 leading-none">
-        <span className={size === 'lg' ? 'text-2xl md:text-4xl' : 'text-lg md:text-xl'}>{int}</span>
-        <span className={size === 'lg' ? 'text-sm md:text-lg opacity-60' : 'text-[10px] opacity-60'}>,{dec}</span>
+      <span className={size === 'lg' ? 'text-[10px] lg:text-lg opacity-60 font-bold' : 'text-[8px] opacity-60'}>R$</span>
+      <div className="flex items-baseline gap-0.5 leading-tight">
+        <span className={size === 'lg' ? 'text-xl lg:text-4xl font-black' : 'text-base lg:text-xl font-black'}>{int}</span>
+        <span className={size === 'lg' ? 'text-[9px] lg:text-lg opacity-60' : 'text-[8px] lg:text-xs opacity-60'}>,{dec}</span>
       </div>
     </div>
   )
@@ -646,28 +646,27 @@ export default function FinanceiroEventos() {
               </div>
             </div>
 
-            {/* BARRA DE SALDO - RESPONSIVA (1 col no celular, 3 no desktop) */}
-            <div className="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="bg-green-50 dark:bg-emerald-500/10 border border-green-100 dark:border-emerald-500/20 rounded-3xl p-5 md:p-6 flex flex-col justify-center shadow-sm">
-                <p className="text-[10px] font-black uppercase tracking-[0.15em] text-green-600/70 dark:text-emerald-400/80 mb-2">Total Arrecadado</p>
+            {/* BARRA DE SALDO - FLEXBOX FORÇADO (Vertical no mobile, horizontal no computador) */}
+            <div className="mt-5 flex flex-col lg:flex-row gap-4">
+              <div className="flex-1 bg-green-50 dark:bg-emerald-500/10 border border-green-100 dark:border-emerald-500/10 rounded-[2rem] p-5 lg:p-6 shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-green-600/60 mb-2">Total Arrecadado</p>
                 <CurrencyDisplay value={eventoSelecionado.totalArrecadado} className="text-green-700 dark:text-emerald-400" size="lg" />
               </div>
               
-              <div className="bg-orange-50 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-500/20 rounded-3xl p-5 md:p-6 flex flex-col justify-center shadow-sm">
-                <p className="text-[10px] font-black uppercase tracking-[0.15em] text-orange-600/70 dark:text-orange-400/80 mb-2">Total Sacado</p>
+              <div className="flex-1 bg-orange-50 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-500/10 rounded-[2rem] p-5 lg:p-6 shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-600/60 mb-2">Total Sacado</p>
                 <CurrencyDisplay value={totalSacado} className="text-orange-600 dark:text-orange-400" size="lg" />
-                <div className="mt-4 w-full bg-orange-200 dark:bg-white/10 rounded-full h-2 overflow-hidden">
-                  <div className="bg-orange-500 h-2 rounded-full transition-all duration-700" style={{ width: `${pctSacado}%` }} />
+                <div className="mt-4 w-full bg-orange-200 dark:bg-white/10 rounded-full h-1.5 overflow-hidden">
+                  <div className="bg-orange-500 h-1.5 rounded-full" style={{ width: `${pctSacado}%` }} />
                 </div>
-                <p className="text-[10px] font-bold text-orange-400 mt-2">{pctSacado}% do arrecadado</p>
+                <p className="text-[10px] font-bold text-orange-400 mt-2">{pctSacado}% sacado</p>
               </div>
 
-              <div className={`rounded-3xl p-5 md:p-6 border flex flex-col justify-center shadow-sm ${saldoDisponivel > 0 ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-100 dark:border-blue-500/20' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}`}>
-                <p className={`text-[10px] font-black uppercase tracking-[0.15em] mb-2 ${saldoDisponivel > 0 ? 'text-blue-600/70 dark:text-blue-400/80' : 'text-slate-400'}`}>
+              <div className={`flex-1 rounded-[2rem] p-5 lg:p-6 border shadow-sm ${saldoDisponivel > 0 ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-100' : 'bg-slate-50 dark:bg-slate-800 border-slate-200'}`}>
+                <p className={`text-[10px] font-black uppercase tracking-[0.2em] mb-2 ${saldoDisponivel > 0 ? 'text-blue-600/60' : 'text-slate-400'}`}>
                   Saldo Disponível
                 </p>
                 <CurrencyDisplay value={saldoDisponivel} className={saldoDisponivel > 0 ? 'text-blue-700 dark:text-blue-400' : 'text-slate-400'} size="lg" />
-                {saldoDisponivel <= 0 && <p className="text-[10px] font-bold text-slate-400 mt-2 flex items-center gap-1.5"><span className="material-symbols-outlined text-[14px]">task_alt</span> Totalmente sacado</p>}
               </div>
             </div>
           </div>
