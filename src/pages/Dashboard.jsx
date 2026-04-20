@@ -20,6 +20,7 @@ export default function Dashboard() {
   const [avisos, setAvisos] = useState([])
   const [novoAviso, setNovoAviso] = useState({ tipo: 'aviso', titulo: '', conteudo: '' })
   const [showAddAviso, setShowAddAviso] = useState(false)
+  const [selectedMembro, setSelectedMembro] = useState(null)
 
   const { isAdmin, meusDepartamentos, loading: loadingPermissions, user: currentUser, userNome } = usePermissions()
 
@@ -42,10 +43,10 @@ export default function Dashboard() {
          
       if(evData) setProximosEventos(evData)
 
-      // Fetch Aniversariantes
+      // Fetch Aniversariantes (DADOS ENRIQUECIDOS PARA QUICK-VIEW)
       const { data: memData } = await supabase
          .from('membros')
-         .select('id, nome_completo, data_nascimento, departamento_id')
+         .select('id, nome_completo, data_nascimento, departamento_id, telefone, sexo, estado_civil, cargo_igreja, foto_url')
          .not('data_nascimento', 'is', null)
 
       if(memData) {
@@ -365,15 +366,23 @@ export default function Dashboard() {
                  const isToday = day === new Date().getDate()
                  const initials = membro.nome_completo.substring(0,2).toUpperCase()
                  return (
-                   <div key={membro.id} className="flex items-center gap-3 p-2 rounded-2xl bg-surface transition-colors border border-outline-variant/5">
-                     <div className="w-10 h-10 rounded-full bg-secondary-fixed/20 flex items-center justify-center text-on-surface font-black text-xs">{initials}</div>
-                     <div className="min-w-0">
-                       <h4 className="text-xs font-bold text-on-surface truncate">{membro.nome_completo.split(' ')[0]}</h4>
+                   <button 
+                    key={membro.id} 
+                    onClick={() => setSelectedMembro(membro)}
+                    className="w-full flex items-center gap-3 p-2 rounded-2xl bg-surface transition-all border border-outline-variant/5 hover:bg-primary/5 hover:border-primary/10 hover:scale-[1.02] active:scale-95 group/item"
+                   >
+                     <div className={`w-10 h-10 rounded-full flex items-center justify-center text-on-surface font-black text-xs transition-colors ${isToday ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-secondary-fixed/20 group-hover/item:bg-primary/20'}`}>
+                        {membro.foto_url ? (
+                           <img src={membro.foto_url} alt={membro.nome_completo} className="w-full h-full object-cover rounded-full" />
+                        ) : initials}
+                     </div>
+                     <div className="text-left min-w-0">
+                       <h4 className="text-xs font-bold text-on-surface truncate group-hover/item:text-primary transition-colors">{membro.nome_completo.split(' ')[0]}</h4>
                        <p className={`text-[10px] uppercase tracking-wider ${isToday ? 'text-green-600 font-black' : 'text-on-surface-variant font-bold'}`}>
                           Dia {day} {isToday && '✨'}
                        </p>
                      </div>
-                   </div>
+                   </button>
                  )
                })
             )}
@@ -790,6 +799,80 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      {/* MODAL PASTORAL QUICK-VIEW — Otimizado para Mobile */}
+      {selectedMembro && (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setSelectedMembro(null)}>
+          <div 
+            className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl border border-outline-variant/10 overflow-hidden relative z-10 animate-in slide-in-from-bottom-20 duration-500" 
+            onClick={e => e.stopPropagation()}
+          >
+            {/* CABEÇALHO DO CARD */}
+            <div className="relative h-32 bg-gradient-to-br from-primary to-primary-container p-8">
+              <button 
+                onClick={() => setSelectedMembro(null)} 
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/10 text-white flex items-center justify-center hover:bg-black/20 transition-all"
+              >
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+
+            {/* CONTEÚDO */}
+            <div className="px-8 pb-10 -mt-16 relative">
+              <div className="flex flex-col items-center">
+                <div className="w-32 h-32 rounded-[2rem] border-4 border-white dark:border-slate-900 bg-surface-container-high shadow-xl overflow-hidden mb-4 bg-white">
+                  {selectedMembro.foto_url ? (
+                    <img src={selectedMembro.foto_url} alt={selectedMembro.nome_completo} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-black text-4xl">
+                      {selectedMembro.nome_completo.substring(0,2).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                
+                <h3 className="text-2xl font-black text-on-surface tracking-tighter text-center uppercase leading-none">{selectedMembro.nome_completo}</h3>
+                <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest rounded-full mt-2 inline-block">
+                  {selectedMembro.cargo_igreja || 'Membro'}
+                </span>
+
+                <div className="grid grid-cols-2 gap-3 w-full mt-8">
+                   <div className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/10 text-center">
+                      <p className="text-[9px] font-black uppercase text-on-surface-variant/40 mb-1">Aniversário</p>
+                      <p className="text-sm font-black text-primary uppercase">
+                        {new Date(selectedMembro.data_nascimento + 'T00:00:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })}
+                      </p>
+                   </div>
+                   <div className="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/10 text-center">
+                      <p className="text-[9px] font-black uppercase text-on-surface-variant/40 mb-1">Estado Civil</p>
+                      <p className="text-sm font-black text-on-surface uppercase">{selectedMembro.estado_civil || 'Não Inf.'}</p>
+                   </div>
+                </div>
+
+                <div className="w-full mt-6 space-y-3">
+                   <a 
+                    href={`https://wa.me/55${selectedMembro.telefone?.replace(/\D/g, '')}?text=${encodeURIComponent(`A Paz do Senhor, ${selectedMembro.nome_completo.split(' ')[0]}! Passando para te desejar um Feliz Aniversário! Que Deus te abençoe ricamente hoje e sempre! 🎈✨`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center gap-3 bg-[#25D366] text-white py-4 rounded-[1.5rem] font-black uppercase tracking-widest text-[11px] shadow-lg shadow-green-500/20 hover:scale-[1.02] active:scale-95 transition-all"
+                   >
+                     <span className="material-symbols-outlined text-[20px]">phone_iphone</span>
+                     Ligar ou Abençoar via WhatsApp
+                   </a>
+                   
+                   {isAdmin && (
+                    <Link 
+                      to={`/membros/editar/${selectedMembro.id}`}
+                      className="w-full flex items-center justify-center gap-3 bg-surface-container-highest text-on-surface-variant py-4 rounded-[1.5rem] font-black uppercase tracking-widest text-[11px] hover:bg-surface-container-high transition-all"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">person_search</span>
+                      Ver Ficha Completa
+                    </Link>
+                   )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
