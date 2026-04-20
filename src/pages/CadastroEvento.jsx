@@ -304,18 +304,41 @@ export default function CadastroEvento() {
                    <FormField label="Taxa PIX (%)" name="taxa_pix" type="number" step="0.01" form={form} onChange={handleFormChange} />
                 </div>
                 
-                <div className="col-span-4 p-5 rounded-2xl text-white flex justify-between items-center shadow-lg transform transition-all hover:scale-[1.01]"
+                <div className="col-span-4 p-6 rounded-[2rem] text-white flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl transform transition-all hover:scale-[1.005]"
                   style={{ background: 'linear-gradient(135deg, #009EE3 0%, #00BCFF 100%)' }}>
-                   <div className="flex items-center gap-3">
-                      <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>payments</span>
+                   
+                   {/* Coluna Cartão */}
+                   <div className="flex items-center gap-4 flex-1">
+                      <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                         <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>credit_card</span>
+                      </div>
                       <div>
-                         <p className="text-[10px] uppercase font-black tracking-widest opacity-80">Valor final para o Fiel</p>
+                         <p className="text-[10px] uppercase font-black tracking-[0.2em] opacity-70">Final no Cartão</p>
                          <h5 className="text-2xl font-black">R$ {form.valor_total}</h5>
+                         <p className="text-[9px] opacity-50 font-bold uppercase">Taxa de {form.taxa_porc}% aplicada</p>
                       </div>
                    </div>
-                   <div className="text-right">
-                      <p className="text-[10px] font-bold uppercase opacity-60">Fórmula Aplicada</p>
-                      <p className="text-xs font-mono">Líquido × (1 + Taxa%)</p>
+
+                   {/* Divisor Visual no Desktop */}
+                   <div className="hidden md:block w-px h-12 bg-white/20"></div>
+
+                   {/* Coluna PIX */}
+                   <div className="flex items-center gap-4 flex-1">
+                      <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                         <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>pix</span>
+                      </div>
+                      <div>
+                         <p className="text-[10px] uppercase font-black tracking-[0.2em] opacity-70 text-emerald-200">Final no PIX</p>
+                         <h5 className="text-2xl font-black text-emerald-50">
+                            R$ {(parseFloat(form.valor_base || 0) * (1 + parseFloat(form.taxa_pix || 0) / 100)).toFixed(2)}
+                         </h5>
+                         <p className="text-[9px] text-emerald-200/60 font-bold uppercase">Taxa de {form.taxa_pix}% aplicada</p>
+                      </div>
+                   </div>
+
+                   <div className="text-right hidden lg:block">
+                      <p className="text-[10px] font-bold uppercase opacity-60 tracking-tighter">Fórmula de Gestão</p>
+                      <p className="text-[11px] font-black font-mono">Líquido + Taxa %</p>
                    </div>
                 </div>
               </>
