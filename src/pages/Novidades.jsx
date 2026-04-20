@@ -82,6 +82,13 @@ export default function Novidades() {
         >
           Fechar e Voltar ao Sistema
         </button>
+
+        <div className="mt-12 pt-8 border-t border-outline-variant/10">
+          <p className="text-[11px] font-black uppercase tracking-[0.3em] text-on-surface-variant/30 flex items-center justify-center gap-2">
+            <span className="material-symbols-outlined text-[14px]">verified</span>
+            Avadora System — 2026
+          </p>
+        </div>
       </div>
     </div>
   )
