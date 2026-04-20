@@ -20,10 +20,13 @@ function CurrencyDisplay({ value, size = 'lg', className = '' }) {
   const formatted = parseFloat(value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   const [int, dec] = formatted.split(',')
   return (
-    <span className={`font-black tabular-nums whitespace-nowrap ${className}`}>
-      <span className={size === 'lg' ? 'text-2xl md:text-3xl' : 'text-base md:text-lg'}>R$ {int}</span>
-      <span className={size === 'lg' ? 'text-sm md:text-lg opacity-70' : 'text-xs md:text-sm opacity-70'}>,{dec}</span>
-    </span>
+    <div className={`flex flex-col ${className}`}>
+      <span className={size === 'lg' ? 'text-sm md:text-lg opacity-60' : 'text-[10px] opacity-60'}>R$</span>
+      <div className="flex items-baseline gap-0.5 leading-none">
+        <span className={size === 'lg' ? 'text-2xl md:text-4xl' : 'text-lg md:text-xl'}>{int}</span>
+        <span className={size === 'lg' ? 'text-sm md:text-lg opacity-60' : 'text-[10px] opacity-60'}>,{dec}</span>
+      </div>
+    </div>
   )
 }
 
@@ -643,26 +646,28 @@ export default function FinanceiroEventos() {
               </div>
             </div>
 
-            {/* BARRA DE SALDO - RESPONSIVA */}
-            <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="bg-green-50 dark:bg-emerald-500/10 border border-green-100 dark:border-emerald-500/20 rounded-2xl p-4 sm:p-5 flex flex-col justify-center">
-                <p className="text-[9px] font-black uppercase tracking-widest text-green-600/70 dark:text-emerald-400/80 mb-1">Total Arrecadado</p>
+            {/* BARRA DE SALDO - RESPONSIVA (1 col no celular, 3 no desktop) */}
+            <div className="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="bg-green-50 dark:bg-emerald-500/10 border border-green-100 dark:border-emerald-500/20 rounded-3xl p-5 md:p-6 flex flex-col justify-center shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-[0.15em] text-green-600/70 dark:text-emerald-400/80 mb-2">Total Arrecadado</p>
                 <CurrencyDisplay value={eventoSelecionado.totalArrecadado} className="text-green-700 dark:text-emerald-400" size="lg" />
               </div>
-              <div className="bg-orange-50 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-500/20 rounded-2xl p-4 sm:p-5 flex flex-col justify-center">
-                <p className="text-[9px] font-black uppercase tracking-widest text-orange-600/70 dark:text-orange-400/80 mb-1">Total Sacado</p>
+              
+              <div className="bg-orange-50 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-500/20 rounded-3xl p-5 md:p-6 flex flex-col justify-center shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-[0.15em] text-orange-600/70 dark:text-orange-400/80 mb-2">Total Sacado</p>
                 <CurrencyDisplay value={totalSacado} className="text-orange-600 dark:text-orange-400" size="lg" />
-                <div className="mt-2 w-full bg-orange-200 dark:bg-white/10 rounded-full h-1.5 overflow-hidden">
-                  <div className="bg-orange-500 h-1.5 rounded-full transition-all duration-700" style={{ width: `${pctSacado}%` }} />
+                <div className="mt-4 w-full bg-orange-200 dark:bg-white/10 rounded-full h-2 overflow-hidden">
+                  <div className="bg-orange-500 h-2 rounded-full transition-all duration-700" style={{ width: `${pctSacado}%` }} />
                 </div>
-                <p className="text-[9px] font-bold text-orange-400 mt-1">{pctSacado}% do arrecadado</p>
+                <p className="text-[10px] font-bold text-orange-400 mt-2">{pctSacado}% do arrecadado</p>
               </div>
-              <div className={`rounded-2xl p-4 sm:p-5 border flex flex-col justify-center sm:col-span-2 lg:col-span-1 ${saldoDisponivel > 0 ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-100 dark:border-blue-500/20' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}`}>
-                <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${saldoDisponivel > 0 ? 'text-blue-600/70 dark:text-blue-400/80' : 'text-slate-400'}`}>
+
+              <div className={`rounded-3xl p-5 md:p-6 border flex flex-col justify-center shadow-sm ${saldoDisponivel > 0 ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-100 dark:border-blue-500/20' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}`}>
+                <p className={`text-[10px] font-black uppercase tracking-[0.15em] mb-2 ${saldoDisponivel > 0 ? 'text-blue-600/70 dark:text-blue-400/80' : 'text-slate-400'}`}>
                   Saldo Disponível
                 </p>
                 <CurrencyDisplay value={saldoDisponivel} className={saldoDisponivel > 0 ? 'text-blue-700 dark:text-blue-400' : 'text-slate-400'} size="lg" />
-                {saldoDisponivel === 0 && <p className="text-[9px] font-bold text-slate-400 mt-1">✅ Totalmente sacado</p>}
+                {saldoDisponivel <= 0 && <p className="text-[10px] font-bold text-slate-400 mt-2 flex items-center gap-1.5"><span className="material-symbols-outlined text-[14px]">task_alt</span> Totalmente sacado</p>}
               </div>
             </div>
           </div>
