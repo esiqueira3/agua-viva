@@ -78,7 +78,7 @@ export default function Novidades() {
         
         <button 
           onClick={() => window.close()} 
-          className="mt-8 px-10 py-4 bg-on-surface text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-105 transition-all shadow-xl"
+          className="mt-8 px-10 py-4 bg-slate-950 dark:bg-white text-white dark:text-slate-950 rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-105 transition-all shadow-xl shadow-black/10"
         >
           Fechar e Voltar ao Sistema
         </button>
