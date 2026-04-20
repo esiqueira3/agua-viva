@@ -744,57 +744,63 @@ export default function FinanceiroEventos() {
                   const isConfirmado = ins.status === 'confirmada'
                   const initials = (ins.nome_participante || '?').split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase()
                   return (
-                    <div key={ins.id} className={`flex items-center gap-4 p-4 rounded-2xl border group transition-all hover:shadow-sm ${
+                    <div key={ins.id} className={`flex flex-col md:flex-row md:items-center gap-3 md:gap-4 p-4 rounded-2xl border group transition-all hover:shadow-sm ${
                       isConfirmado
                         ? 'bg-green-50/50 dark:bg-emerald-500/5 border-green-100 dark:border-emerald-500/10 hover:bg-green-50 dark:hover:bg-emerald-500/10'
                         : 'bg-amber-50/50 dark:bg-amber-500/5 border-amber-100 dark:border-amber-500/10 hover:bg-amber-50 dark:hover:bg-amber-500/10'
                     }`}>
-                      {/* Avatar */}
-                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 font-black text-sm shadow-sm text-white ${
-                        isConfirmado ? 'bg-green-500' : 'bg-amber-400'
-                      }`}>
-                        {initials}
-                      </div>
-
-                      {/* Dados principais */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-black text-on-surface text-sm truncate">{ins.nome_participante}</p>
-                          {/* Origem: MP ou Manual */}
-                          {isMp ? (
-                            <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full text-white shrink-0" style={{ backgroundColor: '#009EE3' }}>
-                              MERCADO PAGO
-                            </span>
-                          ) : (
-                            <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full bg-primary/10 text-primary shrink-0">
-                              MANUAL
-                            </span>
-                          )}
+                      {/* Bloco Superior: Avatar + Nome + Info */}
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        {/* Avatar */}
+                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 font-black text-sm shadow-sm text-white ${
+                          isConfirmado ? 'bg-green-500' : 'bg-amber-400'
+                        }`}>
+                          {initials}
                         </div>
-                        <p className="text-[10px] text-on-surface-variant/60 truncate mt-0.5">
-                          {ins.email_participante || 'E-mail não informado'}
-                          {ins.whatsapp && <span className="ml-2">• {ins.whatsapp}</span>}
-                        </p>
+  
+                        {/* Dados principais */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-black text-on-surface text-sm truncate">{ins.nome_participante}</p>
+                            {/* Origem: MP ou Manual */}
+                            {isMp ? (
+                              <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full text-white shrink-0" style={{ backgroundColor: '#009EE3' }}>
+                                MERCADO PAGO
+                              </span>
+                            ) : (
+                              <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full bg-primary/10 text-primary shrink-0">
+                                MANUAL
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-on-surface-variant/60 truncate mt-0.5">
+                            {ins.email_participante || 'E-mail não informado'}
+                            {ins.whatsapp && <span className="ml-2">• {ins.whatsapp}</span>}
+                          </p>
+                        </div>
                       </div>
-
-                      {/* Status */}
-                      <span className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wide shrink-0 ${
-                        isConfirmado ? 'bg-green-100 dark:bg-emerald-500/20 text-green-700 dark:text-emerald-400' : 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400'
-                      }`}>
-                        <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                          {isConfirmado ? 'check_circle' : 'schedule'}
+  
+                      {/* Bloco Inferior: Status + Valor + Ações */}
+                      <div className="flex items-center justify-between md:justify-end gap-3 pt-3 md:pt-0 border-t md:border-none border-outline-variant/10">
+                        {/* Status */}
+                        <span className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wide shrink-0 ${
+                          isConfirmado ? 'bg-green-100 dark:bg-emerald-500/20 text-green-700 dark:text-emerald-400' : 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400'
+                        }`}>
+                          <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                            {isConfirmado ? 'check_circle' : 'schedule'}
+                          </span>
+                          {isConfirmado ? 'Confirmado' : 'Pendente'}
                         </span>
-                        {isConfirmado ? 'Confirmado' : 'Pendente'}
-                      </span>
-
-                      {/* Valor */}
-                      <div className="text-right shrink-0">
-                        <p className={`text-base font-black font-mono ${isConfirmado ? 'text-green-700 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
-                          R$ {parseFloat(ins.valor_pago || 0).toFixed(2)}
-                        </p>
-                        <p className="text-[9px] text-on-surface-variant/50 dark:text-slate-400 font-bold">
-                          {new Date(ins.created_at).toLocaleDateString('pt-BR')}
-                        </p>
+  
+                        {/* Valor e Data */}
+                        <div className="text-right shrink-0 flex flex-col">
+                          <p className={`text-base font-black font-mono leading-none ${isConfirmado ? 'text-green-700 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                            R$ {parseFloat(ins.valor_pago || 0).toFixed(2)}
+                          </p>
+                          <p className="text-[9px] text-on-surface-variant/50 dark:text-slate-400 font-bold mt-1">
+                            {new Date(ins.created_at).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
                       </div>
 
                       {/* Ações — sempre visíveis */}
