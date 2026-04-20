@@ -46,7 +46,7 @@ export default function Dashboard() {
       // Fetch Aniversariantes (DADOS ENRIQUECIDOS PARA QUICK-VIEW)
       const { data: memData } = await supabase
          .from('membros')
-         .select('id, nome_completo, data_nascimento, departamento_id, telefone, sexo, estado_civil, cargo_igreja, foto_url')
+         .select('id, nome_completo, data_nascimento, departamento_id, telefone_principal, sexo, estado_civil, cargo_funcao')
          .not('data_nascimento', 'is', null)
 
       if(memData) {
@@ -372,9 +372,7 @@ export default function Dashboard() {
                     className="w-full flex items-center gap-3 p-2 rounded-2xl bg-surface transition-all border border-outline-variant/5 hover:bg-primary/5 hover:border-primary/10 hover:scale-[1.02] active:scale-95 group/item"
                    >
                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-on-surface font-black text-xs transition-colors ${isToday ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-secondary-fixed/20 group-hover/item:bg-primary/20'}`}>
-                        {membro.foto_url ? (
-                           <img src={membro.foto_url} alt={membro.nome_completo} className="w-full h-full object-cover rounded-full" />
-                        ) : initials}
+                        {initials}
                      </div>
                      <div className="text-left min-w-0">
                        <h4 className="text-xs font-bold text-on-surface truncate group-hover/item:text-primary transition-colors">{membro.nome_completo.split(' ')[0]}</h4>
@@ -820,18 +818,14 @@ export default function Dashboard() {
             <div className="px-8 pb-10 -mt-16 relative">
               <div className="flex flex-col items-center">
                 <div className="w-32 h-32 rounded-[2rem] border-4 border-white dark:border-slate-900 bg-surface-container-high shadow-xl overflow-hidden mb-4 bg-white">
-                  {selectedMembro.foto_url ? (
-                    <img src={selectedMembro.foto_url} alt={selectedMembro.nome_completo} className="w-full h-full object-cover" />
-                  ) : (
                     <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary font-black text-4xl">
                       {selectedMembro.nome_completo.substring(0,2).toUpperCase()}
                     </div>
-                  )}
                 </div>
                 
                 <h3 className="text-2xl font-black text-on-surface tracking-tighter text-center uppercase leading-none">{selectedMembro.nome_completo}</h3>
                 <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest rounded-full mt-2 inline-block">
-                  {selectedMembro.cargo_igreja || 'Membro'}
+                  {selectedMembro.cargo_funcao || 'Membro'}
                 </span>
 
                 <div className="grid grid-cols-2 gap-3 w-full mt-8">
@@ -849,7 +843,7 @@ export default function Dashboard() {
 
                 <div className="w-full mt-6 space-y-3">
                    <a 
-                    href={`https://wa.me/55${selectedMembro.telefone?.replace(/\D/g, '')}?text=${encodeURIComponent(`A Paz do Senhor, ${selectedMembro.nome_completo.split(' ')[0]}! Passando para te desejar um Feliz Aniversário! Que Deus te abençoe ricamente hoje e sempre! 🎈✨`)}`}
+                    href={`https://wa.me/55${selectedMembro.telefone_principal?.replace(/\D/g, '')}?text=${encodeURIComponent(`A Paz do Senhor, ${selectedMembro.nome_completo.split(' ')[0]}! Passando para te desejar um Feliz Aniversário! Que Deus te abençoe ricamente hoje e sempre! 🎈✨`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full flex items-center justify-center gap-3 bg-[#25D366] text-white py-4 rounded-[1.5rem] font-black uppercase tracking-widest text-[11px] shadow-lg shadow-green-500/20 hover:scale-[1.02] active:scale-95 transition-all"
