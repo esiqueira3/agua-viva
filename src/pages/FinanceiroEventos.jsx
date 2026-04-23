@@ -669,7 +669,7 @@ export default function FinanceiroEventos() {
           </div>
         )}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/20 shadow-sm p-5">
-          <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/60 mb-1">Total Inscritos</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/60 mb-1">Total de Entradas</p>
           <p className="text-3xl font-black text-primary">{eventos.reduce((s, ev) => s + ev.qtdeConfirmados, 0)}</p>
           <p className="text-[10px] text-on-surface-variant/40 mt-1">ENTRADAS</p>
         </div>
