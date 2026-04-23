@@ -3,6 +3,12 @@ import { PageHeader } from '../components/ui/PageHeader'
 export default function Novidades() {
   const melhorias = [
     {
+      title: "Transparência Financeira Real",
+      icon: "account_balance_wallet",
+      color: "text-blue-600",
+      desc: "Agora o painel financeiro exibe o valor LÍQUIDO real recebido no Mercado Pago. O sistema sincroniza centavo por centavo diretamente da API, garantindo que o saldo exibido seja exatamente o que está disponível na conta da igreja."
+    },
+    {
       title: "Motor Financeiro 2.0",
       icon: "payments",
       color: "text-emerald-500",

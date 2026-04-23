@@ -187,6 +187,7 @@ serve(async (req) => {
        if (paymentResult.status === 'approved') {
          updatePayload.status = 'confirmada'
          updatePayload.valor_pago = paymentResult.transaction_amount
+         updatePayload.valor_liquido = paymentResult.transaction_details?.net_received_amount || paymentResult.transaction_amount
        }
 
        const { error: updateError } = await supabaseAdmin

@@ -68,7 +68,7 @@ export default function FinanceiroEventos() {
     setPaginaAtual(1) // Sempre reseta a página ao carregar novos dados
     let query = supabase
       .from('eventos')
-      .select('*, departamentos ( id, nome ), inscricoes ( valor_pago, status )')
+      .select('*, departamentos ( id, nome ), inscricoes ( valor_pago, valor_liquido, status )')
       .eq('pago', true)
  
     // APLICAÇÃO DO FILTRO DE SEGURANÇA (RBAC)
@@ -112,7 +112,11 @@ export default function FinanceiroEventos() {
       const deptos = {}
       const stats = data.map(ev => {
          const confirmados = (ev.inscricoes || []).filter(i => i.status === 'confirmada')
-         const totalArrecadado = confirmados.reduce((sum, i) => sum + (parseFloat(i.valor_pago) || 0), 0)
+         const totalArrecadado = confirmados.reduce((sum, i) => {
+           // Se tiver valor_liquido, usa ele. Se não, usa valor_pago (fallback p/ registros antigos ou manuais)
+           const v = i.valor_liquido !== null ? parseFloat(i.valor_liquido) : parseFloat(i.valor_pago)
+           return sum + (v || 0)
+         }, 0)
          const deptoNome = ev.departamentos?.nome || 'Geral'
          deptos[deptoNome] = (deptos[deptoNome] || 0) + totalArrecadado
          return { ...ev, totalArrecadado, qtdeInscritos: (ev.inscricoes || []).length, qtdeConfirmados: confirmados.length }
@@ -152,7 +156,7 @@ export default function FinanceiroEventos() {
 
     setEventoSelecionado(evento)
     const [{ data: inscData }, { data: saqueData }] = await Promise.all([
-      supabase.from('inscricoes').select('id, evento_id, nome_participante, email_participante, whatsapp, valor_pago, status, pagamento_id, created_at, manual, saude_info, alergia_info, camiseta_tamanho, quer_camiseta, membro_agua_viva, nome_conjuge, whatsapp_conjuge, nome_pai, whatsapp_pai, nome_mae, whatsapp_mae').eq('evento_id', evento.id).order('created_at', { ascending: false }),
+      supabase.from('inscricoes').select('id, evento_id, nome_participante, email_participante, whatsapp, valor_pago, valor_liquido, status, pagamento_id, created_at, manual, saude_info, alergia_info, camiseta_tamanho, quer_camiseta, membro_agua_viva, nome_conjuge, whatsapp_conjuge, nome_pai, whatsapp_pai, nome_mae, whatsapp_mae').eq('evento_id', evento.id).order('created_at', { ascending: false }),
       supabase.from('saques_eventos').select('*').eq('evento_id', evento.id).order('created_at', { ascending: false })
     ])
     if (inscData) setInscritos(inscData)
@@ -176,6 +180,7 @@ export default function FinanceiroEventos() {
       email_participante: novoLancamento.email,
       whatsapp: novoLancamento.whatsapp,
       valor_pago: parseFloat(novoLancamento.valor || 0),
+      valor_liquido: parseFloat(novoLancamento.valor || 0), // Lançamento manual é sempre integral
       status: 'confirmada',
       manual: true
     }])
@@ -227,9 +232,12 @@ export default function FinanceiroEventos() {
     await loadFinanceiro()
   }
 
-  const handleConfirmarPagamento = async (inscricaoId) => {
-    await supabase.from('inscricoes').update({ status: 'confirmada' }).eq('id', inscricaoId)
-    await verDetalhes(eventoSelecionado)
+  const handleConfirmarPagamento = async (insc) => {
+    const { error } = await supabase.from('inscricoes').update({ 
+      status: 'confirmada',
+      valor_liquido: insc.valor_liquido || insc.valor_pago 
+    }).eq('id', insc.id)
+    if (!error) await verDetalhes(eventoSelecionado)
   }
 
   const consultarMP = async () => {
@@ -253,22 +261,47 @@ export default function FinanceiroEventos() {
       for (const payment of payments) {
         const metadataEventoId = payment.metadata?.evento_id
         const extRef = payment.external_reference
-        const isThisEvent = metadataEventoId === eventoSelecionado.id || extRef === eventoSelecionado.id || payment.description?.includes(eventoSelecionado.id.substring(0,8))
+        const isThisEvent = metadataEventoId === eventoSelecionado.id || 
+                           extRef === eventoSelecionado.id || 
+                           payment.description?.includes(eventoSelecionado.id.substring(0,8))
 
-        if (!isThisEvent) continue
+        console.log(`🔍 Analizando ${payment.id}: Ref=${extRef}, Valor=${payment.transaction_amount}, Match=${isThisEvent}`)
+
+        if (!isThisEvent) {
+          // Validação extra para UUID antes de consultar o banco (evita erro 400)
+          const isUUID = (str) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)
+          
+          if (extRef && isUUID(extRef)) {
+            const { data: inscRef } = await supabase.from('inscricoes').select('evento_id').eq('id', extRef).maybeSingle()
+            if (inscRef?.evento_id !== eventoSelecionado.id) continue
+          } else {
+            continue
+          }
+        }
 
         const { data: existente } = await supabase
           .from('inscricoes')
-          .select('id, status')
+          .select('id, status, valor_liquido')
           .or(`pagamento_id.eq.${payment.id},id.eq.${extRef}`)
           .maybeSingle()
 
         if (existente) {
-          if (existente.status !== 'confirmada') {
-            await supabase.from('inscricoes').update({ status: 'confirmada', valor_pago: payment.transaction_amount, pagamento_id: String(payment.id) }).eq('id', existente.id)
+          const realNet = payment.transaction_details?.net_received_amount || payment.transaction_amount
+          console.log(`📌 ID: ${existente.id} | No Banco: ${existente.valor_liquido} | No MP: ${realNet}`)
+          
+          // ATUALIZAÇÃO FORÇADA: Se o status não for confirmado OU se o valor no banco for diferente do valor real do MP
+          if (existente.status !== 'confirmada' || Number(existente.valor_liquido) !== Number(realNet)) {
+            console.log(`✨ Corrigindo valor líquido: ${existente.valor_liquido} -> ${realNet}`)
+            await supabase.from('inscricoes').update({ 
+              status: 'confirmada', 
+              valor_pago: payment.transaction_amount, 
+              valor_liquido: realNet,
+              pagamento_id: String(payment.id) 
+            }).eq('id', existente.id)
             atualizados++
           }
         } else {
+          console.log(`🪄 Iniciando recuperação mágica para pagamento ${payment.id}...`)
           // 3. RECUPERAÇÃO MÁGICA: Se não existe no nosso banco, vamos criar!
           let nome = "Participante MP"
           let email = payment.payer?.email || ""
@@ -314,6 +347,7 @@ export default function FinanceiroEventos() {
             email_participante: email,
             whatsapp: whatsapp,
             valor_pago: payment.transaction_amount,
+            valor_liquido: payment.transaction_details?.net_received_amount || payment.transaction_amount,
             pagamento_id: String(payment.id),
             status: 'confirmada'
           }])
@@ -329,11 +363,14 @@ export default function FinanceiroEventos() {
       alert(`✅ Sincronização Concluída!\n\n- ${atualizados} inscrições atualizadas.\n- ${recuperados} inscrições recuperadas do Mercado Pago.`)
       
       // Atualizar lista de inscritos sem fechar o painel
-      const { data: freshInsc } = await supabase.from('inscricoes').select('id, evento_id, nome_participante, email_participante, whatsapp, valor_pago, status, pagamento_id, created_at, manual, saude_info, alergia_info, camiseta_tamanho, quer_camiseta, membro_agua_viva, nome_conjuge, whatsapp_conjuge, nome_pai, whatsapp_pai, nome_mae, whatsapp_mae').eq('evento_id', eventoSelecionado.id).order('created_at', { ascending: false })
+      const { data: freshInsc } = await supabase.from('inscricoes').select('id, evento_id, nome_participante, email_participante, whatsapp, valor_pago, valor_liquido, status, pagamento_id, created_at, manual, saude_info, alergia_info, camiseta_tamanho, quer_camiseta, membro_agua_viva, nome_conjuge, whatsapp_conjuge, nome_pai, whatsapp_pai, nome_mae, whatsapp_mae').eq('evento_id', eventoSelecionado.id).order('created_at', { ascending: false })
       if (freshInsc) setInscritos(freshInsc)
       
       // Atualizar o total arrecadado no objeto do evento selecionado
-      const novoTotal = (freshInsc || []).filter(i => i.status === 'confirmada').reduce((sum, i) => sum + (parseFloat(i.valor_pago) || 0), 0)
+      const novoTotal = (freshInsc || []).filter(i => i.status === 'confirmada').reduce((sum, i) => {
+        const v = i.valor_liquido !== null ? parseFloat(i.valor_liquido) : parseFloat(i.valor_pago)
+        return sum + (v || 0)
+      }, 0)
       setEventoSelecionado(prev => ({ ...prev, totalArrecadado: novoTotal, qtdeConfirmados: (freshInsc || []).filter(i => i.status === 'confirmada').length }))
 
       await loadFinanceiro()
@@ -350,7 +387,7 @@ export default function FinanceiroEventos() {
     if (!eventoSelecionado || inscritos.length === 0) return
 
     const doc = jsPDF()
-    const tableColumn = ["Nome", "WhatsApp", "Status", "Valor", "Membro", "Cônjuge", "Pais", "Camiseta"]
+    const tableColumn = ["Nome", "WhatsApp", "Status", "Bruto", "Líquido", "Membro", "Cônjuge", "Pais", "Camiseta"]
     const tableRows = []
 
     inscritos.forEach(ins => {
@@ -359,6 +396,7 @@ export default function FinanceiroEventos() {
         ins.whatsapp || "-",
         ins.status === 'confirmada' ? 'CONFIRMADO' : 'PENDENTE',
         `R$ ${parseFloat(ins.valor_pago || 0).toFixed(2)}`,
+        `R$ ${parseFloat(ins.valor_liquido !== null ? ins.valor_liquido : ins.valor_pago || 0).toFixed(2)}`,
         ins.membro_agua_viva || "-",
         ins.nome_conjuge ? `${ins.nome_conjuge} (${ins.whatsapp_conjuge || 'N/I'})` : "-",
         `${ins.nome_pai || 'P: -'} / ${ins.nome_mae || 'M: -'}`,
@@ -388,7 +426,8 @@ export default function FinanceiroEventos() {
         0: { cellWidth: 30 }, // Nome
         4: { cellWidth: 20 }, // Membro
         5: { cellWidth: 30 }, // Cônjuge
-        6: { cellWidth: 40 }, // Pais
+        6: { cellWidth: 35 }, // Pais
+        7: { cellWidth: 20 }, // Camiseta
       }
     })
 
@@ -403,7 +442,8 @@ export default function FinanceiroEventos() {
       "E-mail": ins.email_participante || "-",
       "WhatsApp": ins.whatsapp || "-",
       "Status": ins.status === 'confirmada' ? 'CONFIRMADO' : 'PENDENTE',
-      "Valor Pago": parseFloat(ins.valor_pago || 0),
+      "Valor Bruto": parseFloat(ins.valor_pago || 0),
+      "Valor Líquido": parseFloat(ins.valor_liquido !== null ? ins.valor_liquido : ins.valor_pago || 0),
       "Membro Água Viva": ins.membro_agua_viva || "-",
       "Cônjuge": ins.nome_conjuge || "-",
       "WhatsApp Cônjuge": ins.whatsapp_conjuge || "-",
@@ -794,9 +834,21 @@ export default function FinanceiroEventos() {
   
                         {/* Valor e Data */}
                         <div className="text-right shrink-0 flex flex-col">
-                          <p className={`text-base font-black font-mono leading-none ${isConfirmado ? 'text-green-700 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
-                            R$ {parseFloat(ins.valor_pago || 0).toFixed(2)}
-                          </p>
+                          {ins.valor_liquido !== null && ins.valor_liquido !== ins.valor_pago ? (
+                            <>
+                              <p className="text-[10px] text-on-surface-variant/40 line-through leading-none mb-1">
+                                R$ {parseFloat(ins.valor_pago || 0).toFixed(2)}
+                              </p>
+                              <p className={`text-base font-black font-mono leading-none ${isConfirmado ? 'text-green-700 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                                R$ {parseFloat(ins.valor_liquido || 0).toFixed(2)}
+                                <span className="text-[8px] ml-1 opacity-50 uppercase">Liq.</span>
+                              </p>
+                            </>
+                          ) : (
+                            <p className={`text-base font-black font-mono leading-none ${isConfirmado ? 'text-green-700 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                              R$ {parseFloat(ins.valor_pago || 0).toFixed(2)}
+                            </p>
+                          )}
                           <p className="text-[9px] text-on-surface-variant/50 dark:text-slate-400 font-bold mt-1">
                             {new Date(ins.created_at).toLocaleDateString('pt-BR')}
                           </p>
@@ -811,7 +863,7 @@ export default function FinanceiroEventos() {
                              <span className="material-symbols-outlined text-[16px]">assignment</span>
                            </button>
                           {!isConfirmado && (
-                            <button onClick={() => handleConfirmarPagamento(ins.id)}
+                            <button onClick={() => handleConfirmarPagamento(ins)}
                               className="p-1.5 bg-emerald-100 text-emerald-600 rounded-lg hover:bg-emerald-200 transition-colors"
                               title="Confirmar pagamento">
                               <span className="material-symbols-outlined text-[16px]">check_circle</span>

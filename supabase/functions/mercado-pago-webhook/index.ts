@@ -86,7 +86,11 @@ serve(async (req) => {
     // 1. Tentar por pagamento_id primeiro (casos de múltiplas notificações)
     const { data: byPayId } = await supabaseAdmin
       .from('inscricoes')
-      .update({ status: sistemaStatus, valor_pago: amount })
+      .update({ 
+        status: sistemaStatus, 
+        valor_pago: amount,
+        valor_liquido: payment.transaction_details?.net_received_amount || amount
+      })
       .eq('pagamento_id', String(paymentId))
       .select()
     
@@ -104,6 +108,7 @@ serve(async (req) => {
         .update({ 
           status: sistemaStatus, 
           valor_pago: amount,
+          valor_liquido: payment.transaction_details?.net_received_amount || amount,
           pagamento_id: String(paymentId) // Atrela o ID do MP ao nosso registro
         })
         .eq('id', refId)
