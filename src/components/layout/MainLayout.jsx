@@ -8,7 +8,7 @@ import { usePermissions } from '../../context/PermissionsContext'
 export default function MainLayout() {
   const [isCollapsed, setIsCollapsed] = useState(() => window.innerWidth < 768)
   const [showReadOnlyTermo, setShowReadOnlyTermo] = useState(false)
-  const { userAceite, loading, user } = usePermissions()
+  const { userAceite, loading, user, impersonating, stopImpersonation, userNome } = usePermissions()
 
   return (
     <div className="flex bg-slate-100 dark:bg-background min-h-screen overflow-hidden">
@@ -30,6 +30,25 @@ export default function MainLayout() {
 
       <main className={`${isCollapsed ? 'ml-0 md:ml-20' : 'ml-0 md:ml-64'} transition-all duration-300 flex-1 flex flex-col w-full min-w-0`}>
         <TopNavBar toggleSidebar={() => setIsCollapsed(!isCollapsed)} isCollapsed={isCollapsed} />
+        
+        {/* Banner de Simulação (Ghost Login) */}
+        {impersonating && (
+          <div className="bg-amber-500 text-white px-6 py-2.5 flex items-center justify-between shadow-lg animate-in slide-in-from-top duration-500 z-[100]">
+             <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined animate-pulse">visibility</span>
+                <p className="text-xs font-black uppercase tracking-widest">
+                   Simulando acesso de: <span className="underline decoration-2 underline-offset-4">{userNome}</span>
+                </p>
+             </div>
+             <button 
+               onClick={stopImpersonation}
+               className="bg-white text-amber-600 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-amber-50 transition-all active:scale-95 shadow-sm"
+             >
+                Sair da Simulação
+             </button>
+          </div>
+        )}
+
         <div className="flex-1 p-4 md:p-8 overflow-x-hidden min-w-0">
           <Outlet />
         </div>

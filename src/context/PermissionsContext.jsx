@@ -9,6 +9,8 @@ export function PermissionsProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const [membroId, setMembroId] = useState(null)
   const [meusDepartamentos, setMeusDepartamentos] = useState([])
+  const [impersonating, setImpersonating] = useState(false)
+  const [realUser, setRealUser] = useState(null)
 
   const [userProfile, setUserProfile] = useState('Liderança')
   const [userNome, setUserNome] = useState('')
@@ -44,9 +46,9 @@ export function PermissionsProvider({ children }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  async function loadAllPermissions(currentUser) {
+  async function loadAllPermissions(currentUser, targetEmail = null) {
     setLoading(true)
-    const email = currentUser.email?.toLowerCase().trim()
+    const email = (targetEmail || currentUser.email)?.toLowerCase().trim()
     
     try {
       // 1. Busca perfil do usuário na nossa tabela (Fonte da Verdade)
@@ -130,6 +132,20 @@ export function PermissionsProvider({ children }) {
   // Se for administrador master, tem passe livre em tudo
   const isAdmin = userProfile.toLowerCase() === 'administrador' || permissions?.all === true
 
+  const startImpersonation = async (targetEmail) => {
+    if (impersonating) return
+    setRealUser(user)
+    setImpersonating(true)
+    await loadAllPermissions(user, targetEmail)
+  }
+
+  const stopImpersonation = async () => {
+    if (!impersonating) return
+    setImpersonating(false)
+    await loadAllPermissions(realUser)
+    setRealUser(null)
+  }
+
   return (
     <PermissionsContext.Provider value={{ 
       user, 
@@ -145,6 +161,10 @@ export function PermissionsProvider({ children }) {
       userAceite,
       dataAceite,
       userAvatar,
+      impersonating,
+      realUser,
+      startImpersonation,
+      stopImpersonation,
       refetchPermissions: () => loadAllPermissions(user)
     }}>
       {children}

@@ -5,6 +5,7 @@ import { ControlBar } from '../components/ui/ControlBar'
 import { Pagination } from '../components/ui/Pagination'
 import { supabase } from '../lib/supabase'
 import { useNavigate } from 'react-router-dom'
+import { usePermissions } from '../context/PermissionsContext'
 
 export default function Usuarios() {
   const [usuarios, setUsuarios] = useState([])
@@ -14,6 +15,7 @@ export default function Usuarios() {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 6
   const navigate = useNavigate()
+  const { startImpersonation, user: currentUser } = usePermissions()
 
   useEffect(() => {
     setCurrentPage(1)
@@ -118,6 +120,21 @@ export default function Usuarios() {
           {row.status ? 'Ativo' : 'Inativo'}
         </span>
       </label>
+    )},
+    { label: 'Simular', key: 'impersonate', render: (row) => (
+       <button 
+         onClick={() => row.email !== currentUser?.email && startImpersonation(row.email)}
+         disabled={row.email === currentUser?.email}
+         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-black text-[10px] uppercase tracking-wider transition-all ${
+           row.email === currentUser?.email 
+             ? 'opacity-20 grayscale cursor-not-allowed' 
+             : 'bg-amber-100 text-amber-700 hover:bg-amber-200 active:scale-95'
+         }`}
+         title="Simular Acesso deste Usuário"
+       >
+         <span className="material-symbols-outlined text-[16px]">visibility</span>
+         Simular
+       </button>
     )}
   ]
 
@@ -178,6 +195,15 @@ export default function Usuarios() {
                          <button onClick={() => handleDelete(u)} className="p-2 text-on-surface-variant hover:text-red-500 hover:bg-red-500/5 rounded-xl transition-all">
                             <span className="material-symbols-outlined text-lg">delete</span>
                          </button>
+                         {u.email !== currentUser?.email && (
+                            <button 
+                              onClick={() => startImpersonation(u.email)} 
+                              className="p-2 text-amber-500 hover:bg-amber-50 rounded-xl transition-all"
+                              title="Simular Acesso"
+                            >
+                               <span className="material-symbols-outlined text-lg">visibility</span>
+                            </button>
+                         )}
                       </div>
                    </div>
 
@@ -202,7 +228,7 @@ export default function Usuarios() {
                                <div className="flex items-center gap-1 text-green-600 justify-end">
                                   <span className="material-symbols-outlined text-[14px] font-bold">check_circle</span>
                                   <span className="text-[10px] font-black uppercase tracking-widest">Concluído</span>
-                               </div>
+                                </div>
                                <p className="text-[9px] font-bold text-on-surface-variant/40">{u.data_aceite ? new Date(u.data_aceite).toLocaleString('pt-BR') : '--'}</p>
                             </div>
                          ) : (
