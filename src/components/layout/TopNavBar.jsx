@@ -314,7 +314,7 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
                 </div>
                 <div>
                   <p className="text-xs font-black text-on-surface uppercase tracking-tight">Avadora System</p>
-                  <p className="text-[10px] font-bold text-primary">Versão 1.0.1 Oficial</p>
+                  <p className="text-[10px] font-bold text-primary">Versão 1.0.2 Oficial</p>
                 </div>
               </div>
               
