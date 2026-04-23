@@ -50,14 +50,14 @@ export default function Novidades() {
     <div className="max-w-4xl mx-auto space-y-8 pb-20 animate-in fade-in duration-700">
       <PageHeader 
         title="Notas de Lançamento" 
-        description="Confira todas as evoluções da Versão 1.0 Oficial da plataforma Água Viva."
+        description="Confira todas as evoluções da Versão 1.0.1 Oficial da plataforma Água Viva."
         icon="auto_awesome"
       />
 
       <div className="bg-gradient-to-br from-primary to-primary-container p-8 md:p-12 rounded-[3rem] text-white shadow-2xl shadow-primary/20 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
         <div className="relative z-10">
-          <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest mb-4 inline-block">Versão 1.0 OFICIAL</span>
+          <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest mb-4 inline-block">Versão 1.0.1 OFICIAL</span>
           <h1 className="text-4xl md:text-6xl font-black tracking-tighter mb-4 leading-none">BEM-VINDO AO<br/>FUTURO DA GESTÃO.</h1>
           <p className="text-lg md:text-xl font-medium opacity-90 max-w-2xl">O Água Viva acaba de sair da fase BETA. Saiba o que mudou na nossa maior atualização até aqui.</p>
         </div>
