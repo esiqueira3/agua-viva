@@ -701,13 +701,13 @@ export default function FinanceiroEventos() {
                 <CurrencyDisplay value={saldoDisponivel} className={saldoDisponivel > 0 ? 'text-green-700 dark:text-emerald-400' : 'text-slate-400'} size="lg" />
               </div>
               
-              <div className="flex-1 bg-orange-50 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-500/10 rounded-[2rem] p-5 lg:p-6 shadow-sm">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-600/60 mb-2">Total Sacado</p>
-                <CurrencyDisplay value={totalSacado} className="text-orange-600 dark:text-orange-400" size="lg" />
-                <div className="mt-4 w-full bg-orange-200 dark:bg-white/10 rounded-full h-1.5 overflow-hidden">
-                  <div className="bg-orange-500 h-1.5 rounded-full" style={{ width: `${pctSacado}%` }} />
+              <div className="flex-1 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/10 rounded-[2rem] p-5 lg:p-6 shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-red-600/60 mb-2">Total Sacado</p>
+                <CurrencyDisplay value={totalSacado} className="text-red-600 dark:text-red-400" size="lg" />
+                <div className="mt-4 w-full bg-red-200 dark:bg-white/10 rounded-full h-1.5 overflow-hidden">
+                  <div className="bg-red-500 h-1.5 rounded-full" style={{ width: `${pctSacado}%` }} />
                 </div>
-                <p className="text-[10px] font-bold text-orange-400 mt-2">{pctSacado}% sacado</p>
+                <p className="text-[10px] font-bold text-red-400 mt-2">{pctSacado}% sacado</p>
               </div>
 
               {/* TOTAL ARRECADADO - AGORA EM ÚLTIMO E AZUL */}
@@ -722,14 +722,14 @@ export default function FinanceiroEventos() {
           {saques.length > 0 && (
             <div className="p-6 border-b border-outline-variant/10">
               <h5 className="text-xs font-black uppercase tracking-widest text-on-surface-variant/60 flex items-center gap-2 mb-4">
-                <span className="material-symbols-outlined text-[16px] text-orange-500">account_balance_wallet</span>
+                <span className="material-symbols-outlined text-[16px] text-red-500">account_balance_wallet</span>
                 Histórico de Saques ({saques.length})
               </h5>
               <div className="space-y-2">
                 {saques.map(sq => {
                   const forma = FORMAS_PAGAMENTO.find(f => f.value === sq.forma_pagamento) || FORMAS_PAGAMENTO[0]
                   return (
-                    <div key={sq.id} className="flex items-center gap-4 p-4 rounded-2xl bg-orange-50/60 dark:bg-orange-500/5 border border-orange-100 dark:border-orange-500/10 group hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors">
+                    <div key={sq.id} className="flex items-center gap-4 p-4 rounded-2xl bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 group hover:bg-red-100/50 dark:hover:bg-red-500/20 transition-colors">
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm" style={{ backgroundColor: forma.color }}>
                         <span className="material-symbols-outlined text-white text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>{forma.icon}</span>
                       </div>
@@ -740,7 +740,7 @@ export default function FinanceiroEventos() {
                           {sq.observacao && <span className="ml-2 italic">"{sq.observacao}"</span>}
                         </p>
                       </div>
-                      <p className="font-black text-orange-600 dark:text-orange-400 text-base shrink-0">- R$ {parseFloat(sq.valor).toFixed(2)}</p>
+                      <p className="font-black text-red-600 dark:text-red-400 text-base shrink-0">- R$ {parseFloat(sq.valor).toFixed(2)}</p>
                       <button onClick={() => handleExcluirSaque(sq.id)}
                         className="opacity-0 group-hover:opacity-100 p-1.5 bg-red-100 dark:bg-red-900/20 text-red-500 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/40 transition-all shrink-0">
                         <span className="material-symbols-outlined text-[16px]">delete</span>
