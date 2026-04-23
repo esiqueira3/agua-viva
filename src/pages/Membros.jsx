@@ -34,7 +34,7 @@ export default function Membros() {
         .from('membros')
         .select(`
           id, nome_completo, telefone_principal, email, matricula, status, tipo_membro,
-          idade, faixa_etaria, escolaridade, cpf, departamentos ( nome )
+          idade, data_nascimento, faixa_etaria, escolaridade, cpf, departamentos ( nome )
         `)
         .order('nome_completo', { ascending: true })
       
@@ -55,6 +55,22 @@ export default function Membros() {
     const matchesCPF = filterCPF === '' || (m.cpf && m.cpf.replace(/\D/g, '').includes(filterCPF.replace(/\D/g, '')))
     return matchesNome && matchesTipo && matchesFaixa && matchesEscolaridade && matchesCPF
   })
+
+  // Função Inteligente: Calcula a idade real em tempo real
+  const calcularIdade = (dataNasc) => {
+    if (!dataNasc) return null
+    const hoje = new Date()
+    const nascimento = new Date(dataNasc)
+    
+    let idade = hoje.getFullYear() - nascimento.getFullYear()
+    const m = hoje.getMonth() - nascimento.getMonth()
+    
+    // Ajuste se ainda não fez aniversário no ano corrente
+    if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
+      idade--
+    }
+    return idade
+  }
 
   const paginatedMembros = membrosFiltrados.slice(
     (currentPage - 1) * itemsPerPage,
@@ -90,12 +106,17 @@ export default function Membros() {
   const columns = [
     { label: 'Matrícula', key: 'matricula', render: (row) => <span className="font-mono text-xs font-bold text-on-surface-variant bg-surface-variant/50 px-2 py-1 rounded">{row.matricula}</span> },
     { label: 'Nome', key: 'nome_completo', render: (row) => <span className="font-bold text-primary">{row.nome_completo}</span> },
-    { label: 'Perfil', key: 'faixa_etaria', render: (row) => (
-      <div className="flex flex-col">
-        <span className="text-xs font-black text-on-surface-variant leading-none">{row.faixa_etaria || '-'}</span>
-        <span className="text-[10px] font-bold text-tertiary-fixed-dim italic">{row.idade ? `${row.idade} anos` : ''}</span>
-      </div>
-    )},
+    { label: 'Perfil', key: 'faixa_etaria', render: (row) => {
+      const idadeReal = calcularIdade(row.data_nascimento) || row.idade
+      return (
+        <div className="flex flex-col">
+          <span className="text-xs font-black text-on-surface-variant leading-none">{row.faixa_etaria || '-'}</span>
+          <span className="text-[10px] font-bold text-tertiary-fixed-dim italic">
+            {idadeReal ? `${idadeReal} anos` : ''}
+          </span>
+        </div>
+      )
+    }},
     { label: 'Tipo', key: 'tipo_membro', render: (row) => <span className="text-xs font-semibold uppercase">{row.tipo_membro}</span> },
     { label: 'Departamento', key: 'departamento', render: (row) => row.departamentos?.nome || '-' },
     { label: 'Contato', key: 'telefone_principal', render: (row) => <span className="text-secondary tracking-wider text-sm">{row.telefone_principal}</span> },
@@ -287,7 +308,7 @@ export default function Membros() {
                           {membro.nome_completo}
                        </h3>
                        <p className="text-[11px] font-bold text-slate-400 leading-none mt-1">
-                          {membro.faixa_etaria} • {membro.idade ? `${membro.idade} anos` : 'Idade não inf.'}
+                          {membro.faixa_etaria} • {calcularIdade(membro.data_nascimento) || membro.idade ? `${calcularIdade(membro.data_nascimento) || membro.idade} anos` : 'Idade não inf.'}
                        </p>
                     </div>
 

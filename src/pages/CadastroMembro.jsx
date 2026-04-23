@@ -80,6 +80,11 @@ export default function CadastroMembro() {
            } else if (typeof membro.departamentos_ids === 'string') {
              try { membro.departamentos_ids = JSON.parse(membro.departamentos_ids) } catch { membro.departamentos_ids = [] }
            }
+           if (membro.data_nascimento) {
+              const { age, group } = calculateAgeDetails(membro.data_nascimento)
+              membro.idade = age
+              membro.faixa_etaria = group
+           }
            setForm(membro)
         }
       } else {
