@@ -15,9 +15,9 @@ const FORMAS_PAGAMENTO = [
 ]
 
 const CATEGORIAS_LANCAMENTO = [
-  { value: 'Inscrição', icon: 'assignment_ind', color: '#3B82F6' },
+  { value: 'Inscrição', icon: 'assignment_ind', color: '#10B981' },
   { value: 'Cantina',   icon: 'restaurant',     color: '#F59E0B' },
-  { value: 'Oferta',    icon: 'volunteer_activism', color: '#10B981' },
+  { value: 'Oferta',    icon: 'volunteer_activism', color: '#8B5CF6' },
   { value: 'Dizimo',    icon: 'savings',        color: '#8B5CF6' },
 ]
 
@@ -671,7 +671,7 @@ export default function FinanceiroEventos() {
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/20 shadow-sm p-5">
           <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/60 mb-1">Total Inscritos</p>
           <p className="text-3xl font-black text-primary">{eventos.reduce((s, ev) => s + ev.qtdeConfirmados, 0)}</p>
-          <p className="text-[10px] text-on-surface-variant/40 mt-1">confirmados</p>
+          <p className="text-[10px] text-on-surface-variant/40 mt-1">ENTRADAS</p>
         </div>
       </div>
 
@@ -719,7 +719,7 @@ export default function FinanceiroEventos() {
                       <p className={`text-xl font-black ${eventoSelecionado?.id === ev.id ? 'text-white' : 'text-green-600 dark:text-emerald-400'}`}>R$ {ev.saldoDisponivel?.toFixed(2)}</p>
                     </div>
                     <div>
-                      <p className={`text-[9px] font-black uppercase tracking-widest mb-0.5 ${eventoSelecionado?.id === ev.id ? 'text-white/50' : 'text-slate-400'}`}>Confirmados</p>
+                      <p className={`text-[9px] font-black uppercase tracking-widest mb-0.5 ${eventoSelecionado?.id === ev.id ? 'text-white/50' : 'text-slate-400'}`}>ENTRADAS</p>
                       <p className={`text-xl font-black ${eventoSelecionado?.id === ev.id ? 'text-white' : 'text-on-surface'}`}>{ev.qtdeConfirmados}<span className="text-sm opacity-50">/{ev.qtdeInscritos}</span></p>
                     </div>
                   </div>
@@ -923,9 +923,12 @@ export default function FinanceiroEventos() {
                       {/* Bloco Superior: Avatar + Nome + Info */}
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         {/* Avatar */}
-                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 font-black text-sm shadow-sm text-white ${
-                          isConfirmado ? 'bg-green-500' : 'bg-amber-400'
-                        }`}>
+                        <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 font-black text-sm shadow-sm text-white"
+                          style={{ 
+                            backgroundColor: (ins.tipo && ins.tipo !== 'Inscrição') 
+                              ? CATEGORIAS_LANCAMENTO.find(c => c.value === ins.tipo)?.color 
+                              : (isConfirmado ? '#10B981' : '#FBBF24') 
+                          }}>
                           {initials}
                         </div>
   

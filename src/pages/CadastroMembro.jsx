@@ -59,7 +59,9 @@ export default function CadastroMembro() {
     departamento_id: '',       // mantido para compatibilidade (recebe o primeiro do array)
     departamentos_ids: [],     // novo campo: array de departamentos
     cargo_funcao: 'Outro',
-    nome_conjuge: '', responsavel_menor: '', observacoes_gerais: '', necessidades_especiais: '',
+    nome_conjuge: '', responsavel_menor: '', 
+    nome_pai: '', nome_mae: '', familiar_outro: '', filhos: [],
+    observacoes_gerais: '', necessidades_especiais: '',
     status: true, matricula: '', idade: '', faixa_etaria: '', escolaridade: ''
   })
 
@@ -79,8 +81,13 @@ export default function CadastroMembro() {
              membro.departamentos_ids = membro.departamento_id ? [membro.departamento_id] : []
            } else if (typeof membro.departamentos_ids === 'string') {
              try { membro.departamentos_ids = JSON.parse(membro.departamentos_ids) } catch { membro.departamentos_ids = [] }
-           }
-           if (membro.data_nascimento) {
+            }
+            if (membro.filhos && typeof membro.filhos === 'string') {
+              try { membro.filhos = JSON.parse(membro.filhos) } catch { membro.filhos = [] }
+            } else if (!membro.filhos) {
+              membro.filhos = []
+            }
+            if (membro.data_nascimento) {
               const { age, group } = calculateAgeDetails(membro.data_nascimento)
               membro.idade = age
               membro.faixa_etaria = group
@@ -156,6 +163,11 @@ export default function CadastroMembro() {
     // Compatibilidade: departamento_id = primeiro do array
     payload.departamento_id = idsArray.length > 0 ? idsArray[0] : null
     
+    // Serializar filhos se necessário (Supabase JSONB aceita direto, mas mantendo padrão de segurança)
+    if (payload.filhos) {
+      payload.filhos = JSON.stringify(payload.filhos)
+    }
+    
     const dateFields = ['data_nascimento', 'data_conversao', 'data_batismo', 'data_entrada']
     dateFields.forEach(df => { if(!payload[df]) payload[df] = null })
 
@@ -182,7 +194,8 @@ export default function CadastroMembro() {
     let { value } = e.target;
 
     // Padronização para CAIXA ALTA
-    if (name === 'nome_completo') {
+    const upperFields = ['nome_completo', 'nome_pai', 'nome_mae', 'nome_conjuge', 'familiar_outro', 'responsavel_menor']
+    if (upperFields.includes(name)) {
       value = value.toUpperCase();
     }
 
@@ -381,15 +394,74 @@ export default function CadastroMembro() {
         </div>
       )
     },
-    {
-       label: "4. Familiar",
-       content: (
-         <div className="grid grid-cols-1 gap-4 max-w-xl">
-           <FormField label="Nome do Cônjuge (se houver)" name="nome_conjuge" form={form} onChange={handleFormChange} />
-           <FormField label="Responsável (se for Menor de Idade)" name="responsavel_menor" form={form} onChange={handleFormChange} />
-         </div>
-       )
-    },
+     {
+        label: "4. Familiar",
+        content: (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
+            <FormField label="Nome do Pai" name="nome_pai" form={form} onChange={handleFormChange} />
+            <FormField label="Nome da Mãe" name="nome_mae" form={form} onChange={handleFormChange} />
+            <FormField label="Nome do Cônjuge" name="nome_conjuge" form={form} onChange={handleFormChange} />
+            <FormField label="Responsável (se for Menor)" name="responsavel_menor" form={form} onChange={handleFormChange} />
+            
+            <div className="col-span-2">
+              <FormField label="Outras Informações Familiares (Outro)" name="familiar_outro" form={form} onChange={handleFormChange} />
+            </div>
+
+            {/* Seção Dinâmica de Filhos */}
+            <div className="col-span-2 mt-4 pt-6 border-t border-outline-variant/10">
+               <div className="flex items-center justify-between mb-4">
+                  <label className="text-xs font-black text-primary uppercase tracking-widest flex items-center gap-2">
+                     <span className="material-symbols-outlined text-[18px]">child_care</span>
+                     Filhos
+                  </label>
+                  <button 
+                    type="button"
+                    onClick={() => setForm(prev => ({ ...prev, filhos: [...(prev.filhos || []), ''] }))}
+                    className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-black text-white bg-primary rounded-lg hover:bg-primary/80 transition-all shadow-sm"
+                  >
+                     <span className="material-symbols-outlined text-sm">add</span>
+                     ADICIONAR FILHO
+                  </button>
+               </div>
+
+               <div className="space-y-3">
+                  {(form.filhos || []).length === 0 ? (
+                    <p className="text-[10px] font-bold text-on-surface-variant/40 italic py-2">Nenhum filho registrado.</p>
+                  ) : (
+                    form.filhos.map((filho, idx) => (
+                      <div key={idx} className="flex items-center gap-3 animate-in fade-in slide-in-from-left-2 duration-300">
+                        <div className="flex-1">
+                            <input 
+                              type="text" 
+                              placeholder={`Nome do Filho ${idx + 1}`}
+                              value={filho}
+                              onChange={(e) => {
+                                  const newFilhos = [...form.filhos]
+                                  newFilhos[idx] = e.target.value.toUpperCase() // Mantendo padrão de caixa alta
+                                  setForm(prev => ({ ...prev, filhos: newFilhos }))
+                              }}
+                              className="w-full p-3 bg-surface-container-low border border-outline-variant/30 rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm font-medium"
+                            />
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={() => {
+                              const newFilhos = form.filhos.filter((_, i) => i !== idx)
+                              setForm(prev => ({ ...prev, filhos: newFilhos }))
+                          }}
+                          className="p-2.5 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                          title="Remover Filho"
+                        >
+                            <span className="material-symbols-outlined text-[20px]">delete</span>
+                        </button>
+                      </div>
+                    ))
+                  )}
+               </div>
+            </div>
+          </div>
+        )
+     },
     {
        label: "5. Administração",
        content: (
