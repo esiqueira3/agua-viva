@@ -2,6 +2,7 @@ import { PageHeader } from '../components/ui/PageHeader'
 
 export default function Novidades() {
   const melhorias = [
+    {
       title: "Login Espião (Ghost Login)",
       icon: "visibility",
       color: "text-amber-500",

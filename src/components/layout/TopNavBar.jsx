@@ -14,6 +14,7 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
   const [showHelpMenu, setShowHelpMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [notificacoes, setNotificacoes] = useState([])
+  const [isDark, setIsDark] = useState(false)
 
   const menuRef = useRef(null)
   const searchRef = useRef(null)
@@ -50,6 +51,9 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
       document.addEventListener('mousedown', handleClickOutside)
       document.addEventListener('keydown', handleEscape)
     }
+
+    // Inicializa o estado do Dark Mode
+    setIsDark(document.documentElement.classList.contains('dark'))
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
@@ -131,6 +135,18 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
   const handleLogout = async () => {
     await supabase.auth.signOut()
     window.location.href = '/'
+  }
+
+  const toggleTheme = () => {
+    if (isDark) {
+      document.documentElement.classList.remove('dark')
+      localStorage.setItem('theme', 'light')
+      setIsDark(false)
+    } else {
+      document.documentElement.classList.add('dark')
+      localStorage.setItem('theme', 'dark')
+      setIsDark(true)
+    }
   }
 
   return (
@@ -295,6 +311,17 @@ export default function TopNavBar({ toggleSidebar, isCollapsed }) {
             </div>
           )}
         </div>
+
+        {/* Botão de Dark Mode */}
+        <button 
+          onClick={toggleTheme}
+          title={isDark ? "Ativar Modo Claro" : "Ativar Modo Escuro"}
+          className="w-10 h-10 rounded-xl flex items-center justify-center text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-all"
+        >
+          <span className="material-symbols-outlined text-[20px] font-black">
+            {isDark ? 'light_mode' : 'dark_mode'}
+          </span>
+        </button>
 
         <div ref={helpRef} className="relative">
           <button 
