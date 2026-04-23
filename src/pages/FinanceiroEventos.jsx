@@ -53,6 +53,8 @@ export default function FinanceiroEventos() {
   const [savingSaque, setSavingSaque] = useState(false)
   const [showModalInfo, setShowModalInfo] = useState(false)
   const [infoInscritoData, setInfoInscritoData] = useState(null)
+  const [showModalExport, setShowModalExport] = useState(false)
+  const [filtrosExport, setFiltrosExport] = useState(['Inscrição', 'Cantina', 'Oferta', 'Dizimo'])
   
   // Filtros
   const [filtroAno, setFiltroAno] = useState(new Date().getFullYear().toString())
@@ -174,7 +176,7 @@ export default function FinanceiroEventos() {
 
     setEventoSelecionado(evento)
     const [{ data: inscData }, { data: saqueData }] = await Promise.all([
-      supabase.from('inscricoes').select('id, evento_id, nome_participante, email_participante, whatsapp, valor_pago, valor_liquido, status, pagamento_id, created_at, manual, tipo, saude_info, alergia_info, camiseta_tamanho, quer_camiseta, membro_agua_viva, nome_conjuge, whatsapp_conjuge, nome_pai, whatsapp_pai, nome_mae, whatsapp_mae').eq('evento_id', evento.id).order('created_at', { ascending: false }),
+      supabase.from('inscricoes').select('id, evento_id, nome_participante, email_participante, whatsapp, valor_pago, valor_liquido, status, pagamento_id, created_at, manual, tipo, data_lancamento, observacao, saude_info, alergia_info, camiseta_tamanho, quer_camiseta, membro_agua_viva, nome_conjuge, whatsapp_conjuge, nome_pai, whatsapp_pai, nome_mae, whatsapp_mae').eq('evento_id', evento.id).order('created_at', { ascending: false }),
       supabase.from('saques_eventos').select('*').eq('evento_id', evento.id).order('created_at', { ascending: false })
     ])
     if (inscData) setInscritos(inscData)
@@ -192,35 +194,41 @@ export default function FinanceiroEventos() {
   const handleLancamentoManual = async (e) => {
     e.preventDefault()
     if (!eventoSelecionado) return
-    const { error } = await supabase.from('inscricoes').insert([{
+
+    const dadosParaSalvar = {
       evento_id: eventoSelecionado.id,
-      nome_participante: novoLancamento.nome,
-      email_participante: novoLancamento.email,
-      whatsapp: novoLancamento.whatsapp,
+      nome_participante: novoLancamento.nome || 'SEM NOME',
       valor_pago: parseFloat(novoLancamento.valor || 0),
-      valor_liquido: parseFloat(novoLancamento.valor || 0), // Lançamento manual é sempre integral
+      valor_liquido: parseFloat(novoLancamento.valor || 0),
       status: 'confirmada',
       manual: true,
       tipo: novoLancamento.tipo,
-      email_participante: novoLancamento.tipo === 'Inscrição' ? novoLancamento.email : null,
-      whatsapp: novoLancamento.tipo === 'Inscrição' ? novoLancamento.whatsapp : null,
-      data_lancamento: novoLancamento.tipo !== 'Inscrição' ? novoLancamento.data_lancamento : null,
-      observacao: novoLancamento.tipo !== 'Inscrição' ? novoLancamento.observacao : null
-    }])
-    if (!error) {
-      setShowModalManual(false)
-      setNovoLancamento({ 
-        nome: '', 
-        email: '', 
-        whatsapp: '', 
-        valor: '', 
-        tipo: 'Inscrição',
-        data_lancamento: new Date().toISOString().split('T')[0],
-        observacao: ''
-      })
-      await verDetalhes(eventoSelecionado)
-      await loadFinanceiro()
+      email_participante: (novoLancamento.tipo === 'Inscrição' && novoLancamento.email) ? novoLancamento.email : null,
+      whatsapp: (novoLancamento.tipo === 'Inscrição' && novoLancamento.whatsapp) ? novoLancamento.whatsapp : null,
+      data_lancamento: (novoLancamento.tipo !== 'Inscrição' && novoLancamento.data_lancamento) ? novoLancamento.data_lancamento : null,
+      observacao: (novoLancamento.tipo !== 'Inscrição' && novoLancamento.observacao) ? novoLancamento.observacao : null
     }
+
+    const { error } = await supabase.from('inscricoes').insert([dadosParaSalvar])
+
+    if (error) {
+      console.error("❌ Erro no Supabase:", error)
+      alert(`Erro ao salvar: ${error.message}\n${error.hint || ''}`)
+      return
+    }
+
+    setShowModalManual(false)
+    setNovoLancamento({ 
+      nome: '', 
+      email: '', 
+      whatsapp: '', 
+      valor: '', 
+      tipo: 'Inscrição',
+      data_lancamento: new Date().toISOString().split('T')[0],
+      observacao: ''
+    })
+    await verDetalhes(eventoSelecionado)
+    await loadFinanceiro()
   }
 
   const handleRegistrarSaque = async (e) => {
@@ -406,7 +414,7 @@ export default function FinanceiroEventos() {
       alert(`✅ Sincronização Concluída!\n\n- ${atualizados} inscrições atualizadas.\n- ${recuperados} inscrições recuperadas do Mercado Pago.`)
       
       // Atualizar lista de inscritos sem fechar o painel
-      const { data: freshInsc } = await supabase.from('inscricoes').select('id, evento_id, nome_participante, email_participante, whatsapp, valor_pago, valor_liquido, status, pagamento_id, created_at, manual, tipo, saude_info, alergia_info, camiseta_tamanho, quer_camiseta, membro_agua_viva, nome_conjuge, whatsapp_conjuge, nome_pai, whatsapp_pai, nome_mae, whatsapp_mae').eq('evento_id', eventoSelecionado.id).order('created_at', { ascending: false })
+      const { data: freshInsc } = await supabase.from('inscricoes').select('id, evento_id, nome_participante, email_participante, whatsapp, valor_pago, valor_liquido, status, pagamento_id, created_at, manual, tipo, data_lancamento, observacao, saude_info, alergia_info, camiseta_tamanho, quer_camiseta, membro_agua_viva, nome_conjuge, whatsapp_conjuge, nome_pai, whatsapp_pai, nome_mae, whatsapp_mae').eq('evento_id', eventoSelecionado.id).order('created_at', { ascending: false })
       if (freshInsc) setInscritos(freshInsc)
       
       // Atualizar o total arrecadado no objeto do evento selecionado
@@ -480,8 +488,16 @@ export default function FinanceiroEventos() {
   const exportToExcel = () => {
     if (!eventoSelecionado || inscritos.length === 0) return
 
-    // FILTRO: Mercado Pago (all) + Manual (only Inscrição)
-    const inscricoesFiltradas = inscritos.filter(ins => !ins.manual || ins.tipo === 'Inscrição')
+    // FILTRO DINÂMICO: Respeita o que o usuário escolheu no modal
+    const inscricoesFiltradas = inscritos.filter(ins => {
+      const tipoNormalizado = ins.tipo || 'Inscrição'
+      return filtrosExport.includes(tipoNormalizado)
+    })
+
+    if (inscricoesFiltradas.length === 0) {
+      alert("Nenhum registro encontrado para os filtros selecionados.")
+      return
+    }
 
     const data = inscricoesFiltradas.map(ins => {
       const bruto = Number(ins.valor_pago || 0)
@@ -536,6 +552,7 @@ export default function FinanceiroEventos() {
     worksheet['!cols'] = wscols
 
     XLSX.writeFile(workbook, `Inscritos_${eventoSelecionado.nome.replace(/\s+/g, '_')}.xlsx`)
+    setShowModalExport(false)
   }
 
   const totalGlobalArrecadado = eventos.reduce((s, ev) => s + (ev.totalArrecadado || 0), 0)
@@ -819,7 +836,7 @@ export default function FinanceiroEventos() {
                        EXPORTAR PDF
                     </button>
                     <button 
-                      onClick={exportToExcel}
+                      onClick={() => setShowModalExport(true)}
                       className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-xl font-bold text-[10px] border border-green-100 hover:bg-green-100 transition-all active:scale-95 shadow-sm"
                     >
                        <span className="material-symbols-outlined text-sm">table_chart</span>
@@ -879,10 +896,26 @@ export default function FinanceiroEventos() {
                                 {ins.tipo || 'Inscrição'}
                               </div>
                             )}
-                            <p className="text-[10px] text-on-surface-variant/60 dark:text-slate-400 truncate">
-                              {ins.email_participante || 'E-mail não informado'}
-                              {ins.whatsapp && <span className="ml-2">• {ins.whatsapp}</span>}
-                            </p>
+                            <div className="flex flex-col gap-0.5 min-w-0">
+                              {ins.manual && ins.tipo !== 'Inscrição' ? (
+                                <p className="text-[10px] text-on-surface-variant/60 dark:text-slate-400 truncate flex items-center gap-2">
+                                  {ins.observacao && (
+                                    <span className="flex items-center gap-1 italic text-primary dark:text-blue-400">
+                                      <span className="material-symbols-outlined text-[12px]">info</span>
+                                      {ins.observacao}
+                                    </span>
+                                  )}
+                                  {ins.data_lancamento && (
+                                    <span className="text-slate-400">• {new Date(ins.data_lancamento + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
+                                  )}
+                                </p>
+                              ) : (
+                                <p className="text-[10px] text-on-surface-variant/60 dark:text-slate-400 truncate">
+                                  {ins.email_participante || (ins.manual ? '' : 'E-mail não informado')}
+                                  {ins.whatsapp && <span className="ml-2">• {ins.whatsapp}</span>}
+                                </p>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -958,9 +991,12 @@ export default function FinanceiroEventos() {
       {showModalManual && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[2.5rem] shadow-2xl p-8 border border-outline-variant/20 animate-in zoom-in duration-300">
-            <h3 className="text-2xl font-black text-primary mb-6 flex items-center gap-2">
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>payments</span> Lançamento Manual
-            </h3>
+            <div className="mb-6">
+              <h3 className="text-2xl font-black text-primary mb-1 flex items-center gap-2">
+                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>payments</span> Lançamento Manual
+              </h3>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{eventoSelecionado?.nome}</p>
+            </div>
             <form onSubmit={handleLancamentoManual} className="space-y-4">
               <div>
                 <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Valor Recebido (R$) *</label>
@@ -1045,7 +1081,7 @@ export default function FinanceiroEventos() {
                         type="text" 
                         value={novoLancamento.observacao}
                         onChange={e => setNovoLancamento({...novoLancamento, observacao: e.target.value.toUpperCase()})}
-                        placeholder="Ex: Doação anônima"
+                        placeholder="Ex: Cantina, Oferta, Dizimo"
                         className="w-full mt-1 bg-surface-container-low border border-outline-variant/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary outline-none uppercase" 
                       />
                     </div>
@@ -1061,7 +1097,7 @@ export default function FinanceiroEventos() {
                     data_lancamento: new Date().toISOString().split('T')[0], observacao: '' 
                   }); 
                 }} className="px-6 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors">Cancelar</button>
-                <button type="submit" className="px-6 py-3 bg-primary text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:bg-primary/80 active:scale-95 transition-all">Confirmar e Salvar</button>
+                <button type="submit" className="px-6 py-3 bg-primary text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:bg-primary/80 active:scale-95 transition-all">Registrar Lançamento</button>
               </div>
             </form>
           </div>
@@ -1071,40 +1107,15 @@ export default function FinanceiroEventos() {
       {/* ══════════ MODAL REGISTRAR SAQUE ══════════ */}
       {showModalSaque && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2.5rem] shadow-2xl border border-outline-variant/20 overflow-hidden animate-in zoom-in duration-300">
-            
-            {/* Header do modal — gradiente laranja */}
-            <div className="p-6 text-white relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #F97316 0%, #EF4444 100%)' }}>
-              <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-10 translate-x-10" />
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-8 -translate-x-8" />
-              <div className="relative">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
-                    <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>account_balance_wallet</span>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest opacity-70">Registrar Saque</p>
-                    <p className="font-black text-lg leading-tight">{eventoSelecionado?.nome}</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-white/15 backdrop-blur rounded-xl p-3">
-                    <p className="text-[9px] font-black uppercase opacity-70 mb-0.5">Arrecadado</p>
-                    <p className="font-black">R$ {(eventoSelecionado?.totalArrecadado || 0).toFixed(2)}</p>
-                  </div>
-                  <div className="bg-white/15 backdrop-blur rounded-xl p-3">
-                    <p className="text-[9px] font-black uppercase opacity-70 mb-0.5">Já Sacado</p>
-                    <p className="font-black">R$ {totalSacado.toFixed(2)}</p>
-                  </div>
-                  <div className="bg-white/30 backdrop-blur rounded-xl p-3 border border-white/40">
-                    <p className="text-[9px] font-black uppercase opacity-80 mb-0.5">💰 Disponível</p>
-                    <p className="font-black text-lg">R$ {saldoDisponivel.toFixed(2)}</p>
-                  </div>
-                </div>
-              </div>
+          <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2.5rem] shadow-2xl border border-outline-variant/20 animate-in zoom-in duration-300">
+            <div className="p-8 pb-4">
+              <h3 className="text-2xl font-black text-red-500 mb-1 flex items-center gap-2">
+                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>account_balance_wallet</span> Registrar Saque
+              </h3>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{eventoSelecionado?.nome}</p>
             </div>
 
-            <form onSubmit={handleRegistrarSaque} className="p-6 space-y-4">
+            <form onSubmit={handleRegistrarSaque} className="p-8 pt-0 space-y-4">
               {/* Valor */}
               <div>
                 <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Valor do Saque (R$) *</label>
@@ -1384,6 +1395,61 @@ export default function FinanceiroEventos() {
            </div>
          </div>
        )}
+
+      {/* ══════════ MODAL FILTRO DE EXPORTAÇÃO (NOVO) ══════════ */}
+      {showModalExport && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2.5rem] shadow-2xl p-8 border border-outline-variant/20 animate-in zoom-in duration-300">
+            <h3 className="text-xl font-black text-green-600 mb-2 flex items-center gap-2">
+              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>table_chart</span> Exportar Planilha
+            </h3>
+            <p className="text-xs text-slate-400 font-bold mb-6">Selecione os tipos de lançamentos que deseja incluir no Excel:</p>
+            
+            <div className="space-y-3 mb-8">
+              {['Inscrição', 'Cantina', 'Oferta', 'Dizimo'].map(tipo => (
+                <label key={tipo} className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 cursor-pointer hover:bg-slate-100 transition-colors">
+                  <input 
+                    type="checkbox"
+                    checked={filtrosExport.includes(tipo)}
+                    onChange={(e) => {
+                      if (e.target.checked) setFiltrosExport([...filtrosExport, tipo])
+                      else setFiltrosExport(filtrosExport.filter(f => f !== tipo))
+                    }}
+                    className="w-5 h-5 rounded-lg border-2 border-slate-300 text-green-600 focus:ring-green-500"
+                  />
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-lg" style={{ color: CATEGORIAS_LANCAMENTO.find(c => c.value === tipo)?.color }}>
+                      {CATEGORIAS_LANCAMENTO.find(c => c.value === tipo)?.icon}
+                    </span>
+                    <span className="font-bold text-on-surface text-sm uppercase">{tipo}</span>
+                  </div>
+                </label>
+              ))}
+
+              <button 
+                onClick={() => {
+                  if (filtrosExport.length === 4) setFiltrosExport([])
+                  else setFiltrosExport(['Inscrição', 'Cantina', 'Oferta', 'Dizimo'])
+                }}
+                className="text-[10px] font-black text-primary uppercase ml-1 hover:underline"
+              >
+                {filtrosExport.length === 4 ? 'Desmarcar Todos' : 'Marcar Todos'}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => setShowModalExport(false)} className="px-6 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors">Cancelar</button>
+              <button 
+                onClick={exportToExcel}
+                disabled={filtrosExport.length === 0}
+                className="px-6 py-3 bg-green-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-green-200 hover:bg-green-700 active:scale-95 transition-all disabled:opacity-50"
+              >
+                Gerar Excel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
