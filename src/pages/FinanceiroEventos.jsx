@@ -61,7 +61,15 @@ export default function FinanceiroEventos() {
   const [paginaAtual, setPaginaAtual] = useState(1)
  
   // Forms
-  const [novoLancamento, setNovoLancamento] = useState({ nome: '', email: '', whatsapp: '', valor: '', tipo: 'Inscrição' })
+  const [novoLancamento, setNovoLancamento] = useState({ 
+    nome: '', 
+    email: '', 
+    whatsapp: '', 
+    valor: '', 
+    tipo: 'Inscrição',
+    data_lancamento: new Date().toISOString().split('T')[0],
+    observacao: ''
+  })
   const [novoSaque, setNovoSaque] = useState({
     valor: '',
     responsavel: '',
@@ -193,11 +201,23 @@ export default function FinanceiroEventos() {
       valor_liquido: parseFloat(novoLancamento.valor || 0), // Lançamento manual é sempre integral
       status: 'confirmada',
       manual: true,
-      tipo: novoLancamento.tipo
+      tipo: novoLancamento.tipo,
+      email_participante: novoLancamento.tipo === 'Inscrição' ? novoLancamento.email : null,
+      whatsapp: novoLancamento.tipo === 'Inscrição' ? novoLancamento.whatsapp : null,
+      data_lancamento: novoLancamento.tipo !== 'Inscrição' ? novoLancamento.data_lancamento : null,
+      observacao: novoLancamento.tipo !== 'Inscrição' ? novoLancamento.observacao : null
     }])
     if (!error) {
       setShowModalManual(false)
-      setNovoLancamento({ nome: '', email: '', whatsapp: '', valor: '' })
+      setNovoLancamento({ 
+        nome: '', 
+        email: '', 
+        whatsapp: '', 
+        valor: '', 
+        tipo: 'Inscrição',
+        data_lancamento: new Date().toISOString().split('T')[0],
+        observacao: ''
+      })
       await verDetalhes(eventoSelecionado)
       await loadFinanceiro()
     }
@@ -942,27 +962,8 @@ export default function FinanceiroEventos() {
               <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>payments</span> Lançamento Manual
             </h3>
             <form onSubmit={handleLancamentoManual} className="space-y-4">
-              {[
-                { label: 'Nome do Participante', key: 'nome', type: 'text', required: true },
-                { label: 'E-mail (Opcional)', key: 'email', type: 'email' },
-                { label: 'WhatsApp (Opcional)', key: 'whatsapp', type: 'tel' },
-              ].map(f => (
-                <div key={f.key}>
-                  <label className="text-[10px] font-black uppercase text-slate-400 ml-1">{f.label}</label>
-                  <input 
-                    required={f.required} 
-                    type={f.type} 
-                    value={novoLancamento[f.key]}
-                    onChange={e => {
-                      const val = f.key === 'nome' ? e.target.value.toUpperCase() : e.target.value
-                      setNovoLancamento({...novoLancamento, [f.key]: val})
-                    }}
-                    className={`w-full mt-1 bg-surface-container-low border border-outline-variant/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary outline-none ${f.key === 'nome' ? 'uppercase' : ''}`} 
-                  />
-                </div>
-              ))}
               <div>
-                <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Valor Recebido (R$)</label>
+                <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Valor Recebido (R$) *</label>
                 <input required type="number" step="0.01" value={novoLancamento.valor}
                   onChange={e => setNovoLancamento({...novoLancamento, valor: e.target.value})}
                   className="w-full mt-1 bg-surface-container-low border border-outline-variant/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary outline-none font-mono font-bold" />
@@ -990,8 +991,76 @@ export default function FinanceiroEventos() {
                 </div>
               </div>
 
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Descrição do Lançamento *</label>
+                  <input 
+                    required 
+                    type="text" 
+                    value={novoLancamento.nome}
+                    onChange={e => setNovoLancamento({...novoLancamento, nome: e.target.value.toUpperCase()})}
+                    className="w-full mt-1 bg-surface-container-low border border-outline-variant/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary outline-none uppercase" 
+                  />
+                </div>
+
+                {/* Campos Condicionais: INSCRIÇÃO */}
+                {novoLancamento.tipo === 'Inscrição' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div>
+                      <label className="text-[10px] font-black uppercase text-slate-400 ml-1">E-mail (Opcional)</label>
+                      <input 
+                        type="email" 
+                        value={novoLancamento.email}
+                        onChange={e => setNovoLancamento({...novoLancamento, email: e.target.value})}
+                        className="w-full mt-1 bg-surface-container-low border border-outline-variant/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary outline-none" 
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black uppercase text-slate-400 ml-1">WhatsApp (Opcional)</label>
+                      <input 
+                        type="tel" 
+                        value={novoLancamento.whatsapp}
+                        onChange={e => setNovoLancamento({...novoLancamento, whatsapp: e.target.value})}
+                        className="w-full mt-1 bg-surface-container-low border border-outline-variant/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary outline-none" 
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Campos Condicionais: CANTINA / OFERTA / DIZIMO */}
+                {novoLancamento.tipo !== 'Inscrição' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div>
+                      <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Data do Lançamento</label>
+                      <input 
+                        type="date" 
+                        value={novoLancamento.data_lancamento}
+                        onChange={e => setNovoLancamento({...novoLancamento, data_lancamento: e.target.value})}
+                        className="w-full mt-1 bg-surface-container-low border border-outline-variant/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary outline-none" 
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Observação (Opcional)</label>
+                      <input 
+                        type="text" 
+                        value={novoLancamento.observacao}
+                        onChange={e => setNovoLancamento({...novoLancamento, observacao: e.target.value.toUpperCase()})}
+                        placeholder="Ex: Doação anônima"
+                        className="w-full mt-1 bg-surface-container-low border border-outline-variant/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary outline-none uppercase" 
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-2 gap-3 pt-2">
-                <button type="button" onClick={() => { setShowModalManual(false); setNovoLancamento({ nome: '', email: '', whatsapp: '', valor: '', tipo: 'Inscrição' }); }} className="px-6 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors">Cancelar</button>
+                <button type="button" onClick={() => { 
+                  setShowModalManual(false); 
+                  setNovoLancamento({ 
+                    nome: '', email: '', whatsapp: '', valor: '', tipo: 'Inscrição', 
+                    data_lancamento: new Date().toISOString().split('T')[0], observacao: '' 
+                  }); 
+                }} className="px-6 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors">Cancelar</button>
                 <button type="submit" className="px-6 py-3 bg-primary text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:bg-primary/80 active:scale-95 transition-all">Confirmar e Salvar</button>
               </div>
             </form>
