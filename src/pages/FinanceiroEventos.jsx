@@ -53,8 +53,10 @@ export default function FinanceiroEventos() {
   const [savingSaque, setSavingSaque] = useState(false)
   const [showModalInfo, setShowModalInfo] = useState(false)
   const [infoInscritoData, setInfoInscritoData] = useState(null)
+  const [savingInfo, setSavingInfo] = useState(false)
   const [showModalExport, setShowModalExport] = useState(false)
-  const [filtrosExport, setFiltrosExport] = useState(['Inscrição', 'Cantina', 'Oferta', 'Dizimo'])
+  const [filtrosExport, setFiltrosExport] = useState(['Inscrição'])
+  const [formatoExport, setFormatoExport] = useState('excel') // 'excel' ou 'pdf'
   
   // Filtros
   const [filtroAno, setFiltroAno] = useState(new Date().getFullYear().toString())
@@ -434,14 +436,64 @@ export default function FinanceiroEventos() {
     }
   }
 
+  const handleUpdateInscrito = async (e) => {
+    if (e) e.preventDefault()
+    if (!infoInscritoData) return
+
+    setSavingInfo(true)
+    try {
+      const { error } = await supabase
+        .from('inscricoes')
+        .update({
+          nome_participante: infoInscritoData.nome_participante,
+          email_participante: infoInscritoData.email_participante,
+          whatsapp: infoInscritoData.whatsapp,
+          saude_info: infoInscritoData.saude_info,
+          alergia_info: infoInscritoData.alergia_info,
+          quer_camiseta: infoInscritoData.quer_camiseta,
+          camiseta_tamanho: infoInscritoData.camiseta_tamanho,
+          membro_agua_viva: infoInscritoData.membro_agua_viva,
+          nome_conjuge: infoInscritoData.nome_conjuge,
+          whatsapp_conjuge: infoInscritoData.whatsapp_conjuge,
+          nome_pai: infoInscritoData.nome_pai,
+          whatsapp_pai: infoInscritoData.whatsapp_pai,
+          nome_mae: infoInscritoData.nome_mae,
+          whatsapp_mae: infoInscritoData.whatsapp_mae
+        })
+        .eq('id', infoInscritoData.id)
+
+      if (error) throw error
+
+      alert('✅ Ficha atualizada com sucesso!')
+      await verDetalhes(eventoSelecionado)
+      setShowModalInfo(false)
+    } catch (err) {
+      console.error('Erro ao atualizar ficha:', err)
+      alert('❌ Erro ao salvar: ' + err.message)
+    } finally {
+      setSavingInfo(false)
+    }
+  }
+
   const exportToPDF = () => {
     if (!eventoSelecionado || inscritos.length === 0) return
 
-    const doc = jsPDF()
+    // FILTRO DINÂMICO: Respeita o que o usuário escolheu no modal
+    const inscricoesFiltradas = inscritos.filter(ins => {
+      const tipoNormalizado = ins.tipo || 'Inscrição'
+      return filtrosExport.includes(tipoNormalizado)
+    })
+
+    if (inscricoesFiltradas.length === 0) {
+      alert("Nenhum registro encontrado para os filtros selecionados.")
+      return
+    }
+
+    const doc = new jsPDF('l', 'mm', 'a4') // 'l' para landscape (paisagem)
     const tableColumn = ["Nome", "WhatsApp", "Status", "Bruto", "Líquido", "Membro", "Cônjuge", "Pais", "Camiseta"]
     const tableRows = []
 
-    inscritos.forEach(ins => {
+    inscricoesFiltradas.forEach(ins => {
       const rowData = [
         ins.nome_participante,
         ins.whatsapp || "-",
@@ -474,15 +526,20 @@ export default function FinanceiroEventos() {
       headStyles: { fillColor: [40, 93, 169], textColor: 255, fontStyle: 'bold' },
       styles: { fontSize: 7, cellPadding: 2 },
       columnStyles: {
-        0: { cellWidth: 30 }, // Nome
-        4: { cellWidth: 20 }, // Membro
-        5: { cellWidth: 30 }, // Cônjuge
-        6: { cellWidth: 35 }, // Pais
-        7: { cellWidth: 20 }, // Camiseta
+        0: { cellWidth: 40 }, // Nome
+        1: { cellWidth: 25 }, // WhatsApp
+        2: { cellWidth: 25 }, // Status
+        3: { cellWidth: 25 }, // Bruto
+        4: { cellWidth: 25 }, // Líquido
+        5: { cellWidth: 20 }, // Membro
+        6: { cellWidth: 40 }, // Cônjuge
+        7: { cellWidth: 45 }, // Pais
+        8: { cellWidth: 20 }, // Camiseta
       }
     })
 
     doc.save(`Inscritos_${eventoSelecionado.nome.replace(/\s+/g, '_')}.pdf`)
+    setShowModalExport(false)
   }
 
   const exportToExcel = () => {
@@ -829,14 +886,14 @@ export default function FinanceiroEventos() {
                {inscritos.length > 0 && (
                  <div className="flex items-center gap-2">
                     <button 
-                      onClick={exportToPDF}
+                      onClick={() => { setFormatoExport('pdf'); setShowModalExport(true); }}
                       className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl font-bold text-[10px] border border-red-100 hover:bg-red-100 transition-all active:scale-95 shadow-sm"
                     >
                        <span className="material-symbols-outlined text-sm">picture_as_pdf</span>
                        EXPORTAR PDF
                     </button>
                     <button 
-                      onClick={() => setShowModalExport(true)}
+                      onClick={() => { setFormatoExport('excel'); setShowModalExport(true); }}
                       className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-xl font-bold text-[10px] border border-green-100 hover:bg-green-100 transition-all active:scale-95 shadow-sm"
                     >
                        <span className="material-symbols-outlined text-sm">table_chart</span>
@@ -957,11 +1014,13 @@ export default function FinanceiroEventos() {
 
                       {/* Ações — sempre visíveis */}
                       <div className="flex items-center gap-1.5 shrink-0">
-                             <button onClick={() => { setInfoInscritoData(ins); setShowModalInfo(true); }}
-                             className="p-1.5 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
-                             title="Ver Ficha do Inscrito">
-                             <span className="material-symbols-outlined text-[16px]">assignment</span>
-                           </button>
+                        {(!ins.tipo || ins.tipo === 'Inscrição') && (
+                          <button onClick={() => { setInfoInscritoData(ins); setShowModalInfo(true); }}
+                            className="p-1.5 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                            title="Ver Ficha do Inscrito">
+                            <span className="material-symbols-outlined text-[16px]">assignment</span>
+                          </button>
+                        )}
                           {!isConfirmado && (
                             <button onClick={() => handleConfirmarPagamento(ins)}
                               className="p-1.5 bg-emerald-100 text-emerald-600 rounded-lg hover:bg-emerald-200 transition-colors"
@@ -972,7 +1031,7 @@ export default function FinanceiroEventos() {
                         {(ins.manual || !isConfirmado || isAdmin) && (
                           <button onClick={() => handleDeleteInscricao(ins.id)}
                             className="p-1.5 bg-red-100 text-red-500 rounded-lg hover:bg-red-200 transition-colors"
-                            title="Excluir inscrição">
+                            title={`Excluir ${ins.tipo || 'Inscrição'}`}>
                             <span className="material-symbols-outlined text-[16px]">delete</span>
                           </button>
                         )}
@@ -1218,30 +1277,45 @@ export default function FinanceiroEventos() {
                    </div>
                    
                    <div className="relative flex justify-between items-start">
-                      <div>
-                         <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70 mb-1">Ficha de Inscrição</p>
-                         <h3 className="text-2xl font-black leading-tight uppercase tracking-tight">{infoInscritoData.nome_participante}</h3>
+                      <div className="flex-1">
+                         <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70 mb-1">Editando Ficha de Inscrição</p>
+                         <input 
+                           type="text"
+                           value={infoInscritoData.nome_participante}
+                           onChange={e => setInfoInscritoData({...infoInscritoData, nome_participante: e.target.value.toUpperCase()})}
+                           className="bg-white/10 hover:bg-white/20 border-b border-white/30 focus:border-white outline-none text-2xl font-black leading-tight uppercase tracking-tight w-full p-1 transition-all"
+                         />
                          <div className="flex items-center gap-3 mt-4 text-xs font-bold opacity-90">
-                            <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur">
+                            <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur flex-1">
                                <span className="material-symbols-outlined text-sm">mail</span>
-                               {infoInscritoData.email_participante || 'Sem e-mail'}
+                               <input 
+                                 type="email"
+                                 value={infoInscritoData.email_participante || ''}
+                                 onChange={e => setInfoInscritoData({...infoInscritoData, email_participante: e.target.value})}
+                                 placeholder="E-mail"
+                                 className="bg-transparent border-none outline-none w-full placeholder:text-white/50"
+                               />
                             </div>
-                            {infoInscritoData.whatsapp && (
-                               <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur">
-                                  <span className="material-symbols-outlined text-sm">call</span>
-                                  {infoInscritoData.whatsapp}
-                               </div>
-                            )}
+                            <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur flex-1">
+                               <span className="material-symbols-outlined text-sm">call</span>
+                               <input 
+                                 type="text"
+                                 value={infoInscritoData.whatsapp || ''}
+                                 onChange={e => setInfoInscritoData({...infoInscritoData, whatsapp: e.target.value})}
+                                 placeholder="WhatsApp"
+                                 className="bg-transparent border-none outline-none w-full placeholder:text-white/50"
+                               />
+                            </div>
                          </div>
                       </div>
-                      <button onClick={() => setShowModalInfo(false)} className="p-2 hover:bg-white/20 rounded-full transition-colors">
+                      <button onClick={() => setShowModalInfo(false)} className="p-2 hover:bg-white/20 rounded-full transition-colors ml-4">
                          <span className="material-symbols-outlined">close</span>
                       </button>
                    </div>
                 </div>
 
                 {/* Conteúdo da Ficha */}
-                <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
                    
                    {/* Seção de Saúde */}
                    <div className="p-6 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 rounded-[2rem] space-y-3">
@@ -1249,9 +1323,12 @@ export default function FinanceiroEventos() {
                          <span className="material-symbols-outlined">medical_information</span>
                          <h4 className="text-xs font-black uppercase tracking-widest">Saúde e Atenção Especial</h4>
                       </div>
-                      <p className="text-sm text-slate-700 dark:text-slate-300 font-medium leading-relaxed italic">
-                         {infoInscritoData.saude_info || "Nenhuma observação de saúde informada."}
-                      </p>
+                      <textarea 
+                         value={infoInscritoData.saude_info || ""}
+                         onChange={e => setInfoInscritoData({...infoInscritoData, saude_info: e.target.value.toUpperCase()})}
+                         placeholder="Informe observações médicas importantes..."
+                         className="w-full bg-white/50 dark:bg-black/20 border border-red-200/50 rounded-xl p-3 text-sm text-slate-700 dark:text-slate-300 font-medium leading-relaxed italic outline-none focus:ring-2 focus:ring-red-400 h-20 resize-none"
+                      />
                    </div>
 
                    {/* Seção de Alergias */}
@@ -1260,9 +1337,12 @@ export default function FinanceiroEventos() {
                          <span className="material-symbols-outlined">warning</span>
                          <h4 className="text-xs font-black uppercase tracking-widest">Alergias Detectadas</h4>
                       </div>
-                      <p className="text-sm text-slate-700 dark:text-slate-300 font-medium leading-relaxed italic">
-                         {infoInscritoData.alergia_info || "Nenhuma alergia informada."}
-                      </p>
+                      <textarea 
+                         value={infoInscritoData.alergia_info || ""}
+                         onChange={e => setInfoInscritoData({...infoInscritoData, alergia_info: e.target.value.toUpperCase()})}
+                         placeholder="Informe alergias alimentares ou medicamentosas..."
+                         className="w-full bg-white/50 dark:bg-black/20 border border-amber-200/50 rounded-xl p-3 text-sm text-slate-700 dark:text-slate-300 font-medium leading-relaxed italic outline-none focus:ring-2 focus:ring-amber-400 h-20 resize-none"
+                      />
                    </div>
 
                    {/* Seção de Camiseta */}
@@ -1272,18 +1352,26 @@ export default function FinanceiroEventos() {
                             <span className="material-symbols-outlined">apparel</span>
                             <h4 className="text-xs font-black uppercase tracking-widest">Opção de Camiseta</h4>
                          </div>
-                         <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-full ${infoInscritoData.quer_camiseta ? 'bg-primary text-white' : 'bg-slate-200 text-slate-500'}`}>
-                            {infoInscritoData.quer_camiseta ? 'SOLICITADA' : 'NÃO SOLICITADA'}
-                         </span>
+                         <button 
+                           type="button"
+                           onClick={() => setInfoInscritoData({...infoInscritoData, quer_camiseta: !infoInscritoData.quer_camiseta})}
+                           className={`text-[10px] font-black uppercase px-4 py-2 rounded-full transition-all ${infoInscritoData.quer_camiseta ? 'bg-primary text-white' : 'bg-slate-200 text-slate-500'}`}
+                         >
+                            {infoInscritoData.quer_camiseta ? 'SOLICITADA (CLIQUE P/ REMOVER)' : 'NÃO SOLICITADA (CLIQUE P/ ADICIONAR)'}
+                         </button>
                       </div>
                       {infoInscritoData.quer_camiseta && (
                         <div className="flex items-center gap-4 bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-primary/5">
-                           <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center font-black text-primary text-xl">
-                              {infoInscritoData.camiseta_tamanho}
-                           </div>
+                            <select 
+                               value={infoInscritoData.camiseta_tamanho}
+                               onChange={e => setInfoInscritoData({...infoInscritoData, camiseta_tamanho: e.target.value})}
+                               className="w-20 h-14 bg-primary/10 rounded-xl flex items-center justify-center font-black text-primary text-xl outline-none px-2 cursor-pointer hover:bg-primary/20 transition-all"
+                            >
+                               {['PP','P','M','G','GG','G1','G2','G3'].map(t => <option key={t} value={t} className="bg-white text-slate-900">{t}</option>)}
+                            </select>
                            <div>
                               <p className="text-xs font-bold text-slate-900 dark:text-white uppercase">Tamanho Selecionado</p>
-                              <p className="text-[10px] text-slate-400 font-medium tracking-tight">O valor já foi incluído no total pago.</p>
+                              <p className="text-[10px] text-slate-400 font-medium tracking-tight">Altere o tamanho no seletor ao lado.</p>
                            </div>
                         </div>
                       )}
@@ -1291,43 +1379,78 @@ export default function FinanceiroEventos() {
 
                    {/* Associação e Família */}
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Membro */}
-                      <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
-                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Membro Água Viva?</p>
-                         <p className="text-sm font-bold text-slate-700">{infoInscritoData.membro_agua_viva || "Não informado"}</p>
+                      {/* Igreja */}
+                      <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl">
+                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Qual igreja congrega?</p>
+                         <input 
+                           type="text"
+                           value={infoInscritoData.membro_agua_viva || ""}
+                           onChange={e => setInfoInscritoData({...infoInscritoData, membro_agua_viva: e.target.value.toUpperCase()})}
+                           placeholder="Nome da Igreja"
+                           className="bg-transparent border-none outline-none text-sm font-bold text-slate-700 dark:text-slate-200 w-full"
+                         />
                       </div>
 
                       {/* Cônjuge */}
                       <div className={`p-4 border rounded-2xl ${infoInscritoData.nome_conjuge ? 'bg-primary/5 border-primary/10' : 'bg-slate-50 border-slate-100'}`}>
                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Cônjuge</p>
-                         <p className="text-sm font-bold text-slate-700">{infoInscritoData.nome_conjuge || "Não informado"}</p>
-                         {infoInscritoData.whatsapp_conjuge && <p className="text-xs text-primary font-bold mt-1">{infoInscritoData.whatsapp_conjuge}</p>}
+                         <input type="text" value={infoInscritoData.nome_conjuge || ""}
+                           onChange={e => setInfoInscritoData({...infoInscritoData, nome_conjuge: e.target.value.toUpperCase()})}
+                           placeholder="Nome do Cônjuge"
+                           className="bg-transparent border-none outline-none text-sm font-bold text-slate-700 dark:text-slate-200 w-full" />
+                         <input type="text" value={infoInscritoData.whatsapp_conjuge || ""}
+                           onChange={e => setInfoInscritoData({...infoInscritoData, whatsapp_conjuge: e.target.value})}
+                           placeholder="WhatsApp Cônjuge"
+                           className="text-xs text-primary font-bold mt-1 bg-transparent border-none outline-none w-full" />
                       </div>
 
                       {/* Pai */}
-                      <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+                      <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl">
                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Pai</p>
-                         <p className="text-sm font-bold text-slate-700">{infoInscritoData.nome_pai || "Não informado"}</p>
-                         {infoInscritoData.whatsapp_pai && <p className="text-xs text-blue-600 font-bold mt-1">{infoInscritoData.whatsapp_pai}</p>}
+                         <input type="text" value={infoInscritoData.nome_pai || ""}
+                           onChange={e => setInfoInscritoData({...infoInscritoData, nome_pai: e.target.value.toUpperCase()})}
+                           placeholder="Nome do Pai"
+                           className="bg-transparent border-none outline-none text-sm font-bold text-slate-700 dark:text-slate-200 w-full" />
+                         <input type="text" value={infoInscritoData.whatsapp_pai || ""}
+                           onChange={e => setInfoInscritoData({...infoInscritoData, whatsapp_pai: e.target.value})}
+                           placeholder="WhatsApp Pai"
+                           className="text-xs text-blue-600 font-bold mt-1 bg-transparent border-none outline-none w-full" />
                       </div>
 
                       {/* Mãe */}
-                      <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+                      <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 rounded-2xl">
                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Mãe</p>
-                         <p className="text-sm font-bold text-slate-700">{infoInscritoData.nome_mae || "Não informado"}</p>
-                         {infoInscritoData.whatsapp_mae && <p className="text-xs text-pink-600 font-bold mt-1">{infoInscritoData.whatsapp_mae}</p>}
+                         <input type="text" value={infoInscritoData.nome_mae || ""}
+                           onChange={e => setInfoInscritoData({...infoInscritoData, nome_mae: e.target.value.toUpperCase()})}
+                           placeholder="Nome da Mãe"
+                           className="bg-transparent border-none outline-none text-sm font-bold text-slate-700 dark:text-slate-200 w-full" />
+                         <input type="text" value={infoInscritoData.whatsapp_mae || ""}
+                           onChange={e => setInfoInscritoData({...infoInscritoData, whatsapp_mae: e.target.value})}
+                           placeholder="WhatsApp Mãe"
+                           className="text-xs text-pink-600 font-bold mt-1 bg-transparent border-none outline-none w-full" />
                       </div>
                    </div>
 
                 </div>
 
                 {/* Rodapé do Modal */}
-                <div className="p-6 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                <div className="p-6 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
                    <button 
                      onClick={() => setShowModalInfo(false)}
-                     className="px-8 py-3 bg-slate-900 dark:bg-primary text-white rounded-xl font-black text-xs uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-slate-900/20"
+                     className="px-6 py-3 bg-slate-200 text-slate-600 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-300 transition-all"
                    >
-                      Entendido
+                      Descartar
+                   </button>
+                   <button 
+                     onClick={handleUpdateInscrito}
+                     disabled={savingInfo}
+                     className="px-8 py-3 bg-blue-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-900/20 disabled:opacity-50 flex items-center gap-2"
+                   >
+                      {savingInfo ? (
+                        <>⏳ SALVANDO...</>
+                      ) : (
+                        <>✅ SALVAR ALTERAÇÕES</>
+                      )}
                    </button>
                 </div>
 
@@ -1396,14 +1519,17 @@ export default function FinanceiroEventos() {
          </div>
        )}
 
-      {/* ══════════ MODAL FILTRO DE EXPORTAÇÃO (NOVO) ══════════ */}
+      {/* ══════════ MODAL FILTRO DE EXPORTAÇÃO (UNIFICADO) ══════════ */}
       {showModalExport && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2.5rem] shadow-2xl p-8 border border-outline-variant/20 animate-in zoom-in duration-300">
-            <h3 className="text-xl font-black text-green-600 mb-2 flex items-center gap-2">
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>table_chart</span> Exportar Planilha
+            <h3 className={`text-xl font-black mb-2 flex items-center gap-2 ${formatoExport === 'excel' ? 'text-green-600' : 'text-red-500'}`}>
+              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
+                {formatoExport === 'excel' ? 'table_chart' : 'picture_as_pdf'}
+              </span> 
+              Exportar {formatoExport === 'excel' ? 'Planilha' : 'Relatório PDF'}
             </h3>
-            <p className="text-xs text-slate-400 font-bold mb-6">Selecione os tipos de lançamentos que deseja incluir no Excel:</p>
+            <p className="text-xs text-slate-400 font-bold mb-6">Selecione os tipos de lançamentos que deseja incluir:</p>
             
             <div className="space-y-3 mb-8">
               {['Inscrição', 'Cantina', 'Oferta', 'Dizimo'].map(tipo => (
@@ -1415,7 +1541,7 @@ export default function FinanceiroEventos() {
                       if (e.target.checked) setFiltrosExport([...filtrosExport, tipo])
                       else setFiltrosExport(filtrosExport.filter(f => f !== tipo))
                     }}
-                    className="w-5 h-5 rounded-lg border-2 border-slate-300 text-green-600 focus:ring-green-500"
+                    className={`w-5 h-5 rounded-lg border-2 border-slate-300 focus:ring-offset-2 ${formatoExport === 'excel' ? 'text-green-600 focus:ring-green-500' : 'text-red-500 focus:ring-red-400'}`}
                   />
                   <div className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-lg" style={{ color: CATEGORIAS_LANCAMENTO.find(c => c.value === tipo)?.color }}>
@@ -1440,11 +1566,15 @@ export default function FinanceiroEventos() {
             <div className="grid grid-cols-2 gap-3">
               <button onClick={() => setShowModalExport(false)} className="px-6 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors">Cancelar</button>
               <button 
-                onClick={exportToExcel}
+                onClick={formatoExport === 'excel' ? exportToExcel : exportToPDF}
                 disabled={filtrosExport.length === 0}
-                className="px-6 py-3 bg-green-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-green-200 hover:bg-green-700 active:scale-95 transition-all disabled:opacity-50"
+                className={`px-6 py-3 text-white rounded-xl font-bold text-sm shadow-lg active:scale-95 transition-all disabled:opacity-50 ${
+                  formatoExport === 'excel' 
+                    ? 'bg-green-600 shadow-green-600/20 hover:bg-green-700' 
+                    : 'bg-red-500 shadow-red-500/20 hover:bg-red-600'
+                }`}
               >
-                Gerar Excel
+                Gerar {formatoExport === 'excel' ? 'Excel' : 'PDF'}
               </button>
             </div>
           </div>
