@@ -14,6 +14,13 @@ const FORMAS_PAGAMENTO = [
   { value: 'Cartão',        icon: 'credit_card',        color: '#F59E0B' },
 ]
 
+const CATEGORIAS_LANCAMENTO = [
+  { value: 'Inscrição', icon: 'assignment_ind', color: '#3B82F6' },
+  { value: 'Cantina',   icon: 'restaurant',     color: '#F59E0B' },
+  { value: 'Oferta',    icon: 'volunteer_activism', color: '#10B981' },
+  { value: 'Dizimo',    icon: 'savings',        color: '#8B5CF6' },
+]
+
 const ITENS_POR_PAGINA = 9
 
 function CurrencyDisplay({ value, size = 'lg', className = '' }) {
@@ -54,7 +61,7 @@ export default function FinanceiroEventos() {
   const [paginaAtual, setPaginaAtual] = useState(1)
  
   // Forms
-  const [novoLancamento, setNovoLancamento] = useState({ nome: '', email: '', whatsapp: '', valor: '' })
+  const [novoLancamento, setNovoLancamento] = useState({ nome: '', email: '', whatsapp: '', valor: '', tipo: 'Inscrição' })
   const [novoSaque, setNovoSaque] = useState({
     valor: '',
     responsavel: '',
@@ -159,7 +166,7 @@ export default function FinanceiroEventos() {
 
     setEventoSelecionado(evento)
     const [{ data: inscData }, { data: saqueData }] = await Promise.all([
-      supabase.from('inscricoes').select('id, evento_id, nome_participante, email_participante, whatsapp, valor_pago, valor_liquido, status, pagamento_id, created_at, manual, saude_info, alergia_info, camiseta_tamanho, quer_camiseta, membro_agua_viva, nome_conjuge, whatsapp_conjuge, nome_pai, whatsapp_pai, nome_mae, whatsapp_mae').eq('evento_id', evento.id).order('created_at', { ascending: false }),
+      supabase.from('inscricoes').select('id, evento_id, nome_participante, email_participante, whatsapp, valor_pago, valor_liquido, status, pagamento_id, created_at, manual, tipo, saude_info, alergia_info, camiseta_tamanho, quer_camiseta, membro_agua_viva, nome_conjuge, whatsapp_conjuge, nome_pai, whatsapp_pai, nome_mae, whatsapp_mae').eq('evento_id', evento.id).order('created_at', { ascending: false }),
       supabase.from('saques_eventos').select('*').eq('evento_id', evento.id).order('created_at', { ascending: false })
     ])
     if (inscData) setInscritos(inscData)
@@ -185,7 +192,8 @@ export default function FinanceiroEventos() {
       valor_pago: parseFloat(novoLancamento.valor || 0),
       valor_liquido: parseFloat(novoLancamento.valor || 0), // Lançamento manual é sempre integral
       status: 'confirmada',
-      manual: true
+      manual: true,
+      tipo: novoLancamento.tipo
     }])
     if (!error) {
       setShowModalManual(false)
@@ -289,8 +297,19 @@ export default function FinanceiroEventos() {
           .maybeSingle()
 
         if (existente) {
-          const realNet = payment.transaction_details?.net_received_amount || payment.transaction_amount
-          console.log(`📌 ID: ${existente.id} | No Banco: ${existente.valor_liquido} | No MP: ${realNet}`)
+          // Tenta pegar o valor líquido de várias formas (API do MP muda conforme o tipo de conta)
+          let realNet = payment.transaction_details?.net_received_amount
+          
+          // Se não achou no campo padrão, tenta calcular pelas taxas
+          if (!realNet && payment.fee_details) {
+            const totalFees = payment.fee_details.reduce((sum, f) => sum + f.amount, 0)
+            realNet = payment.transaction_amount - totalFees
+          }
+
+          // Fallback final
+          if (!realNet) realNet = payment.transaction_amount
+          
+          console.log(`📌 ID: ${existente.id} | Bruto: ${payment.transaction_amount} | Líquido MP: ${realNet} | No Banco: ${existente.valor_liquido}`)
           
           // ATUALIZAÇÃO FORÇADA: Se o status não for confirmado OU se o valor no banco for diferente do valor real do MP
           if (existente.status !== 'confirmada' || Number(existente.valor_liquido) !== Number(realNet)) {
@@ -350,9 +369,10 @@ export default function FinanceiroEventos() {
             email_participante: email,
             whatsapp: whatsapp,
             valor_pago: payment.transaction_amount,
-            valor_liquido: payment.transaction_details?.net_received_amount || payment.transaction_amount,
+            valor_liquido: realNet,
             pagamento_id: String(payment.id),
-            status: 'confirmada'
+            status: 'confirmada',
+            tipo: 'Inscrição'
           }])
 
           if (insErr) {
@@ -366,7 +386,7 @@ export default function FinanceiroEventos() {
       alert(`✅ Sincronização Concluída!\n\n- ${atualizados} inscrições atualizadas.\n- ${recuperados} inscrições recuperadas do Mercado Pago.`)
       
       // Atualizar lista de inscritos sem fechar o painel
-      const { data: freshInsc } = await supabase.from('inscricoes').select('id, evento_id, nome_participante, email_participante, whatsapp, valor_pago, valor_liquido, status, pagamento_id, created_at, manual, saude_info, alergia_info, camiseta_tamanho, quer_camiseta, membro_agua_viva, nome_conjuge, whatsapp_conjuge, nome_pai, whatsapp_pai, nome_mae, whatsapp_mae').eq('evento_id', eventoSelecionado.id).order('created_at', { ascending: false })
+      const { data: freshInsc } = await supabase.from('inscricoes').select('id, evento_id, nome_participante, email_participante, whatsapp, valor_pago, valor_liquido, status, pagamento_id, created_at, manual, tipo, saude_info, alergia_info, camiseta_tamanho, quer_camiseta, membro_agua_viva, nome_conjuge, whatsapp_conjuge, nome_pai, whatsapp_pai, nome_mae, whatsapp_mae').eq('evento_id', eventoSelecionado.id).order('created_at', { ascending: false })
       if (freshInsc) setInscritos(freshInsc)
       
       // Atualizar o total arrecadado no objeto do evento selecionado
@@ -440,25 +460,35 @@ export default function FinanceiroEventos() {
   const exportToExcel = () => {
     if (!eventoSelecionado || inscritos.length === 0) return
 
-    const data = inscritos.map(ins => ({
-      "Nome": ins.nome_participante,
-      "E-mail": ins.email_participante || "-",
-      "WhatsApp": ins.whatsapp || "-",
-      "Status": ins.status === 'confirmada' ? 'CONFIRMADO' : 'PENDENTE',
-      "Valor Bruto": parseFloat(ins.valor_pago || 0),
-      "Valor Líquido": parseFloat(ins.valor_liquido !== null ? ins.valor_liquido : ins.valor_pago || 0),
-      "Membro Água Viva": ins.membro_agua_viva || "-",
-      "Cônjuge": ins.nome_conjuge || "-",
-      "WhatsApp Cônjuge": ins.whatsapp_conjuge || "-",
-      "Pai": ins.nome_pai || "-",
-      "WhatsApp Pai": ins.whatsapp_pai || "-",
-      "Mãe": ins.nome_mae || "-",
-      "WhatsApp Mãe": ins.whatsapp_mae || "-",
-      "Saúde": ins.saude_info || "-",
-      "Alergias": ins.alergia_info || "-",
-      "Quer Camiseta": ins.quer_camiseta ? "SIM" : "NÃO",
-      "Tamanho Camiseta": ins.camiseta_tamanho || "-"
-    }))
+    // FILTRO: Mercado Pago (all) + Manual (only Inscrição)
+    const inscricoesFiltradas = inscritos.filter(ins => !ins.manual || ins.tipo === 'Inscrição')
+
+    const data = inscricoesFiltradas.map(ins => {
+      const bruto = Number(ins.valor_pago || 0)
+      const liquido = Number(ins.valor_liquido !== null ? ins.valor_liquido : ins.valor_pago || 0)
+      const taxa = bruto - liquido
+
+      return {
+        "Nome": ins.nome_participante,
+        "E-mail": ins.email_participante || "-",
+        "WhatsApp": ins.whatsapp || "-",
+        "Status": ins.status === 'confirmada' ? 'CONFIRMADO' : 'PENDENTE',
+        "Valor Bruto": bruto,
+        "Valor Líquido": liquido,
+        "Taxa MP": taxa > 0 ? taxa : 0,
+        "Membro Água Viva": ins.membro_agua_viva || "-",
+        "Cônjuge": ins.nome_conjuge || "-",
+        "WhatsApp Cônjuge": ins.whatsapp_conjuge || "-",
+        "Pai": ins.nome_pai || "-",
+        "WhatsApp Pai": ins.whatsapp_pai || "-",
+        "Mãe": ins.nome_mae || "-",
+        "WhatsApp Mãe": ins.whatsapp_mae || "-",
+        "Saúde": ins.saude_info || "-",
+        "Alergias": ins.alergia_info || "-",
+        "Quer Camiseta": ins.quer_camiseta ? "SIM" : "NÃO",
+        "Tamanho Camiseta": ins.camiseta_tamanho || "-"
+      }
+    })
 
     const worksheet = XLSX.utils.json_to_sheet(data)
     const workbook = XLSX.utils.book_new()
@@ -820,10 +850,20 @@ export default function FinanceiroEventos() {
                               </span>
                             )}
                           </div>
-                          <p className="text-[10px] text-on-surface-variant/60 truncate mt-0.5">
-                            {ins.email_participante || 'E-mail não informado'}
-                            {ins.whatsapp && <span className="ml-2">• {ins.whatsapp}</span>}
-                          </p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            {ins.manual && (
+                              <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[9px] font-black uppercase text-slate-500 dark:text-slate-400">
+                                <span className="material-symbols-outlined text-[10px]">
+                                  {CATEGORIAS_LANCAMENTO.find(c => c.value === ins.tipo)?.icon || 'sell'}
+                                </span>
+                                {ins.tipo || 'Inscrição'}
+                              </div>
+                            )}
+                            <p className="text-[10px] text-on-surface-variant/60 dark:text-slate-400 truncate">
+                              {ins.email_participante || 'E-mail não informado'}
+                              {ins.whatsapp && <span className="ml-2">• {ins.whatsapp}</span>}
+                            </p>
+                          </div>
                         </div>
                       </div>
   
@@ -927,8 +967,31 @@ export default function FinanceiroEventos() {
                   onChange={e => setNovoLancamento({...novoLancamento, valor: e.target.value})}
                   className="w-full mt-1 bg-surface-container-low border border-outline-variant/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary outline-none font-mono font-bold" />
               </div>
+
+              {/* Seletor de Categoria */}
+              <div>
+                <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Categoria do Lançamento *</label>
+                <div className="grid grid-cols-4 gap-2 mt-1">
+                  {CATEGORIAS_LANCAMENTO.map(cat => (
+                    <button
+                      key={cat.value} type="button"
+                      onClick={() => setNovoLancamento({...novoLancamento, tipo: cat.value})}
+                      className={`flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all text-center ${
+                        novoLancamento.tipo === cat.value
+                          ? 'border-transparent text-white shadow-md scale-105'
+                          : 'border-outline-variant/20 text-on-surface-variant hover:border-primary/30'
+                      }`}
+                      style={novoLancamento.tipo === cat.value ? { backgroundColor: cat.color } : {}}
+                    >
+                      <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>{cat.icon}</span>
+                      <span className="text-[8px] font-black leading-tight">{cat.value}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-3 pt-2">
-                <button type="button" onClick={() => setShowModalManual(false)} className="px-6 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors">Cancelar</button>
+                <button type="button" onClick={() => { setShowModalManual(false); setNovoLancamento({ nome: '', email: '', whatsapp: '', valor: '', tipo: 'Inscrição' }); }} className="px-6 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-200 transition-colors">Cancelar</button>
                 <button type="submit" className="px-6 py-3 bg-primary text-white rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:bg-primary/80 active:scale-95 transition-all">Confirmar e Salvar</button>
               </div>
             </form>
