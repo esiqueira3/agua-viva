@@ -2,47 +2,34 @@ import { PageHeader } from '../components/ui/PageHeader'
 
 export default function Novidades() {
   const melhorias = [
+      title: "Login Espião (Ghost Login)",
+      icon: "visibility",
+      color: "text-amber-500",
+      desc: "Agora administradores podem simular o acesso de qualquer líder ou colaborador para validar permissões e visualizar o painel exatamente como eles, sem precisar de senhas."
+    },
     {
-      title: "Exportação com Filtros Inteligentes",
-      icon: "filter_list",
+      title: "Expansão Familiar Detalhada",
+      icon: "family_restroom",
+      color: "text-blue-600",
+      desc: "O cadastro de membros agora conta com campos específicos para Pai, Mãe, Outros Responsáveis e uma lista dinâmica para múltiplos filhos com padronização automática."
+    },
+    {
+      title: "Filtros de Perfil Avançados",
+      icon: "hub",
+      color: "text-violet-500",
+      desc: "Implementamos filtros inteligentes na gestão de usuários, permitindo segmentar rapidamente a lista por Administradores, Líderes, Secretaria ou Financeiro."
+    },
+    {
+      title: "Terminologia Financeira Unificada",
+      icon: "payments",
       color: "text-emerald-500",
-      desc: "Agora você tem controle total sobre o que exportar. O sistema permite selecionar categorias específicas (Inscrição, Cantina, Oferta ou Dízimo) tanto para Planilhas Excel quanto para Relatórios PDF."
+      desc: "Padronizamos toda a interface financeira para utilizar o termo 'ENTRADAS' em vez de inscritos/confirmados, refletindo melhor a realidade de dízimos e ofertas."
     },
     {
-      title: "Ficha de Inscrição Interativa",
-      icon: "edit_note",
-      color: "text-blue-600",
-      desc: "Transformamos a ficha estática em um formulário dinâmico. Agora a liderança pode editar dados de saúde, tamanhos de camiseta e informações familiares diretamente no painel financeiro."
-    },
-    {
-      title: "Relatórios em Modo Paisagem",
-      icon: "format_align_justify",
+      title: "Cores Dinâmicas por Categoria",
+      icon: "palette",
       color: "text-orange-500",
-      desc: "A exportação de PDF foi otimizada para o formato horizontal (Landscape). Isso garante que colunas financeiras complexas fiquem perfeitamente legíveis e organizadas profissionalmente."
-    },
-    {
-      title: "UX e Terminologia Dinâmica",
-      icon: "dynamic_feed",
-      color: "text-violet-500",
-      desc: "O sistema agora entende o contexto: as mensagens e tooltips de exclusão se adaptam ao tipo de lançamento, tornando a gestão de Cantinas e Ofertas muito mais fluida e intuitiva."
-    },
-    {
-      title: "Transparência Financeira Real",
-      icon: "account_balance_wallet",
-      color: "text-blue-600",
-      desc: "O painel financeiro exibe o saldo real sincronizado via API, garantindo transparência total sobre o que está disponível na conta da igreja."
-    },
-    {
-      title: "Blindagem de Segurança",
-      icon: "security",
-      color: "text-blue-500",
-      desc: "Os preços e cálculos agora são validados diretamente no servidor. Mesmo que alguém tente alterar o valor no navegador, o sistema bloqueia e processa apenas o valor oficial configurado por você."
-    },
-    {
-      title: "Gestão de Acessos Premium",
-      icon: "grid_view",
-      color: "text-violet-500",
-      desc: "A tela de 'Controle de Acessos' agora conta com visualização em cards modernos, busca instantânea e gerenciamento simplificado de perfis."
+      desc: "O painel financeiro agora diferencia visualmente lançamentos de Cantina (Laranja), Oferta/Dízimo (Roxo) e Inscrições (Verde) para uma leitura rápida."
     }
   ]
 
@@ -50,14 +37,14 @@ export default function Novidades() {
     <div className="max-w-4xl mx-auto space-y-8 pb-20 animate-in fade-in duration-700">
       <PageHeader 
         title="Notas de Lançamento" 
-        description="Confira todas as evoluções da Versão 1.0.2 Oficial da plataforma Água Viva."
+        description="Confira todas as evoluções da Versão 1.0.3 Oficial da plataforma Água Viva."
         icon="auto_awesome"
       />
 
       <div className="bg-gradient-to-br from-primary to-primary-container p-8 md:p-12 rounded-[3rem] text-white shadow-2xl shadow-primary/20 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
         <div className="relative z-10">
-          <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest mb-4 inline-block">Versão 1.0.2 OFICIAL</span>
+          <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest mb-4 inline-block">Versão 1.0.3 OFICIAL</span>
           <h1 className="text-4xl md:text-6xl font-black tracking-tighter mb-4 leading-none">BEM-VINDO AO<br/>FUTURO DA GESTÃO.</h1>
           <p className="text-lg md:text-xl font-medium opacity-90 max-w-2xl">O Água Viva acaba de sair da fase BETA. Saiba o que mudou na nossa maior atualização até aqui.</p>
         </div>
