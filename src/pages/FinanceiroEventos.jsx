@@ -68,7 +68,7 @@ export default function FinanceiroEventos() {
     setPaginaAtual(1) // Sempre reseta a página ao carregar novos dados
     let query = supabase
       .from('eventos')
-      .select('*, departamentos ( id, nome ), inscricoes ( valor_pago, valor_liquido, status )')
+      .select('*, departamentos ( id, nome ), inscricoes ( valor_pago, valor_liquido, status ), saques_eventos ( valor )')
       .eq('pago', true)
  
     // APLICAÇÃO DO FILTRO DE SEGURANÇA (RBAC)
@@ -117,9 +117,12 @@ export default function FinanceiroEventos() {
            const v = i.valor_liquido !== null ? parseFloat(i.valor_liquido) : parseFloat(i.valor_pago)
            return sum + (v || 0)
          }, 0)
+         const totalSaques = (ev.saques_eventos || []).reduce((sum, s) => sum + (parseFloat(s.valor) || 0), 0)
+         const saldoDisponivel = totalArrecadado - totalSaques
+          
          const deptoNome = ev.departamentos?.nome || 'Geral'
          deptos[deptoNome] = (deptos[deptoNome] || 0) + totalArrecadado
-         return { ...ev, totalArrecadado, qtdeInscritos: (ev.inscricoes || []).length, qtdeConfirmados: confirmados.length }
+         return { ...ev, totalArrecadado, totalSaques, saldoDisponivel, qtdeInscritos: (ev.inscricoes || []).length, qtdeConfirmados: confirmados.length }
       })
       setEventos(stats)
       setResumoDepto(deptos)
@@ -534,11 +537,13 @@ export default function FinanceiroEventos() {
 
       {/* KPIs GLOBAIS */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/20 shadow-sm p-5">
-          <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/60 mb-1">Total Arrecadado</p>
-          <CurrencyDisplay value={totalGlobalArrecadado} className="text-green-600" />
-          <p className="text-[10px] text-on-surface-variant/40 mt-1">{eventos.length} evento{eventos.length !== 1 ? 's' : ''} pagos</p>
-        </div>
+        {isAdmin && (
+          <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/20 shadow-sm p-5">
+            <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/60 mb-1">Total Arrecadado</p>
+            <CurrencyDisplay value={totalGlobalArrecadado} className="text-blue-600" />
+            <p className="text-[10px] text-on-surface-variant/40 mt-1">{eventos.length} evento{eventos.length !== 1 ? 's' : ''} pagos</p>
+          </div>
+        )}
         <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/20 shadow-sm p-5">
           <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/60 mb-1">Total Inscritos</p>
           <p className="text-3xl font-black text-primary">{eventos.reduce((s, ev) => s + ev.qtdeConfirmados, 0)}</p>
@@ -573,7 +578,7 @@ export default function FinanceiroEventos() {
                 <span className={`material-symbols-outlined text-3xl ${eventoSelecionado?.id === ev.id ? 'text-white' : 'text-primary'}`} style={{ fontVariationSettings: "'FILL' 1" }}>festival</span>
                 <div className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
                   eventoSelecionado?.id === ev.id ? 'bg-white/20 text-white' :
-                  ev.status === 'Concluído' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                  (ev.status === 'Concluído' || ev.status === 'Confirmado') ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
                 }`}>{ev.status}</div>
               </div>
               
@@ -586,8 +591,8 @@ export default function FinanceiroEventos() {
                   
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <p className={`text-[9px] font-black uppercase tracking-widest mb-0.5 ${eventoSelecionado?.id === ev.id ? 'text-white/50' : 'text-slate-400'}`}>Arrecadado</p>
-                      <p className={`text-xl font-black ${eventoSelecionado?.id === ev.id ? 'text-white' : 'text-green-600'}`}>R$ {ev.totalArrecadado?.toFixed(2)}</p>
+                      <p className={`text-[9px] font-black uppercase tracking-widest mb-0.5 ${eventoSelecionado?.id === ev.id ? 'text-white/50' : 'text-slate-400'}`}>Disponível</p>
+                      <p className={`text-xl font-black ${eventoSelecionado?.id === ev.id ? 'text-white' : 'text-green-600 dark:text-emerald-400'}`}>R$ {ev.saldoDisponivel?.toFixed(2)}</p>
                     </div>
                     <div>
                       <p className={`text-[9px] font-black uppercase tracking-widest mb-0.5 ${eventoSelecionado?.id === ev.id ? 'text-white/50' : 'text-slate-400'}`}>Confirmados</p>
@@ -688,9 +693,12 @@ export default function FinanceiroEventos() {
 
             {/* BARRA DE SALDO - FLEXBOX FORÇADO (Vertical no mobile, horizontal no computador) */}
             <div className="mt-5 flex flex-col lg:flex-row gap-4">
-              <div className="flex-1 bg-green-50 dark:bg-emerald-500/10 border border-green-100 dark:border-emerald-500/10 rounded-[2rem] p-5 lg:p-6 shadow-sm">
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-green-600/60 mb-2">Total Arrecadado</p>
-                <CurrencyDisplay value={eventoSelecionado.totalArrecadado} className="text-green-700 dark:text-emerald-400" size="lg" />
+              {/* SALDO DISPONÍVEL - AGORA EM PRIMEIRO E VERDE */}
+              <div className={`flex-1 rounded-[2rem] p-5 lg:p-6 border shadow-sm ${saldoDisponivel > 0 ? 'bg-green-50 dark:bg-emerald-500/10 border-green-100' : 'bg-slate-50 dark:bg-slate-800 border-slate-200'}`}>
+                <p className={`text-[10px] font-black uppercase tracking-[0.2em] mb-2 ${saldoDisponivel > 0 ? 'text-green-600/60' : 'text-slate-400'}`}>
+                  Saldo Disponível
+                </p>
+                <CurrencyDisplay value={saldoDisponivel} className={saldoDisponivel > 0 ? 'text-green-700 dark:text-emerald-400' : 'text-slate-400'} size="lg" />
               </div>
               
               <div className="flex-1 bg-orange-50 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-500/10 rounded-[2rem] p-5 lg:p-6 shadow-sm">
@@ -702,11 +710,10 @@ export default function FinanceiroEventos() {
                 <p className="text-[10px] font-bold text-orange-400 mt-2">{pctSacado}% sacado</p>
               </div>
 
-              <div className={`flex-1 rounded-[2rem] p-5 lg:p-6 border shadow-sm ${saldoDisponivel > 0 ? 'bg-blue-50 dark:bg-blue-500/10 border-blue-100' : 'bg-slate-50 dark:bg-slate-800 border-slate-200'}`}>
-                <p className={`text-[10px] font-black uppercase tracking-[0.2em] mb-2 ${saldoDisponivel > 0 ? 'text-blue-600/60' : 'text-slate-400'}`}>
-                  Saldo Disponível
-                </p>
-                <CurrencyDisplay value={saldoDisponivel} className={saldoDisponivel > 0 ? 'text-blue-700 dark:text-blue-400' : 'text-slate-400'} size="lg" />
+              {/* TOTAL ARRECADADO - AGORA EM ÚLTIMO E AZUL */}
+              <div className="flex-1 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/10 rounded-[2rem] p-5 lg:p-6 shadow-sm">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600/60 mb-2">Total Arrecadado</p>
+                <CurrencyDisplay value={eventoSelecionado.totalArrecadado} className="text-blue-700 dark:text-blue-400" size="lg" />
               </div>
             </div>
           </div>
