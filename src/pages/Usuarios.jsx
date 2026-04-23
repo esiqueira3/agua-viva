@@ -12,6 +12,7 @@ export default function Usuarios() {
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('usuarios_view_mode') || 'grid')
   const [searchTerm, setSearchTerm] = useState('')
+  const [filtroPerfil, setFiltroPerfil] = useState('Todos')
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 6
   const navigate = useNavigate()
@@ -138,11 +139,15 @@ export default function Usuarios() {
     )}
   ]
 
-  const filteredUsuarios = usuarios.filter(u => 
-    u.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.perfil?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredUsuarios = usuarios.filter(u => {
+    const matchSearch = (
+      u.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.perfil?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    const matchPerfil = filtroPerfil === 'Todos' || u.perfil?.toLowerCase() === filtroPerfil.toLowerCase()
+    return matchSearch && matchPerfil
+  })
 
   const paginatedUsuarios = filteredUsuarios.slice(
     (currentPage - 1) * itemsPerPage,
@@ -164,8 +169,24 @@ export default function Usuarios() {
         onSearch={setSearchTerm}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
-        onFiltersClick={() => alert("Filtros em breve!")}
-      />
+        onFiltersClick={() => alert("Mais filtros em breve!")}
+      >
+        <div className="relative group shrink-0">
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 group-focus-within:text-primary transition-colors">hub</span>
+          <select
+            value={filtroPerfil}
+            onChange={(e) => setFiltroPerfil(e.target.value)}
+            className="pl-9 pr-10 py-3 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer transition-all hover:bg-slate-100 dark:hover:bg-slate-800 shadow-sm"
+          >
+            <option value="Todos">PERFIL: TODOS</option>
+            <option value="Administrador">ADMINISTRADOR</option>
+            <option value="Liderança">LIDERANÇA</option>
+            <option value="Secretaria">SECRETARIA</option>
+            <option value="Financeiro">FINANCEIRO</option>
+          </select>
+          <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-base">expand_more</span>
+        </div>
+      </ControlBar>
       
       {loading ? (
         <div className="flex justify-center p-12"><span className="material-symbols-outlined animate-spin text-tertiary-fixed-dim text-4xl">refresh</span></div>
