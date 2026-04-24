@@ -18,7 +18,6 @@ const CATEGORIAS_LANCAMENTO = [
   { value: 'Inscrição', icon: 'assignment_ind', color: '#10B981' },
   { value: 'Cantina',   icon: 'restaurant',     color: '#F59E0B' },
   { value: 'Oferta',    icon: 'volunteer_activism', color: '#8B5CF6' },
-  { value: 'Dizimo',    icon: 'savings',        color: '#8B5CF6' },
 ]
 
 const ITENS_POR_PAGINA = 9
@@ -61,6 +60,7 @@ export default function FinanceiroEventos() {
   // Filtros
   const [filtroAno, setFiltroAno] = useState(new Date().getFullYear().toString())
   const [filtroDepto, setFiltroDepto] = useState('Todos')
+  const [filtrosCategorias, setFiltrosCategorias] = useState(['Inscrição', 'Cantina', 'Oferta'])
   const [listaDeptos, setListaDeptos] = useState([])
   const [paginaAtual, setPaginaAtual] = useState(1)
  
@@ -184,6 +184,11 @@ export default function FinanceiroEventos() {
     if (inscData) setInscritos(inscData)
     if (saqueData) setSaques(saqueData)
   }
+
+  const inscritosFiltrados = useMemo(() => {
+    if (filtrosCategorias.length === 0) return []
+    return inscritos.filter(ins => filtrosCategorias.includes(ins.tipo || 'Inscrição'))
+  }, [inscritos, filtrosCategorias])
 
   // Saldo disponível = arrecadado - total já sacado
   const totalSacado = useMemo(() => saques.reduce((s, sq) => s + parseFloat(sq.valor || 0), 0), [saques])
@@ -877,40 +882,85 @@ export default function FinanceiroEventos() {
           )}
 
           <div className="p-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
                <h5 className="text-xs font-black uppercase tracking-widest text-on-surface-variant/60 flex items-center gap-2">
                  <span className="material-symbols-outlined text-[16px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>group</span>
-                 Inscritos e Pagamentos ({inscritos.length})
+                 Registros ({inscritosFiltrados.length})
                </h5>
 
-               {inscritos.length > 0 && (
-                 <div className="flex items-center gap-2">
-                    <button 
-                      onClick={() => { setFormatoExport('pdf'); setShowModalExport(true); }}
-                      className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl font-bold text-[10px] border border-red-100 hover:bg-red-100 transition-all active:scale-95 shadow-sm"
-                    >
-                       <span className="material-symbols-outlined text-sm">picture_as_pdf</span>
-                       EXPORTAR PDF
-                    </button>
-                    <button 
-                      onClick={() => { setFormatoExport('excel'); setShowModalExport(true); }}
-                      className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-xl font-bold text-[10px] border border-green-100 hover:bg-green-100 transition-all active:scale-95 shadow-sm"
-                    >
-                       <span className="material-symbols-outlined text-sm">table_chart</span>
-                       EXPORTAR EXCEL
-                    </button>
-                 </div>
-               )}
+               <div className="flex flex-wrap items-center gap-3">
+                  {/* FILTROS DE CATEGORIA */}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {CATEGORIAS_LANCAMENTO.map(cat => {
+                      const isActive = filtrosCategorias.includes(cat.value)
+                      const list = inscritos.filter(ins => (ins.tipo || 'Inscrição') === cat.value)
+                      const count = list.length
+                      const total = list.reduce((s, ins) => s + parseFloat(ins.valor_pago || 0), 0)
+                      
+                      return (
+                        <button
+                          key={cat.value}
+                          onClick={() => {
+                            setFiltrosCategorias(prev => 
+                              prev.includes(cat.value) 
+                                ? prev.filter(c => c !== cat.value) 
+                                : [...prev, cat.value]
+                            )
+                          }}
+                          title={`Filtrar por ${cat.value}`}
+                          className={`flex flex-col items-center gap-0.5 px-4 py-2.5 rounded-2xl transition-all duration-300 active:scale-95 border ${
+                            isActive 
+                              ? 'text-white shadow-lg border-transparent' 
+                              : 'text-on-surface-variant/40 hover:text-on-surface-variant/60 bg-transparent border-transparent'
+                          }`}
+                          style={isActive ? { backgroundColor: cat.color, boxShadow: `0 4px 12px ${cat.color}40` } : {}}
+                        >
+                          <div className="flex items-center gap-2">
+                             <span className="material-symbols-outlined text-[18px]">{cat.icon}</span>
+                             <span className="text-[10px] font-black uppercase tracking-widest">{cat.value}</span>
+                          </div>
+                          <div className={`flex items-center gap-2 text-[9px] font-bold opacity-80 ${isActive ? 'text-white' : 'text-on-surface-variant/40'}`}>
+                             <span>{count} reg.</span>
+                             <span className="w-1 h-1 rounded-full bg-current opacity-30"></span>
+                             <span>R$ {total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  <div className="h-8 w-px bg-outline-variant/20 mx-1 hidden lg:block"></div>
+
+                  {/* BOTÕES DE EXPORTAÇÃO */}
+                  {inscritos.length > 0 && (
+                    <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => { setFormatoExport('pdf'); setShowModalExport(true); }}
+                          className="flex items-center gap-2 px-4 py-3 bg-red-50 text-red-600 rounded-xl font-black text-[9px] uppercase tracking-widest border border-red-100 hover:bg-red-100 transition-all active:scale-95 shadow-sm"
+                        >
+                          <span className="material-symbols-outlined text-sm">picture_as_pdf</span>
+                          PDF
+                        </button>
+                        <button 
+                          onClick={() => { setFormatoExport('excel'); setShowModalExport(true); }}
+                          className="flex items-center gap-2 px-4 py-3 bg-green-50 text-green-600 rounded-xl font-black text-[9px] uppercase tracking-widest border border-green-100 hover:bg-green-100 transition-all active:scale-95 shadow-sm"
+                        >
+                          <span className="material-symbols-outlined text-sm">table_chart</span>
+                          EXCEL
+                        </button>
+                    </div>
+                  )}
+               </div>
             </div>
 
-            {inscritos.length === 0 ? (
+            {inscritosFiltrados.length === 0 ? (
               <div className="py-12 text-center">
                 <span className="material-symbols-outlined text-6xl text-slate-200">person_search</span>
-                <p className="text-slate-400 font-bold italic mt-2">Nenhum inscrito para este evento ainda.</p>
+                <p className="text-slate-400 font-bold italic mt-2">Nenhum registro encontrado com os filtros selecionados.</p>
               </div>
             ) : (
               <div className="space-y-2">
-                {inscritos.map(ins => {
+                {inscritosFiltrados.map(ins => {
                   const isMp = !ins.manual
                   const isConfirmado = ins.status === 'confirmada'
                   const initials = (ins.nome_participante || '?').split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase()
@@ -1125,7 +1175,7 @@ export default function FinanceiroEventos() {
                   </div>
                 )}
 
-                {/* Campos Condicionais: CANTINA / OFERTA / DIZIMO */}
+                {/* Campos Condicionais: CANTINA / OFERTA */}
                 {novoLancamento.tipo !== 'Inscrição' && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div>
@@ -1143,7 +1193,7 @@ export default function FinanceiroEventos() {
                         type="text" 
                         value={novoLancamento.observacao}
                         onChange={e => setNovoLancamento({...novoLancamento, observacao: e.target.value.toUpperCase()})}
-                        placeholder="Ex: Cantina, Oferta, Dizimo"
+                        placeholder="Ex: Doação anônima, Venda de refrigerante"
                         className="w-full mt-1 bg-surface-container-low border border-outline-variant/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary outline-none uppercase" 
                       />
                     </div>
@@ -1535,7 +1585,7 @@ export default function FinanceiroEventos() {
             <p className="text-xs text-slate-400 font-bold mb-6">Selecione os tipos de lançamentos que deseja incluir:</p>
             
             <div className="space-y-3 mb-8">
-              {['Inscrição', 'Cantina', 'Oferta', 'Dizimo'].map(tipo => (
+              {['Inscrição', 'Cantina', 'Oferta'].map(tipo => (
                 <label key={tipo} className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 cursor-pointer hover:bg-slate-100 transition-colors">
                   <input 
                     type="checkbox"
@@ -1557,8 +1607,8 @@ export default function FinanceiroEventos() {
 
               <button 
                 onClick={() => {
-                  if (filtrosExport.length === 4) setFiltrosExport([])
-                  else setFiltrosExport(['Inscrição', 'Cantina', 'Oferta', 'Dizimo'])
+                  if (filtrosExport.length === 3) setFiltrosExport([])
+                  else setFiltrosExport(['Inscrição', 'Cantina', 'Oferta'])
                 }}
                 className="text-[10px] font-black text-primary uppercase ml-1 hover:underline"
               >
